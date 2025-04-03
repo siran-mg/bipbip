@@ -10,7 +10,6 @@ class SearchDriverForm extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       child: Card(
-        margin: EdgeInsets.all(16.0),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(

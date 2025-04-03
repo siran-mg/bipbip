@@ -17,16 +17,21 @@ class HomePage extends StatelessWidget {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0),
               child: Row(
+                spacing: 4.0,
                 children: [
-                  Icon(
-                    Icons.location_on,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
+                  Icon(Icons.location_on),
                   Text('Sabotsy Namehana'),
                 ],
               ),
             ),
-            const SearchDriverForm(),
+            Padding(
+              padding: const EdgeInsets.only(
+                left: 16.0,
+                right: 16.0,
+                bottom: 16.0,
+              ),
+              child: const SearchDriverForm(),
+            ),
             Text(
               "Les chauffeurs à proximité",
               style: TextStyle(

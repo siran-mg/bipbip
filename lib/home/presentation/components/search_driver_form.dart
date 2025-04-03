@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ndao/location/infrastructure/providers/geo_locator_provider.dart';
 
 class SearchDriverForm extends StatelessWidget {
   const SearchDriverForm({
@@ -31,7 +32,9 @@ class SearchDriverForm extends StatelessWidget {
                 ),
               ),
               TextButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  GeoLocatorProvider().getCurrentPosition();
+                },
                 icon: Icon(Icons.my_location,
                     color: Theme.of(context).colorScheme.primary),
                 label: Text('Ma position actuelle'),

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:ndao/home/presentation/home_page.dart';
 import 'package:ndao/location/domain/providers/locator_provider.dart';
 import 'package:ndao/location/infrastructure/providers/geo_locator_provider.dart';
-
+import 'package:ndao/user/presentation/pages/login_page.dart';
+import 'package:ndao/user/presentation/pages/registration_page.dart';
 import 'package:provider/provider.dart';
 
 void main() {
@@ -27,21 +28,26 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
           useMaterial3: true,
         ),
-        home: Scaffold(
-          body: const HomePage(),
-          bottomNavigationBar: BottomNavigationBar(
-            items: [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home),
-                label: 'Accueil',
+        initialRoute: '/login',
+        routes: {
+          '/login': (context) => const LoginPage(),
+          '/register': (context) => const RegistrationPage(),
+          '/home': (context) => Scaffold(
+                body: const HomePage(),
+                bottomNavigationBar: BottomNavigationBar(
+                  items: [
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.home),
+                      label: 'Accueil',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.person),
+                      label: 'Profile',
+                    ),
+                  ],
+                ),
               ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.person),
-                label: 'Profile',
-              ),
-            ],
-          ),
-        ),
+        },
       ),
     );
   }

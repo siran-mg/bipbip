@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:ndao/user/domain/interactors/register_interactor.dart';
 import 'package:ndao/user/presentation/components/registration_form.dart';
+import 'package:provider/provider.dart';
 
 /// Registration page for new users
 class RegistrationPage extends StatelessWidget {
@@ -8,6 +10,10 @@ class RegistrationPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get the register interactor from the provider
+    final registerInteractor =
+        Provider.of<RegisterInteractor>(context, listen: false);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Créer un compte'),
@@ -17,16 +23,25 @@ class RegistrationPage extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: RegistrationForm(
-              onRegister: (name, email, phoneNumber, password) {
-                // In a real app, this would call a registration interactor/use case
-                // For now, we'll just simulate registration with a delay
-                return Future.delayed(
-                  const Duration(seconds: 2),
-                  () {
-                    // Navigate to home page after successful registration
+              onRegister: (name, email, phoneNumber, password) async {
+                try {
+                  // Use the register interactor to sign up
+                  await registerInteractor.execute(
+                    name,
+                    email,
+                    phoneNumber,
+                    password,
+                  );
+
+                  // Navigate to home page after successful registration
+                  if (context.mounted) {
                     Navigator.pushReplacementNamed(context, '/home');
-                  },
-                );
+                  }
+                  return Future.value();
+                } catch (e) {
+                  // Rethrow the exception to be handled by the form
+                  return Future.error(e);
+                }
               },
             ),
           ),

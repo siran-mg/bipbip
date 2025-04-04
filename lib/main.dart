@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ndao/core/infrastructure/supabase/supabase_client.dart'
     as supabase_init;
+import 'package:ndao/core/infrastructure/supabase/storage_service.dart';
 import 'package:ndao/home/presentation/home_page.dart';
 import 'package:ndao/location/domain/providers/locator_provider.dart';
 import 'package:ndao/location/infrastructure/providers/geo_locator_provider.dart';
@@ -11,6 +12,7 @@ import 'package:ndao/user/domain/interactors/login_interactor.dart';
 import 'package:ndao/user/domain/interactors/register_interactor.dart';
 import 'package:ndao/user/domain/interactors/save_client_interactor.dart';
 import 'package:ndao/user/domain/interactors/save_driver_interactor.dart';
+import 'package:ndao/user/domain/interactors/upload_profile_photo_interactor.dart';
 import 'package:ndao/user/domain/repositories/auth_repository.dart';
 import 'package:ndao/user/domain/repositories/client_repository.dart';
 import 'package:ndao/user/domain/repositories/driver_repository.dart';
@@ -63,6 +65,12 @@ class MyApp extends StatelessWidget {
               supabase_init.SupabaseClientInitializer.instance),
         ),
 
+        // Storage service
+        Provider<StorageService>(
+          create: (_) =>
+              StorageService(supabase_init.SupabaseClientInitializer.instance),
+        ),
+
         // Auth interactors
         ProxyProvider<AuthRepository, LoginInteractor>(
           update: (_, repository, __) => LoginInteractor(repository),
@@ -86,6 +94,17 @@ class MyApp extends StatelessWidget {
         ),
         ProxyProvider<DriverRepository, SaveDriverInteractor>(
           update: (_, repository, __) => SaveDriverInteractor(repository),
+        ),
+
+        // Profile photo interactor
+        Provider<UploadProfilePhotoInteractor>(
+          create: (context) => UploadProfilePhotoInteractor(
+            storageService: Provider.of<StorageService>(context, listen: false),
+            clientRepository:
+                Provider.of<ClientRepository>(context, listen: false),
+            driverRepository:
+                Provider.of<DriverRepository>(context, listen: false),
+          ),
         ),
       ],
       child: MaterialApp(

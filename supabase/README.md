@@ -14,6 +14,7 @@ This directory contains SQL migrations for setting up the Supabase database for 
 4. Run the SQL migrations in the Supabase SQL Editor in the following order:
    - `clients_table.sql`
    - `drivers_table.sql`
+   - `storage_setup.sql`
 
 ## Database Schema
 
@@ -52,9 +53,18 @@ The `drivers` table stores information about drivers who provide rides:
 - `created_at`: Timestamp (when the record was created)
 - `updated_at`: Timestamp (when the record was last updated)
 
+## Storage
+
+The application uses Supabase Storage for storing profile photos:
+
+- **Bucket**: `profile_photos` - Stores user profile photos
+- **Structure**: Files are stored in folders named after the user's ID
+- **Security**: RLS policies ensure users can only access their own photos
+- **Public Access**: Profile photos are publicly accessible for viewing
+
 ## Row Level Security (RLS)
 
-Both tables have Row Level Security (RLS) policies to ensure data security:
+Both database tables and storage buckets have Row Level Security (RLS) policies to ensure data security:
 
 - Clients can only view, insert, and update their own data
 - Drivers can only view, insert, and update their own data

@@ -11,6 +11,7 @@ import 'package:ndao/location/infrastructure/providers/geo_locator_provider.dart
 import 'package:ndao/user/domain/interactors/get_available_drivers_interactor.dart';
 import 'package:ndao/user/domain/interactors/get_client_interactor.dart';
 import 'package:ndao/user/domain/interactors/login_interactor.dart';
+import 'package:ndao/user/domain/interactors/register_driver_interactor.dart';
 import 'package:ndao/user/domain/interactors/register_interactor.dart';
 import 'package:ndao/user/domain/interactors/save_client_interactor.dart';
 import 'package:ndao/user/domain/interactors/save_driver_interactor.dart';
@@ -21,6 +22,7 @@ import 'package:ndao/user/domain/repositories/driver_repository.dart';
 import 'package:ndao/user/infrastructure/repositories/supabase_auth_repository.dart';
 import 'package:ndao/user/infrastructure/repositories/supabase_client_repository.dart';
 import 'package:ndao/user/infrastructure/repositories/supabase_driver_repository.dart';
+import 'package:ndao/user/presentation/pages/driver_registration_page.dart';
 import 'package:ndao/user/presentation/pages/login_page.dart';
 import 'package:ndao/user/presentation/pages/registration_page.dart';
 import 'package:provider/provider.dart';
@@ -87,6 +89,13 @@ class MyApp extends StatelessWidget {
           update: (_, repository, __) => RegisterInteractor(repository),
         ),
 
+        // Driver registration interactor
+        ProxyProvider2<AuthRepository, DriverRepository,
+            RegisterDriverInteractor>(
+          update: (_, authRepository, driverRepository, __) =>
+              RegisterDriverInteractor(authRepository, driverRepository),
+        ),
+
         // Client interactors
         ProxyProvider<ClientRepository, GetClientInteractor>(
           update: (_, repository, __) => GetClientInteractor(repository),
@@ -126,6 +135,7 @@ class MyApp extends StatelessWidget {
         routes: {
           '/login': (context) => const LoginPage(),
           '/register': (context) => const RegistrationPage(),
+          '/driver-register': (context) => const DriverRegistrationPage(),
           '/home': (context) => Scaffold(
                 body: const HomePage(),
                 bottomNavigationBar: BottomNavigationBar(

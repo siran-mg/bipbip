@@ -199,6 +199,21 @@ class _LoginFormState extends State<LoginForm> {
               ),
             ],
           ),
+
+          // Driver register link
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text("Vous êtes chauffeur?"),
+              TextButton(
+                onPressed: () {
+                  // Navigate to driver registration page
+                  Navigator.pushNamed(context, '/driver-register');
+                },
+                child: const Text('Devenir chauffeur'),
+              ),
+            ],
+          ),
         ],
       ),
     );

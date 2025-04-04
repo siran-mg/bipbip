@@ -5,10 +5,18 @@ import 'package:ndao/core/infrastructure/supabase/supabase_client.dart'
 import 'package:ndao/home/presentation/home_page.dart';
 import 'package:ndao/location/domain/providers/locator_provider.dart';
 import 'package:ndao/location/infrastructure/providers/geo_locator_provider.dart';
+import 'package:ndao/user/domain/interactors/get_available_drivers_interactor.dart';
+import 'package:ndao/user/domain/interactors/get_client_interactor.dart';
 import 'package:ndao/user/domain/interactors/login_interactor.dart';
 import 'package:ndao/user/domain/interactors/register_interactor.dart';
+import 'package:ndao/user/domain/interactors/save_client_interactor.dart';
+import 'package:ndao/user/domain/interactors/save_driver_interactor.dart';
 import 'package:ndao/user/domain/repositories/auth_repository.dart';
+import 'package:ndao/user/domain/repositories/client_repository.dart';
+import 'package:ndao/user/domain/repositories/driver_repository.dart';
 import 'package:ndao/user/infrastructure/repositories/supabase_auth_repository.dart';
+import 'package:ndao/user/infrastructure/repositories/supabase_client_repository.dart';
+import 'package:ndao/user/infrastructure/repositories/supabase_driver_repository.dart';
 import 'package:ndao/user/presentation/pages/login_page.dart';
 import 'package:ndao/user/presentation/pages/registration_page.dart';
 import 'package:provider/provider.dart';
@@ -43,12 +51,41 @@ class MyApp extends StatelessWidget {
               supabase_init.SupabaseClientInitializer.instance),
         ),
 
+        // Client repository
+        Provider<ClientRepository>(
+          create: (_) => SupabaseClientRepository(
+              supabase_init.SupabaseClientInitializer.instance),
+        ),
+
+        // Driver repository
+        Provider<DriverRepository>(
+          create: (_) => SupabaseDriverRepository(
+              supabase_init.SupabaseClientInitializer.instance),
+        ),
+
         // Auth interactors
         ProxyProvider<AuthRepository, LoginInteractor>(
           update: (_, repository, __) => LoginInteractor(repository),
         ),
         ProxyProvider<AuthRepository, RegisterInteractor>(
           update: (_, repository, __) => RegisterInteractor(repository),
+        ),
+
+        // Client interactors
+        ProxyProvider<ClientRepository, GetClientInteractor>(
+          update: (_, repository, __) => GetClientInteractor(repository),
+        ),
+        ProxyProvider<ClientRepository, SaveClientInteractor>(
+          update: (_, repository, __) => SaveClientInteractor(repository),
+        ),
+
+        // Driver interactors
+        ProxyProvider<DriverRepository, GetAvailableDriversInteractor>(
+          update: (_, repository, __) =>
+              GetAvailableDriversInteractor(repository),
+        ),
+        ProxyProvider<DriverRepository, SaveDriverInteractor>(
+          update: (_, repository, __) => SaveDriverInteractor(repository),
         ),
       ],
       child: MaterialApp(

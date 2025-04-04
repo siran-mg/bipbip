@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:ndao/user/domain/entities/driver_entity.dart';
 
 class DriverItem extends StatelessWidget {
+  /// The driver to display
+  final DriverEntity driver;
+
   const DriverItem({
     super.key,
+    required this.driver,
   });
 
   @override
@@ -29,7 +34,7 @@ class DriverItem extends StatelessWidget {
                     TextButton(
                       onPressed: () {},
                       child: Text(
-                        'Jean Dupont',
+                        driver.name,
                         style: TextStyle(
                           fontSize: 16.0,
                           fontWeight: FontWeight.bold,
@@ -42,7 +47,7 @@ class DriverItem extends StatelessWidget {
                         Icons.star,
                         color: Theme.of(context).colorScheme.secondary,
                       ),
-                      label: Text('5.0'),
+                      label: Text(driver.rating?.toString() ?? 'N/A'),
                     ),
                   ],
                 ),
@@ -61,9 +66,18 @@ class DriverItem extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Yamaha G5'),
+            Text('${driver.vehicleInfo.model} (${driver.vehicleInfo.color})'),
             ElevatedButton.icon(
-              onPressed: () {},
+              onPressed: () {
+                // Launch phone call
+                final phoneNumber = driver.phoneNumber;
+                // You would typically use url_launcher package to make a phone call
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Appel à $phoneNumber'),
+                  ),
+                );
+              },
               icon: Icon(Icons.phone),
               label: Text('Contacter'),
             ),

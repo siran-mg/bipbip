@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ndao/home/presentation/components/driver_item.dart';
+import 'package:ndao/home/presentation/components/available_drivers_list.dart';
 import 'package:ndao/home/presentation/components/search_driver_form.dart';
 
 class HomePage extends StatelessWidget {
@@ -32,29 +32,8 @@ class HomePage extends StatelessWidget {
               ),
               child: const SearchDriverForm(),
             ),
-            Text(
-              "Les chauffeurs à proximité",
-              style: TextStyle(
-                fontSize: 16.0,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: ListView.separated(
-                shrinkWrap: true,
-                itemBuilder: (context, index) {
-                  return const DriverItem();
-                },
-                separatorBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16.0),
-                    child: const Divider(),
-                  );
-                },
-                itemCount: 5,
-              ),
-            ),
+            // Available drivers list
+            const AvailableDriversList(),
           ],
         ),
       ),

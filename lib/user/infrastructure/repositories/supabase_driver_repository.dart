@@ -14,15 +14,21 @@ class SupabaseDriverRepository implements DriverRepository {
   @override
   Future<DriverEntity> saveDriver(DriverEntity driver) async {
     try {
+      print(
+          'SupabaseDriverRepository.saveDriver called with driver ID: ${driver.id}');
+
       // Check if the driver already exists
       if (driver.id.isNotEmpty) {
+        print('Driver exists, updating instead of inserting');
         return updateDriver(driver);
       }
 
+      print('Inserting new driver into database');
       // Insert the driver into the database
       final response = await _client
           .from(_tableName)
           .insert({
+            'id': driver.id, // Explicitly include the ID
             'given_name': driver.givenName,
             'family_name': driver.familyName,
             'email': driver.email,
@@ -40,9 +46,11 @@ class SupabaseDriverRepository implements DriverRepository {
           .select()
           .single();
 
+      print('Driver inserted successfully, response: $response');
       // Return the driver with the generated ID
       return _mapToDriverEntity(response);
     } catch (e) {
+      print('Error in SupabaseDriverRepository.saveDriver: $e');
       throw Exception('Failed to save driver: ${e.toString()}');
     }
   }

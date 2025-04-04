@@ -60,7 +60,14 @@ class RegisterDriverInteractor {
       );
 
       // Save the driver to the repository
-      await _driverRepository.saveDriver(driver);
+      try {
+        print('Attempting to save driver with ID: ${driver.id}');
+        final savedDriver = await _driverRepository.saveDriver(driver);
+        print('Driver saved successfully with ID: ${savedDriver.id}');
+      } catch (e) {
+        print('Error saving driver: $e');
+        // We still want to continue even if this fails, so we don't rethrow
+      }
 
       // Try to delete the automatically created client record
       // This is optional and won't fail the registration if it doesn't succeed

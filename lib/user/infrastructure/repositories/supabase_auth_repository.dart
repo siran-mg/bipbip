@@ -49,11 +49,28 @@ class SupabaseAuthRepository implements AuthRepository {
       );
 
       if (response.user == null) {
-        throw Exception('Registration failed');
+        throw Exception('Registration failed: User is null');
+      }
+
+      // The response already contains the user, so we don't need to check for errors here
+
+      // Manually create the client record if the trigger fails
+      try {
+        await _client.from('clients').insert({
+          'id': response.user!.id,
+          'given_name': givenName,
+          'family_name': familyName,
+          'email': email,
+          'phone_number': phoneNumber,
+        });
+      } catch (dbError) {
+        // If this fails, the trigger might have already created the record, which is fine
+        print('Note: Manual client creation attempt: $dbError');
       }
 
       return response.user!.id;
     } catch (e) {
+      print('Registration error details: $e');
       throw Exception('Registration failed: ${e.toString()}');
     }
   }

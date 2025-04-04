@@ -70,8 +70,11 @@ BEFORE UPDATE ON client_details
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
 
+-- Drop the existing function if it exists
+DROP FUNCTION IF EXISTS handle_new_user();
+
 -- Create function to handle new user signups
-CREATE OR REPLACE FUNCTION handle_new_user()
+CREATE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
   -- Insert into users table
@@ -83,18 +86,18 @@ BEGIN
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'phone_number', '')
   );
-  
+
   -- Determine role from metadata
   IF NEW.raw_user_meta_data->>'user_type' = 'driver' THEN
     -- Add driver role
     INSERT INTO user_roles (user_id, role) VALUES (NEW.id, 'driver');
-    
+
     -- Add placeholder driver details (these will be updated later)
     INSERT INTO driver_details (
-      user_id, 
-      vehicle_license_plate, 
-      vehicle_model, 
-      vehicle_color, 
+      user_id,
+      vehicle_license_plate,
+      vehicle_model,
+      vehicle_color,
       vehicle_type
     ) VALUES (
       NEW.id,
@@ -106,11 +109,11 @@ BEGIN
   ELSE
     -- Default to client role
     INSERT INTO user_roles (user_id, role) VALUES (NEW.id, 'client');
-    
+
     -- Add client details
     INSERT INTO client_details (user_id) VALUES (NEW.id);
   END IF;
-  
+
   RETURN NEW;
 EXCEPTION
   WHEN OTHERS THEN
@@ -119,6 +122,9 @@ EXCEPTION
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Drop the existing trigger if it exists
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 
 -- Create trigger for new user signups
 CREATE TRIGGER on_auth_user_created
@@ -133,50 +139,59 @@ ALTER TABLE driver_details ENABLE ROW LEVEL SECURITY;
 ALTER TABLE client_details ENABLE ROW LEVEL SECURITY;
 
 -- Users can view and update their own data
+DROP POLICY IF EXISTS "Users can view their own data" ON users;
 CREATE POLICY "Users can view their own data"
 ON users
 FOR SELECT
 USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Users can update their own data" ON users;
 CREATE POLICY "Users can update their own data"
 ON users
 FOR UPDATE
 USING (auth.uid() = id);
 
 -- Users can view and update their own roles
+DROP POLICY IF EXISTS "Users can view their own roles" ON user_roles;
 CREATE POLICY "Users can view their own roles"
 ON user_roles
 FOR SELECT
 USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update their own roles" ON user_roles;
 CREATE POLICY "Users can update their own roles"
 ON user_roles
 FOR UPDATE
 USING (auth.uid() = user_id);
 
 -- Users can view and update their own driver details
+DROP POLICY IF EXISTS "Users can view their own driver details" ON driver_details;
 CREATE POLICY "Users can view their own driver details"
 ON driver_details
 FOR SELECT
 USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update their own driver details" ON driver_details;
 CREATE POLICY "Users can update their own driver details"
 ON driver_details
 FOR UPDATE
 USING (auth.uid() = user_id);
 
 -- Users can view and update their own client details
+DROP POLICY IF EXISTS "Users can view their own client details" ON client_details;
 CREATE POLICY "Users can view their own client details"
 ON client_details
 FOR SELECT
 USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update their own client details" ON client_details;
 CREATE POLICY "Users can update their own client details"
 ON client_details
 FOR UPDATE
 USING (auth.uid() = user_id);
 
 -- Anyone can view available drivers
+DROP POLICY IF EXISTS "Anyone can view available drivers" ON driver_details;
 CREATE POLICY "Anyone can view available drivers"
 ON driver_details
 FOR SELECT

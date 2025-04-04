@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:ndao/home/presentation/home_page.dart';
 
 void main() {
+  // Ensure Flutter is initialized before using platform plugins
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 

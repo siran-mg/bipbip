@@ -8,6 +8,9 @@ class SearchDriverForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final source = TextEditingController();
+    final destination = TextEditingController();
+
     return SizedBox(
       width: double.infinity,
       child: Card(
@@ -25,19 +28,37 @@ class SearchDriverForm extends StatelessWidget {
                 ),
               ),
               TextField(
+                controller: source,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: 'Ma position actuelle',
+                  prefixIcon: IconButton(
+                    icon: Icon(Icons.my_location,
+                        color: Theme.of(context).colorScheme.primary),
+                    onPressed: () async {
+                      source.clear();
+                      final position =
+                          await GeoLocatorProvider().getCurrentPosition();
+                      final address = await GeoLocatorProvider()
+                          .getAddressFromPosition(position);
+                      source.text = address ?? 'Position indéterminée';
+                    },
+                  ),
+                ),
+              ),
+              TextField(
+                controller: destination,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
                   hintText: 'Entrez votre destination',
-                  prefixIcon: Icon(Icons.search),
+                  prefixIcon: IconButton(
+                    icon: Icon(
+                      Icons.search,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    onPressed: () {},
+                  ),
                 ),
-              ),
-              TextButton.icon(
-                onPressed: () {
-                  GeoLocatorProvider().getCurrentPosition();
-                },
-                icon: Icon(Icons.my_location,
-                    color: Theme.of(context).colorScheme.primary),
-                label: Text('Ma position actuelle'),
               ),
               SizedBox(
                 width: double.infinity,
@@ -51,5 +72,27 @@ class SearchDriverForm extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> getCurrentLocation(BuildContext context) async {
+    try {
+      final locator = GeoLocatorProvider();
+      final position = await locator.getCurrentPosition();
+      // You can use the position here or show a snackbar with the coordinates
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text('Position: ${position.latitude}, ${position.longitude}'),
+        ),
+      );
+    } catch (e) {
+      // Handle any errors that might occur
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }

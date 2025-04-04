@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:dio/dio.dart';
 import 'package:ndao/location/domain/entities/position_entity.dart';
 import 'package:ndao/location/domain/providers/locator_provider.dart';
 import 'package:geolocator/geolocator.dart';
@@ -44,5 +47,22 @@ class GeoLocatorProvider implements LocatorProvider {
         longitude: position.longitude,
       );
     });
+  }
+
+  @override
+  Future<String?> getAddressFromPosition(PositionEntity position) async {
+    String apiKey = "AIzaSyCJCvIC_A4mfdgn2v1FmHeX_64Tnq2PnF4";
+    String url =
+        "https://maps.googleapis.com/maps/api/geocode/json?latlng=${position.latitude},${position.longitude}&key=$apiKey";
+
+    final response = await Dio().get(url);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.data);
+      if (data['status'] == 'OK') {
+        final address = data['results'][0]['formatted_address'];
+        return address;
+      }
+    }
+    return null;
   }
 }

@@ -58,6 +58,7 @@ class _ProfilePhotoPickerState extends State<ProfilePhotoPicker> {
         _isLoading = true;
       });
 
+      if (!mounted) return;
       final uploadInteractor =
           Provider.of<UploadProfilePhotoInteractor>(context, listen: false);
 
@@ -81,6 +82,7 @@ class _ProfilePhotoPickerState extends State<ProfilePhotoPicker> {
         widget.onPhotoUpdated!(newPhotoUrl);
       }
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Photo de profil mise à jour avec succès'),

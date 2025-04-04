@@ -1,7 +1,8 @@
 -- Create clients table
 CREATE TABLE IF NOT EXISTS clients (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name TEXT NOT NULL,
+  given_name TEXT NOT NULL,
+  family_name TEXT NOT NULL,
   email TEXT NOT NULL UNIQUE,
   phone_number TEXT NOT NULL,
   profile_picture_url TEXT,
@@ -49,10 +50,11 @@ USING (auth.uid() = id);
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO clients (id, name, email, phone_number)
+  INSERT INTO clients (id, given_name, family_name, email, phone_number)
   VALUES (
     NEW.id,
-    COALESCE(NEW.raw_user_meta_data->>'name', 'User'),
+    COALESCE(NEW.raw_user_meta_data->>'given_name', 'New'),
+    COALESCE(NEW.raw_user_meta_data->>'family_name', 'User'),
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'phone_number', '')
   );

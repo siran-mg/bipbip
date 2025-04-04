@@ -34,7 +34,7 @@ class DriverItem extends StatelessWidget {
                     TextButton(
                       onPressed: () {},
                       child: Text(
-                        driver.name,
+                        driver.fullName,
                         style: TextStyle(
                           fontSize: 16.0,
                           fontWeight: FontWeight.bold,

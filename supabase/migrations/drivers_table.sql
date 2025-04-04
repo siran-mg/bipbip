@@ -1,7 +1,8 @@
 -- Create drivers table
 CREATE TABLE IF NOT EXISTS drivers (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name TEXT NOT NULL,
+  given_name TEXT NOT NULL,
+  family_name TEXT NOT NULL,
   email TEXT NOT NULL UNIQUE,
   phone_number TEXT NOT NULL,
   profile_picture_url TEXT,

@@ -41,7 +41,10 @@ class SupabaseAuthRepository implements AuthRepository {
         email: email,
         password: password,
         data: {
-          'name': name,
+          'given_name': name.split(' ').first,
+          'family_name': name.split(' ').length > 1
+              ? name.split(' ').sublist(1).join(' ')
+              : '',
           'phone_number': phoneNumber,
         },
       );
@@ -74,7 +77,8 @@ class SupabaseAuthRepository implements AuthRepository {
 
     return ClientEntity(
       id: user.id,
-      name: userData?['name'] ?? '',
+      givenName: userData?['given_name'] ?? '',
+      familyName: userData?['family_name'] ?? '',
       email: user.email ?? '',
       phoneNumber: userData?['phone_number'] ?? '',
     );

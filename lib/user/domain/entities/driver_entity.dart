@@ -4,35 +4,39 @@ import 'package:ndao/location/domain/entities/position_entity.dart';
 class DriverEntity {
   /// Unique identifier for the driver
   final String id;
-  
-  /// Driver's full name
-  final String name;
-  
+
+  /// Driver's first name
+  final String givenName;
+
+  /// Driver's last name
+  final String familyName;
+
   /// Driver's email address
   final String email;
-  
+
   /// Driver's phone number
   final String phoneNumber;
-  
+
   /// Optional profile picture URL
   final String? profilePictureUrl;
-  
+
   /// Driver's rating (1-5)
   final double? rating;
-  
+
   /// Driver's current position
   final PositionEntity? currentPosition;
-  
+
   /// Driver's vehicle information
   final VehicleInfo vehicleInfo;
-  
+
   /// Driver's availability status
   final bool isAvailable;
 
   /// Creates a new DriverEntity
   DriverEntity({
     required this.id,
-    required this.name,
+    required this.givenName,
+    required this.familyName,
     required this.email,
     required this.phoneNumber,
     required this.vehicleInfo,
@@ -41,11 +45,15 @@ class DriverEntity {
     this.currentPosition,
     this.isAvailable = false,
   });
-  
+
+  /// Get the full name (given name + family name)
+  String get fullName => '$givenName $familyName';
+
   /// Creates a copy of this DriverEntity with the given fields replaced with new values
   DriverEntity copyWith({
     String? id,
-    String? name,
+    String? givenName,
+    String? familyName,
     String? email,
     String? phoneNumber,
     String? profilePictureUrl,
@@ -56,7 +64,8 @@ class DriverEntity {
   }) {
     return DriverEntity(
       id: id ?? this.id,
-      name: name ?? this.name,
+      givenName: givenName ?? this.givenName,
+      familyName: familyName ?? this.familyName,
       email: email ?? this.email,
       phoneNumber: phoneNumber ?? this.phoneNumber,
       profilePictureUrl: profilePictureUrl ?? this.profilePictureUrl,
@@ -72,13 +81,13 @@ class DriverEntity {
 class VehicleInfo {
   /// Vehicle license plate number
   final String licensePlate;
-  
+
   /// Vehicle model
   final String model;
-  
+
   /// Vehicle color
   final String color;
-  
+
   /// Vehicle type (e.g., motorcycle, car)
   final VehicleType type;
 

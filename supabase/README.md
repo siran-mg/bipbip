@@ -22,7 +22,8 @@ This directory contains SQL migrations for setting up the Supabase database for 
 The `clients` table stores information about users who are looking for rides:
 
 - `id`: UUID (primary key, linked to auth.users)
-- `name`: Text (user's full name)
+- `given_name`: Text (user's first name)
+- `family_name`: Text (user's last name)
 - `email`: Text (user's email address)
 - `phone_number`: Text (user's phone number)
 - `profile_picture_url`: Text (optional URL to profile picture)
@@ -35,7 +36,8 @@ The `clients` table stores information about users who are looking for rides:
 The `drivers` table stores information about drivers who provide rides:
 
 - `id`: UUID (primary key, linked to auth.users)
-- `name`: Text (driver's full name)
+- `given_name`: Text (driver's first name)
+- `family_name`: Text (driver's last name)
 - `email`: Text (driver's email address)
 - `phone_number`: Text (driver's phone number)
 - `profile_picture_url`: Text (optional URL to profile picture)

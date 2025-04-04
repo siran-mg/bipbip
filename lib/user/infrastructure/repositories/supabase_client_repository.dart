@@ -19,18 +19,24 @@ class SupabaseClientRepository implements ClientRepository {
       }
 
       // Insert the client into the database
-      final response = await _client.from(_tableName).insert({
-        'name': client.name,
-        'email': client.email,
-        'phone_number': client.phoneNumber,
-        'profile_picture_url': client.profilePictureUrl,
-        'rating': client.rating,
-      }).select().single();
+      final response = await _client
+          .from(_tableName)
+          .insert({
+            'given_name': client.givenName,
+            'family_name': client.familyName,
+            'email': client.email,
+            'phone_number': client.phoneNumber,
+            'profile_picture_url': client.profilePictureUrl,
+            'rating': client.rating,
+          })
+          .select()
+          .single();
 
       // Return the client with the generated ID
       return ClientEntity(
         id: response['id'],
-        name: response['name'],
+        givenName: response['given_name'],
+        familyName: response['family_name'],
         email: response['email'],
         phoneNumber: response['phone_number'],
         profilePictureUrl: response['profile_picture_url'],
@@ -44,11 +50,8 @@ class SupabaseClientRepository implements ClientRepository {
   @override
   Future<ClientEntity?> getClientById(String id) async {
     try {
-      final response = await _client
-          .from(_tableName)
-          .select()
-          .eq('id', id)
-          .maybeSingle();
+      final response =
+          await _client.from(_tableName).select().eq('id', id).maybeSingle();
 
       if (response == null) {
         return null;
@@ -56,7 +59,8 @@ class SupabaseClientRepository implements ClientRepository {
 
       return ClientEntity(
         id: response['id'],
-        name: response['name'],
+        givenName: response['given_name'],
+        familyName: response['family_name'],
         email: response['email'],
         phoneNumber: response['phone_number'],
         profilePictureUrl: response['profile_picture_url'],
@@ -71,7 +75,8 @@ class SupabaseClientRepository implements ClientRepository {
   Future<ClientEntity> updateClient(ClientEntity client) async {
     try {
       await _client.from(_tableName).update({
-        'name': client.name,
+        'given_name': client.givenName,
+        'family_name': client.familyName,
         'email': client.email,
         'phone_number': client.phoneNumber,
         'profile_picture_url': client.profilePictureUrl,

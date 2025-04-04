@@ -20,20 +20,25 @@ class SupabaseDriverRepository implements DriverRepository {
       }
 
       // Insert the driver into the database
-      final response = await _client.from(_tableName).insert({
-        'name': driver.name,
-        'email': driver.email,
-        'phone_number': driver.phoneNumber,
-        'profile_picture_url': driver.profilePictureUrl,
-        'rating': driver.rating,
-        'is_available': driver.isAvailable,
-        'current_latitude': driver.currentPosition?.latitude,
-        'current_longitude': driver.currentPosition?.longitude,
-        'vehicle_license_plate': driver.vehicleInfo.licensePlate,
-        'vehicle_model': driver.vehicleInfo.model,
-        'vehicle_color': driver.vehicleInfo.color,
-        'vehicle_type': driver.vehicleInfo.type.name,
-      }).select().single();
+      final response = await _client
+          .from(_tableName)
+          .insert({
+            'given_name': driver.givenName,
+            'family_name': driver.familyName,
+            'email': driver.email,
+            'phone_number': driver.phoneNumber,
+            'profile_picture_url': driver.profilePictureUrl,
+            'rating': driver.rating,
+            'is_available': driver.isAvailable,
+            'current_latitude': driver.currentPosition?.latitude,
+            'current_longitude': driver.currentPosition?.longitude,
+            'vehicle_license_plate': driver.vehicleInfo.licensePlate,
+            'vehicle_model': driver.vehicleInfo.model,
+            'vehicle_color': driver.vehicleInfo.color,
+            'vehicle_type': driver.vehicleInfo.type.name,
+          })
+          .select()
+          .single();
 
       // Return the driver with the generated ID
       return _mapToDriverEntity(response);
@@ -45,11 +50,8 @@ class SupabaseDriverRepository implements DriverRepository {
   @override
   Future<DriverEntity?> getDriverById(String id) async {
     try {
-      final response = await _client
-          .from(_tableName)
-          .select()
-          .eq('id', id)
-          .maybeSingle();
+      final response =
+          await _client.from(_tableName).select().eq('id', id).maybeSingle();
 
       if (response == null) {
         return null;
@@ -65,7 +67,8 @@ class SupabaseDriverRepository implements DriverRepository {
   Future<DriverEntity> updateDriver(DriverEntity driver) async {
     try {
       await _client.from(_tableName).update({
-        'name': driver.name,
+        'given_name': driver.givenName,
+        'family_name': driver.familyName,
         'email': driver.email,
         'phone_number': driver.phoneNumber,
         'profile_picture_url': driver.profilePictureUrl,
@@ -139,10 +142,8 @@ class SupabaseDriverRepository implements DriverRepository {
   @override
   Future<List<DriverEntity>> getAvailableDrivers() async {
     try {
-      final response = await _client
-          .from(_tableName)
-          .select()
-          .eq('is_available', true);
+      final response =
+          await _client.from(_tableName).select().eq('is_available', true);
 
       return response.map((data) => _mapToDriverEntity(data)).toList();
     } catch (e) {
@@ -188,7 +189,8 @@ class SupabaseDriverRepository implements DriverRepository {
     // Create and return driver entity
     return DriverEntity(
       id: data['id'],
-      name: data['name'],
+      givenName: data['given_name'],
+      familyName: data['family_name'],
       email: data['email'],
       phoneNumber: data['phone_number'],
       profilePictureUrl: data['profile_picture_url'],

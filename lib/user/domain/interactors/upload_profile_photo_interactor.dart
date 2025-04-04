@@ -1,11 +1,11 @@
 import 'dart:io';
-import 'package:ndao/core/infrastructure/supabase/storage_service.dart';
 import 'package:ndao/user/domain/repositories/client_repository.dart';
 import 'package:ndao/user/domain/repositories/driver_repository.dart';
+import 'package:ndao/user/domain/repositories/storage_repository.dart';
 
 /// Interactor for uploading a profile photo
 class UploadProfilePhotoInteractor {
-  final StorageService _storageService;
+  final StorageRepository _storageRepository;
   final ClientRepository? _clientRepository;
   final DriverRepository? _driverRepository;
 
@@ -13,10 +13,10 @@ class UploadProfilePhotoInteractor {
   ///
   /// Either clientRepository or driverRepository must be provided
   UploadProfilePhotoInteractor({
-    required StorageService storageService,
+    required StorageRepository storageRepository,
     ClientRepository? clientRepository,
     DriverRepository? driverRepository,
-  })  : _storageService = storageService,
+  })  : _storageRepository = storageRepository,
         _clientRepository = clientRepository,
         _driverRepository = driverRepository,
         assert(clientRepository != null || driverRepository != null,
@@ -35,7 +35,7 @@ class UploadProfilePhotoInteractor {
     try {
       // Upload the photo
       final photoUrl =
-          await _storageService.uploadProfilePhoto(clientId, photoFile);
+          await _storageRepository.uploadProfilePhoto(clientId, photoFile);
 
       // Get the current client
       final client = await _clientRepository.getClientById(clientId);
@@ -66,7 +66,7 @@ class UploadProfilePhotoInteractor {
     try {
       // Upload the photo
       final photoUrl =
-          await _storageService.uploadProfilePhoto(driverId, photoFile);
+          await _storageRepository.uploadProfilePhoto(driverId, photoFile);
 
       // Get the current driver
       final driver = await _driverRepository.getDriverById(driverId);

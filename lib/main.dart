@@ -3,6 +3,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ndao/core/infrastructure/supabase/supabase_client.dart'
     as supabase_init;
 import 'package:ndao/core/infrastructure/supabase/storage_service.dart';
+import 'package:ndao/user/domain/repositories/storage_repository.dart';
+import 'package:ndao/user/infrastructure/repositories/supabase_storage_repository.dart';
 import 'package:ndao/home/presentation/home_page.dart';
 import 'package:ndao/location/domain/providers/locator_provider.dart';
 import 'package:ndao/location/infrastructure/providers/geo_locator_provider.dart';
@@ -71,6 +73,12 @@ class MyApp extends StatelessWidget {
               StorageService(supabase_init.SupabaseClientInitializer.instance),
         ),
 
+        // Storage repository
+        ProxyProvider<StorageService, StorageRepository>(
+          update: (_, storageService, __) =>
+              SupabaseStorageRepository(storageService),
+        ),
+
         // Auth interactors
         ProxyProvider<AuthRepository, LoginInteractor>(
           update: (_, repository, __) => LoginInteractor(repository),
@@ -99,7 +107,8 @@ class MyApp extends StatelessWidget {
         // Profile photo interactor
         Provider<UploadProfilePhotoInteractor>(
           create: (context) => UploadProfilePhotoInteractor(
-            storageService: Provider.of<StorageService>(context, listen: false),
+            storageRepository:
+                Provider.of<StorageRepository>(context, listen: false),
             clientRepository:
                 Provider.of<ClientRepository>(context, listen: false),
             driverRepository:

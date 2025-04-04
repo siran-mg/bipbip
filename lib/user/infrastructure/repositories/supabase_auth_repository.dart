@@ -30,7 +30,8 @@ class SupabaseAuthRepository implements AuthRepository {
 
   @override
   Future<String> signUpWithEmailAndPassword(
-    String name,
+    String givenName,
+    String familyName,
     String email,
     String phoneNumber,
     String password,
@@ -41,10 +42,8 @@ class SupabaseAuthRepository implements AuthRepository {
         email: email,
         password: password,
         data: {
-          'given_name': name.split(' ').first,
-          'family_name': name.split(' ').length > 1
-              ? name.split(' ').sublist(1).join(' ')
-              : '',
+          'given_name': givenName,
+          'family_name': familyName,
           'phone_number': phoneNumber,
         },
       );

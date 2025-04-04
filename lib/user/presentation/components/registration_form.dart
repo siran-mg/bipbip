@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 /// A form for user registration
 class RegistrationForm extends StatefulWidget {
   /// Callback function when registration is successful
-  final Function(String name, String email, String phoneNumber, String password) onRegister;
+  final Function(String givenName, String familyName, String email,
+      String phoneNumber, String password) onRegister;
 
   /// Creates a new RegistrationForm
   const RegistrationForm({
@@ -17,7 +18,8 @@ class RegistrationForm extends StatefulWidget {
 
 class _RegistrationFormState extends State<RegistrationForm> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
+  final _givenNameController = TextEditingController();
+  final _familyNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -28,7 +30,8 @@ class _RegistrationFormState extends State<RegistrationForm> {
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _givenNameController.dispose();
+    _familyNameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
@@ -41,14 +44,17 @@ class _RegistrationFormState extends State<RegistrationForm> {
       setState(() {
         _isLoading = true;
       });
-      
+
       // Call the onRegister callback with the form values
-      widget.onRegister(
-        _nameController.text.trim(),
+      widget
+          .onRegister(
+        _givenNameController.text.trim(),
+        _familyNameController.text.trim(),
         _emailController.text.trim(),
         _phoneController.text.trim(),
         _passwordController.text,
-      ).then((_) {
+      )
+          .then((_) {
         // Handle successful registration if needed
       }).catchError((error) {
         // Show error message
@@ -101,27 +107,47 @@ class _RegistrationFormState extends State<RegistrationForm> {
               ],
             ),
           ),
-          
-          // Name field
+
+          // Given name field
           TextFormField(
-            controller: _nameController,
+            controller: _givenNameController,
             decoration: const InputDecoration(
-              labelText: 'Nom complet',
-              hintText: 'Entrez votre nom complet',
+              labelText: 'Prénom',
+              hintText: 'Entrez votre prénom',
               prefixIcon: Icon(Icons.person),
               border: OutlineInputBorder(),
             ),
             textCapitalization: TextCapitalization.words,
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Veuillez entrer votre nom';
+                return 'Veuillez entrer votre prénom';
               }
               return null;
             },
           ),
-          
+
           const SizedBox(height: 16),
-          
+
+          // Family name field
+          TextFormField(
+            controller: _familyNameController,
+            decoration: const InputDecoration(
+              labelText: 'Nom de famille',
+              hintText: 'Entrez votre nom de famille',
+              prefixIcon: Icon(Icons.person_outline),
+              border: OutlineInputBorder(),
+            ),
+            textCapitalization: TextCapitalization.words,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Veuillez entrer votre nom de famille';
+              }
+              return null;
+            },
+          ),
+
+          const SizedBox(height: 16),
+
           // Email field
           TextFormField(
             controller: _emailController,
@@ -136,19 +162,20 @@ class _RegistrationFormState extends State<RegistrationForm> {
               if (value == null || value.isEmpty) {
                 return 'Veuillez entrer votre email';
               }
-              
+
               // Simple email validation
-              final emailRegExp = RegExp(r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+');
+              final emailRegExp =
+                  RegExp(r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+');
               if (!emailRegExp.hasMatch(value)) {
                 return 'Veuillez entrer un email valide';
               }
-              
+
               return null;
             },
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Phone field
           TextFormField(
             controller: _phoneController,
@@ -166,9 +193,9 @@ class _RegistrationFormState extends State<RegistrationForm> {
               return null;
             },
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Password field
           TextFormField(
             controller: _passwordController,
@@ -193,17 +220,17 @@ class _RegistrationFormState extends State<RegistrationForm> {
               if (value == null || value.isEmpty) {
                 return 'Veuillez entrer un mot de passe';
               }
-              
+
               if (value.length < 6) {
                 return 'Le mot de passe doit contenir au moins 6 caractères';
               }
-              
+
               return null;
             },
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Confirm password field
           TextFormField(
             controller: _confirmPasswordController,
@@ -214,7 +241,9 @@ class _RegistrationFormState extends State<RegistrationForm> {
               border: const OutlineInputBorder(),
               suffixIcon: IconButton(
                 icon: Icon(
-                  _isConfirmPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                  _isConfirmPasswordVisible
+                      ? Icons.visibility_off
+                      : Icons.visibility,
                 ),
                 onPressed: () {
                   setState(() {
@@ -228,17 +257,17 @@ class _RegistrationFormState extends State<RegistrationForm> {
               if (value == null || value.isEmpty) {
                 return 'Veuillez confirmer votre mot de passe';
               }
-              
+
               if (value != _passwordController.text) {
                 return 'Les mots de passe ne correspondent pas';
               }
-              
+
               return null;
             },
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Register button
           SizedBox(
             height: 50,
@@ -252,9 +281,9 @@ class _RegistrationFormState extends State<RegistrationForm> {
                     ),
                   ),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Login link
           Row(
             mainAxisAlignment: MainAxisAlignment.center,

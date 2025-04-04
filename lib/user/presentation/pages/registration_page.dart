@@ -23,11 +23,13 @@ class RegistrationPage extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: RegistrationForm(
-              onRegister: (name, email, phoneNumber, password) async {
+              onRegister:
+                  (givenName, familyName, email, phoneNumber, password) async {
                 try {
                   // Use the register interactor to sign up
                   await registerInteractor.execute(
-                    name,
+                    givenName,
+                    familyName,
                     email,
                     phoneNumber,
                     password,

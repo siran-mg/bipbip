@@ -8,24 +8,24 @@ import 'package:provider/provider.dart';
 class ProfilePhotoPicker extends StatefulWidget {
   /// The current profile photo URL
   final String? currentPhotoUrl;
-  
+
   /// The user ID
   final String userId;
-  
+
   /// Whether this is for a driver (true) or client (false)
   final bool isDriver;
-  
+
   /// Callback when photo is updated
   final Function(String photoUrl)? onPhotoUpdated;
 
   /// Creates a new ProfilePhotoPicker
   const ProfilePhotoPicker({
-    Key? key,
+    super.key,
     this.currentPhotoUrl,
     required this.userId,
     required this.isDriver,
     this.onPhotoUpdated,
-  }) : super(key: key);
+  });
 
   @override
   State<ProfilePhotoPicker> createState() => _ProfilePhotoPickerState();
@@ -34,16 +34,16 @@ class ProfilePhotoPicker extends StatefulWidget {
 class _ProfilePhotoPickerState extends State<ProfilePhotoPicker> {
   bool _isLoading = false;
   String? _photoUrl;
-  
+
   @override
   void initState() {
     super.initState();
     _photoUrl = widget.currentPhotoUrl;
   }
-  
+
   Future<void> _pickAndUploadPhoto() async {
     final ImagePicker picker = ImagePicker();
-    
+
     try {
       final XFile? image = await picker.pickImage(
         source: ImageSource.gallery,
@@ -51,42 +51,36 @@ class _ProfilePhotoPickerState extends State<ProfilePhotoPicker> {
         maxHeight: 800,
         imageQuality: 85,
       );
-      
+
       if (image == null) return;
-      
+
       setState(() {
         _isLoading = true;
       });
-      
-      final uploadInteractor = Provider.of<UploadProfilePhotoInteractor>(
-        context, 
-        listen: false
-      );
-      
+
+      final uploadInteractor =
+          Provider.of<UploadProfilePhotoInteractor>(context, listen: false);
+
       final File imageFile = File(image.path);
       String newPhotoUrl;
-      
+
       if (widget.isDriver) {
-        newPhotoUrl = await uploadInteractor.executeForDriver(
-          widget.userId, 
-          imageFile
-        );
+        newPhotoUrl =
+            await uploadInteractor.executeForDriver(widget.userId, imageFile);
       } else {
-        newPhotoUrl = await uploadInteractor.executeForClient(
-          widget.userId, 
-          imageFile
-        );
+        newPhotoUrl =
+            await uploadInteractor.executeForClient(widget.userId, imageFile);
       }
-      
+
       setState(() {
         _photoUrl = newPhotoUrl;
         _isLoading = false;
       });
-      
+
       if (widget.onPhotoUpdated != null) {
         widget.onPhotoUpdated!(newPhotoUrl);
       }
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Photo de profil mise à jour avec succès'),
@@ -97,7 +91,7 @@ class _ProfilePhotoPickerState extends State<ProfilePhotoPicker> {
       setState(() {
         _isLoading = false;
       });
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur: ${e.toString()}'),

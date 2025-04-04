@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 /// A widget that displays a list of available drivers
 class AvailableDriversList extends StatefulWidget {
   /// Creates a new AvailableDriversList
-  const AvailableDriversList({Key? key}) : super(key: key);
+  const AvailableDriversList({super.key});
 
   @override
   State<AvailableDriversList> createState() => _AvailableDriversListState();

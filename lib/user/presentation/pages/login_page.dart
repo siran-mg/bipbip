@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 /// Login page for user authentication
 class LoginPage extends StatelessWidget {
   /// Creates a new LoginPage
-  const LoginPage({Key? key}) : super(key: key);
+  const LoginPage({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 /// Registration page for new users
 class RegistrationPage extends StatelessWidget {
   /// Creates a new RegistrationPage
-  const RegistrationPage({Key? key}) : super(key: key);
+  const RegistrationPage({super.key});
 
   @override
   Widget build(BuildContext context) {

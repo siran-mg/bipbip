@@ -8,9 +8,9 @@ class RegistrationForm extends StatefulWidget {
 
   /// Creates a new RegistrationForm
   const RegistrationForm({
-    Key? key,
+    super.key,
     required this.onRegister,
-  }) : super(key: key);
+  });
 
   @override
   State<RegistrationForm> createState() => _RegistrationFormState();

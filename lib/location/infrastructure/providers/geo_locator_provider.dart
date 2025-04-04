@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:dio/dio.dart';
 import 'package:ndao/location/domain/entities/position_entity.dart';
 import 'package:ndao/location/domain/providers/locator_provider.dart';
@@ -57,7 +55,7 @@ class GeoLocatorProvider implements LocatorProvider {
 
     final response = await Dio().get(url);
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.data);
+      final data = response.data;
       if (data['status'] == 'OK') {
         final address = data['results'][0]['formatted_address'];
         return address;

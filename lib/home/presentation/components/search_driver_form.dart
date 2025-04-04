@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ndao/location/infrastructure/providers/geo_locator_provider.dart';
+import 'package:ndao/location/domain/providers/locator_provider.dart';
+import 'package:provider/provider.dart';
 
 class SearchDriverForm extends StatelessWidget {
   const SearchDriverForm({
@@ -10,6 +11,8 @@ class SearchDriverForm extends StatelessWidget {
   Widget build(BuildContext context) {
     final source = TextEditingController();
     final destination = TextEditingController();
+    // Get the locator provider from the provider
+    final locatorProvider = Provider.of<LocatorProvider>(context);
 
     return SizedBox(
       width: double.infinity,
@@ -38,8 +41,8 @@ class SearchDriverForm extends StatelessWidget {
                     onPressed: () async {
                       source.clear();
                       final position =
-                          await GeoLocatorProvider().getCurrentPosition();
-                      final address = await GeoLocatorProvider()
+                          await locatorProvider.getCurrentPosition();
+                      final address = await locatorProvider
                           .getAddressFromPosition(position);
                       source.text = address ?? 'Position indéterminée';
                     },
@@ -75,24 +78,31 @@ class SearchDriverForm extends StatelessWidget {
   }
 
   Future<void> getCurrentLocation(BuildContext context) async {
+    // Get the locator provider from the provider
+    final locatorProvider =
+        Provider.of<LocatorProvider>(context, listen: false);
+
     try {
-      final locator = GeoLocatorProvider();
-      final position = await locator.getCurrentPosition();
+      final position = await locatorProvider.getCurrentPosition();
       // You can use the position here or show a snackbar with the coordinates
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content:
-              Text('Position: ${position.latitude}, ${position.longitude}'),
-        ),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('Position: ${position.latitude}, ${position.longitude}'),
+          ),
+        );
+      }
     } catch (e) {
       // Handle any errors that might occur
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 }

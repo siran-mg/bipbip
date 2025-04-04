@@ -1,4 +1,4 @@
-import 'package:ndao/user/domain/entities/client_entity.dart';
+import 'package:ndao/user/domain/entities/user_entity.dart';
 
 /// Repository interface for authentication operations
 abstract class AuthRepository {
@@ -38,7 +38,7 @@ abstract class AuthRepository {
   /// Get the current authenticated user
   ///
   /// Returns the user if authenticated, null otherwise
-  Future<ClientEntity?> getCurrentUser();
+  Future<UserEntity?> getCurrentUser();
 
   /// Check if a user is currently authenticated
   ///

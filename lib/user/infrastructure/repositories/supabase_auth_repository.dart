@@ -1,4 +1,4 @@
-import 'package:ndao/user/domain/entities/client_entity.dart';
+import 'package:ndao/user/domain/entities/user_entity.dart';
 import 'package:ndao/user/domain/repositories/auth_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
@@ -80,19 +80,8 @@ class SupabaseAuthRepository implements AuthRepository {
 
       // The response already contains the user, so we don't need to check for errors here
 
-      // Manually create the client record if the trigger fails
-      try {
-        await _client.from('clients').insert({
-          'id': response.user!.id,
-          'given_name': givenName,
-          'family_name': familyName,
-          'email': email,
-          'phone_number': phoneNumber,
-        });
-      } catch (dbError) {
-        // If this fails, the trigger might have already created the record, which is fine
-        print('Note: Manual client creation attempt: $dbError');
-      }
+      // The database trigger should handle creating the user record
+      // We don't need to manually create it here
 
       return response.user!.id;
     } catch (e) {
@@ -107,7 +96,7 @@ class SupabaseAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<ClientEntity?> getCurrentUser() async {
+  Future<UserEntity?> getCurrentUser() async {
     final user = _client.auth.currentUser;
 
     if (user == null) {
@@ -117,12 +106,24 @@ class SupabaseAuthRepository implements AuthRepository {
     // Get user metadata from Supabase
     final userData = user.userMetadata;
 
-    return ClientEntity(
+    // Determine user roles
+    final userType = userData?['user_type'] as String? ?? 'client';
+    final roles = <String>[];
+
+    if (userType == 'client') {
+      roles.add('client');
+    } else if (userType == 'driver') {
+      roles.add('driver');
+    }
+
+    // Create a basic user entity
+    return UserEntity(
       id: user.id,
       givenName: userData?['given_name'] ?? '',
       familyName: userData?['family_name'] ?? '',
       email: user.email ?? '',
       phoneNumber: userData?['phone_number'] ?? '',
+      roles: roles,
     );
   }
 

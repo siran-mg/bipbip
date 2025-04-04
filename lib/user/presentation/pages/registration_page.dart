@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ndao/user/domain/interactors/register_interactor.dart';
+import 'package:ndao/user/domain/interactors/register_user_interactor.dart';
 import 'package:ndao/user/presentation/components/registration_form.dart';
 import 'package:provider/provider.dart';
 
@@ -11,8 +11,8 @@ class RegistrationPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Get the register interactor from the provider
-    final registerInteractor =
-        Provider.of<RegisterInteractor>(context, listen: false);
+    final registerUserInteractor =
+        Provider.of<RegisterUserInteractor>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
@@ -27,7 +27,7 @@ class RegistrationPage extends StatelessWidget {
                   (givenName, familyName, email, phoneNumber, password) async {
                 try {
                   // Use the register interactor to sign up
-                  await registerInteractor.execute(
+                  await registerUserInteractor.registerClient(
                     givenName,
                     familyName,
                     email,
@@ -41,6 +41,8 @@ class RegistrationPage extends StatelessWidget {
                   }
                   return Future.value();
                 } catch (e) {
+                  // Log the error for debugging
+                  print('Client registration error in page: $e');
                   // Rethrow the exception to be handled by the form
                   return Future.error(e);
                 }

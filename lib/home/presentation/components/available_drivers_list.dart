@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ndao/home/presentation/components/driver_item.dart';
-import 'package:ndao/user/domain/entities/driver_entity.dart';
-import 'package:ndao/user/domain/interactors/get_available_drivers_interactor.dart';
+import 'package:ndao/user/domain/entities/user_entity.dart';
+import 'package:ndao/user/domain/repositories/user_repository.dart';
 import 'package:provider/provider.dart';
 
 /// A widget that displays a list of available drivers
@@ -14,7 +14,7 @@ class AvailableDriversList extends StatefulWidget {
 }
 
 class _AvailableDriversListState extends State<AvailableDriversList> {
-  late Future<List<DriverEntity>> _driversFuture;
+  late Future<List<UserEntity>> _driversFuture;
 
   @override
   void initState() {
@@ -23,9 +23,8 @@ class _AvailableDriversListState extends State<AvailableDriversList> {
   }
 
   void _loadDrivers() {
-    final getAvailableDriversInteractor =
-        Provider.of<GetAvailableDriversInteractor>(context, listen: false);
-    _driversFuture = getAvailableDriversInteractor.execute();
+    final userRepository = Provider.of<UserRepository>(context, listen: false);
+    _driversFuture = userRepository.getAvailableDrivers();
   }
 
   @override
@@ -43,7 +42,7 @@ class _AvailableDriversListState extends State<AvailableDriversList> {
             ),
           ),
         ),
-        FutureBuilder<List<DriverEntity>>(
+        FutureBuilder<List<UserEntity>>(
           future: _driversFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {

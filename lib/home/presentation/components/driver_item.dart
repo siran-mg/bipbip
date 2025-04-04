@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:ndao/user/domain/entities/driver_entity.dart';
+import 'package:ndao/user/domain/entities/user_entity.dart';
 
 class DriverItem extends StatelessWidget {
   /// The driver to display
-  final DriverEntity driver;
+  final UserEntity driver;
 
   const DriverItem({
     super.key,
@@ -47,7 +47,8 @@ class DriverItem extends StatelessWidget {
                         Icons.star,
                         color: Theme.of(context).colorScheme.secondary,
                       ),
-                      label: Text(driver.rating?.toString() ?? 'N/A'),
+                      label: Text(
+                          driver.driverDetails?.rating?.toString() ?? 'N/A'),
                     ),
                   ],
                 ),
@@ -66,7 +67,9 @@ class DriverItem extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('${driver.vehicleInfo.model} (${driver.vehicleInfo.color})'),
+            Text(driver.driverDetails != null
+                ? '${driver.driverDetails!.model} (${driver.driverDetails!.color})'
+                : 'Unknown vehicle'),
             ElevatedButton.icon(
               onPressed: () {
                 // Launch phone call

@@ -12,9 +12,6 @@ class ProfilePhotoPicker extends StatefulWidget {
   /// The user ID
   final String userId;
 
-  /// Whether this is for a driver (true) or client (false)
-  final bool isDriver;
-
   /// Callback when photo is updated
   final Function(String photoUrl)? onPhotoUpdated;
 
@@ -23,7 +20,6 @@ class ProfilePhotoPicker extends StatefulWidget {
     super.key,
     this.currentPhotoUrl,
     required this.userId,
-    required this.isDriver,
     this.onPhotoUpdated,
   });
 
@@ -65,13 +61,7 @@ class _ProfilePhotoPickerState extends State<ProfilePhotoPicker> {
       final File imageFile = File(image.path);
       String newPhotoUrl;
 
-      if (widget.isDriver) {
-        newPhotoUrl =
-            await uploadInteractor.executeForDriver(widget.userId, imageFile);
-      } else {
-        newPhotoUrl =
-            await uploadInteractor.executeForClient(widget.userId, imageFile);
-      }
+      newPhotoUrl = await uploadInteractor.execute(widget.userId, imageFile);
 
       setState(() {
         _photoUrl = newPhotoUrl;

@@ -8,20 +8,13 @@ import 'package:ndao/user/infrastructure/repositories/supabase_storage_repositor
 import 'package:ndao/home/presentation/home_page.dart';
 import 'package:ndao/location/domain/providers/locator_provider.dart';
 import 'package:ndao/location/infrastructure/providers/geo_locator_provider.dart';
-import 'package:ndao/user/domain/interactors/get_available_drivers_interactor.dart';
-import 'package:ndao/user/domain/interactors/get_client_interactor.dart';
 import 'package:ndao/user/domain/interactors/login_interactor.dart';
-import 'package:ndao/user/domain/interactors/register_driver_interactor.dart';
-import 'package:ndao/user/domain/interactors/register_interactor.dart';
-import 'package:ndao/user/domain/interactors/save_client_interactor.dart';
-import 'package:ndao/user/domain/interactors/save_driver_interactor.dart';
+import 'package:ndao/user/domain/interactors/register_user_interactor.dart';
 import 'package:ndao/user/domain/interactors/upload_profile_photo_interactor.dart';
 import 'package:ndao/user/domain/repositories/auth_repository.dart';
-import 'package:ndao/user/domain/repositories/client_repository.dart';
-import 'package:ndao/user/domain/repositories/driver_repository.dart';
+import 'package:ndao/user/domain/repositories/user_repository.dart';
 import 'package:ndao/user/infrastructure/repositories/supabase_auth_repository.dart';
-import 'package:ndao/user/infrastructure/repositories/supabase_client_repository.dart';
-import 'package:ndao/user/infrastructure/repositories/supabase_driver_repository.dart';
+import 'package:ndao/user/infrastructure/repositories/supabase_user_repository.dart';
 import 'package:ndao/user/presentation/pages/driver_registration_page.dart';
 import 'package:ndao/user/presentation/pages/login_page.dart';
 import 'package:ndao/user/presentation/pages/registration_page.dart';
@@ -57,15 +50,9 @@ class MyApp extends StatelessWidget {
               supabase_init.SupabaseClientInitializer.instance),
         ),
 
-        // Client repository
-        Provider<ClientRepository>(
-          create: (_) => SupabaseClientRepository(
-              supabase_init.SupabaseClientInitializer.instance),
-        ),
-
-        // Driver repository
-        Provider<DriverRepository>(
-          create: (_) => SupabaseDriverRepository(
+        // User repository
+        Provider<UserRepository>(
+          create: (_) => SupabaseUserRepository(
               supabase_init.SupabaseClientInitializer.instance),
         ),
 
@@ -85,47 +72,20 @@ class MyApp extends StatelessWidget {
         ProxyProvider<AuthRepository, LoginInteractor>(
           update: (_, repository, __) => LoginInteractor(repository),
         ),
-        ProxyProvider<AuthRepository, RegisterInteractor>(
-          update: (_, repository, __) => RegisterInteractor(repository),
-        ),
 
-        // Driver registration interactor
-        ProxyProvider3<AuthRepository, DriverRepository, ClientRepository,
-            RegisterDriverInteractor>(
-          update: (_, authRepository, driverRepository, clientRepository, __) =>
-              RegisterDriverInteractor(
-            authRepository,
-            driverRepository,
-            clientRepository,
-          ),
-        ),
-
-        // Client interactors
-        ProxyProvider<ClientRepository, GetClientInteractor>(
-          update: (_, repository, __) => GetClientInteractor(repository),
-        ),
-        ProxyProvider<ClientRepository, SaveClientInteractor>(
-          update: (_, repository, __) => SaveClientInteractor(repository),
-        ),
-
-        // Driver interactors
-        ProxyProvider<DriverRepository, GetAvailableDriversInteractor>(
-          update: (_, repository, __) =>
-              GetAvailableDriversInteractor(repository),
-        ),
-        ProxyProvider<DriverRepository, SaveDriverInteractor>(
-          update: (_, repository, __) => SaveDriverInteractor(repository),
+        // User registration interactor
+        ProxyProvider2<AuthRepository, UserRepository, RegisterUserInteractor>(
+          update: (_, authRepository, userRepository, __) =>
+              RegisterUserInteractor(authRepository, userRepository),
         ),
 
         // Profile photo interactor
-        Provider<UploadProfilePhotoInteractor>(
-          create: (context) => UploadProfilePhotoInteractor(
-            storageRepository:
-                Provider.of<StorageRepository>(context, listen: false),
-            clientRepository:
-                Provider.of<ClientRepository>(context, listen: false),
-            driverRepository:
-                Provider.of<DriverRepository>(context, listen: false),
+        ProxyProvider2<StorageRepository, UserRepository,
+            UploadProfilePhotoInteractor>(
+          update: (_, storageRepository, userRepository, __) =>
+              UploadProfilePhotoInteractor(
+            storageRepository: storageRepository,
+            userRepository: userRepository,
           ),
         ),
       ],

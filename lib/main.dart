@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:ndao/core/infrastructure/supabase/supabase_client.dart'
-    as supabase_init;
-import 'package:ndao/core/infrastructure/supabase/storage_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:ndao/firebase_options.dart';
 import 'package:ndao/user/domain/repositories/storage_repository.dart';
-import 'package:ndao/user/infrastructure/repositories/supabase_storage_repository.dart';
+import 'package:ndao/user/infrastructure/repositories/firebase_storage_repository.dart';
 import 'package:ndao/home/presentation/home_page.dart';
 import 'package:ndao/location/domain/providers/locator_provider.dart';
 import 'package:ndao/location/infrastructure/providers/geo_locator_provider.dart';
@@ -13,8 +15,8 @@ import 'package:ndao/user/domain/interactors/register_user_interactor.dart';
 import 'package:ndao/user/domain/interactors/upload_profile_photo_interactor.dart';
 import 'package:ndao/user/domain/repositories/auth_repository.dart';
 import 'package:ndao/user/domain/repositories/user_repository.dart';
-import 'package:ndao/user/infrastructure/repositories/supabase_auth_repository.dart';
-import 'package:ndao/user/infrastructure/repositories/supabase_user_repository.dart';
+import 'package:ndao/user/infrastructure/repositories/firebase_auth_repository.dart';
+import 'package:ndao/user/infrastructure/repositories/firebase_user_repository.dart';
 import 'package:ndao/user/presentation/pages/driver_registration_page.dart';
 import 'package:ndao/user/presentation/pages/login_page.dart';
 import 'package:ndao/user/presentation/pages/registration_page.dart';
@@ -27,8 +29,10 @@ void main() async {
   // Load environment variables
   await dotenv.load(fileName: '.env');
 
-  // Initialize Supabase
-  await supabase_init.SupabaseClientInitializer.initialize();
+  // Initialize Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   runApp(const MyApp());
 }
@@ -44,28 +48,30 @@ class MyApp extends StatelessWidget {
         // Location provider
         Provider<LocatorProvider>(create: (_) => GeoLocatorProvider()),
 
+        // Firebase instances
+        Provider<FirebaseAuth>(
+          create: (_) => FirebaseAuth.instance,
+        ),
+        Provider<FirebaseFirestore>(
+          create: (_) => FirebaseFirestore.instance,
+        ),
+        Provider<FirebaseStorage>(
+          create: (_) => FirebaseStorage.instance,
+        ),
+
         // Auth repository
-        Provider<AuthRepository>(
-          create: (_) => SupabaseAuthRepository(
-              supabase_init.SupabaseClientInitializer.instance),
+        ProxyProvider<FirebaseAuth, AuthRepository>(
+          update: (_, firebaseAuth, __) => FirebaseAuthRepository(firebaseAuth),
         ),
 
         // User repository
-        Provider<UserRepository>(
-          create: (_) => SupabaseUserRepository(
-              supabase_init.SupabaseClientInitializer.instance),
-        ),
-
-        // Storage service
-        Provider<StorageService>(
-          create: (_) =>
-              StorageService(supabase_init.SupabaseClientInitializer.instance),
+        ProxyProvider<FirebaseFirestore, UserRepository>(
+          update: (_, firestore, __) => FirebaseUserRepository(firestore),
         ),
 
         // Storage repository
-        ProxyProvider<StorageService, StorageRepository>(
-          update: (_, storageService, __) =>
-              SupabaseStorageRepository(storageService),
+        ProxyProvider<FirebaseStorage, StorageRepository>(
+          update: (_, storage, __) => FirebaseStorageRepository(storage),
         ),
 
         // Auth interactors

@@ -20,6 +20,18 @@ abstract class AuthRepository {
     String password,
   );
 
+  /// Sign up a driver with email and password
+  ///
+  /// Returns the user ID if successful
+  /// Throws an exception if registration fails
+  Future<String> signUpDriverWithEmailAndPassword(
+    String givenName,
+    String familyName,
+    String email,
+    String phoneNumber,
+    String password,
+  );
+
   /// Sign out the current user
   Future<void> signOut();
 

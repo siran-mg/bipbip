@@ -90,10 +90,14 @@ class MyApp extends StatelessWidget {
         ),
 
         // Driver registration interactor
-        ProxyProvider2<AuthRepository, DriverRepository,
+        ProxyProvider3<AuthRepository, DriverRepository, ClientRepository,
             RegisterDriverInteractor>(
-          update: (_, authRepository, driverRepository, __) =>
-              RegisterDriverInteractor(authRepository, driverRepository),
+          update: (_, authRepository, driverRepository, clientRepository, __) =>
+              RegisterDriverInteractor(
+            authRepository,
+            driverRepository,
+            clientRepository,
+          ),
         ),
 
         // Client interactors

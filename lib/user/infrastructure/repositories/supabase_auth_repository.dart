@@ -36,6 +36,31 @@ class SupabaseAuthRepository implements AuthRepository {
     String phoneNumber,
     String password,
   ) async {
+    return _signUp(givenName, familyName, email, phoneNumber, password, false);
+  }
+
+  @override
+  Future<String> signUpDriverWithEmailAndPassword(
+    String givenName,
+    String familyName,
+    String email,
+    String phoneNumber,
+    String password,
+  ) async {
+    return _signUp(givenName, familyName, email, phoneNumber, password, true);
+  }
+
+  /// Internal method to handle user signup
+  ///
+  /// [isDriver] Whether the user is registering as a driver
+  Future<String> _signUp(
+    String givenName,
+    String familyName,
+    String email,
+    String phoneNumber,
+    String password,
+    bool isDriver,
+  ) async {
     try {
       // Sign up the user
       final response = await _client.auth.signUp(
@@ -45,6 +70,7 @@ class SupabaseAuthRepository implements AuthRepository {
           'given_name': givenName,
           'family_name': familyName,
           'phone_number': phoneNumber,
+          'user_type': isDriver ? 'driver' : 'client',
         },
       );
 

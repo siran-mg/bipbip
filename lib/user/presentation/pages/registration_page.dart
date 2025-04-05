@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ndao/user/domain/interactors/register_user_interactor.dart';
-import 'package:ndao/user/presentation/components/registration_form.dart';
+import 'package:ndao/user/domain/interactors/upload_profile_photo_interactor.dart';
+import 'package:ndao/user/presentation/components/stepper_registration_form.dart';
 import 'package:provider/provider.dart';
 
 /// Registration page for new users
@@ -10,44 +11,64 @@ class RegistrationPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Get the register interactor from the provider
+    // Get the interactors from the provider
     final registerUserInteractor =
         Provider.of<RegisterUserInteractor>(context, listen: false);
+    final uploadProfilePhotoInteractor =
+        Provider.of<UploadProfilePhotoInteractor>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Créer un compte'),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: RegistrationForm(
-              onRegister:
-                  (givenName, familyName, email, phoneNumber, password) async {
-                try {
-                  // Use the register interactor to sign up
-                  await registerUserInteractor.registerClient(
-                    givenName,
-                    familyName,
-                    email,
-                    phoneNumber,
-                    password,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: StepperRegistrationForm(
+            onRegister: (givenName, familyName, email, phoneNumber, password,
+                profilePhoto) async {
+              try {
+                // Use the register interactor to sign up
+                final userId = await registerUserInteractor.registerClient(
+                  givenName,
+                  familyName,
+                  email,
+                  phoneNumber,
+                  password,
+                );
+
+                // Upload profile photo if provided
+                if (profilePhoto != null) {
+                  try {
+                    await uploadProfilePhotoInteractor.execute(
+                        userId, profilePhoto);
+                  } catch (e) {
+                    debugPrint('Failed to upload profile photo: $e');
+                    // Continue anyway, as the user is already registered
+                  }
+                }
+
+                // Show success message
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Inscription réussie!'),
+                      backgroundColor: Colors.green,
+                    ),
                   );
 
-                  // Navigate to home page after successful registration
-                  if (context.mounted) {
-                    Navigator.pushReplacementNamed(context, '/home');
-                  }
-                  return Future.value();
-                } catch (e) {
-                  // Log the error for debugging
-                  print('Client registration error in page: $e');
-                  // Rethrow the exception to be handled by the form
-                  return Future.error(e);
+                  // Navigate to login page
+                  Navigator.pushReplacementNamed(context, '/login');
                 }
-              },
-            ),
+
+                return Future.value();
+              } catch (e) {
+                // Log the error for debugging
+                debugPrint('Client registration error in page: $e');
+                // Rethrow the exception to be handled by the form
+                return Future.error(e);
+              }
+            },
           ),
         ),
       ),

@@ -39,15 +39,9 @@ dependencies:
   dio: ^5.8.0+1
   provider: ^6.1.2
   flutter_dotenv: ^5.1.0
-  # Firebase packages
-  firebase_core: ^2.24.2
-  firebase_auth: ^4.16.0
-  cloud_firestore: ^4.14.0
-  firebase_storage: ^11.6.0
-
-  # Keep Supabase for now to avoid breaking changes
-  supabase_flutter: ^2.3.4
-  supabase: ^2.0.8
+  # Appwrite packages
+  appwrite: ^11.0.0
+  dart_appwrite: ^10.0.0
 
   image_picker: ^1.0.7
   path: ^1.8.3

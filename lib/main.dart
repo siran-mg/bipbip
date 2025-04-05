@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:ndao/firebase_options.dart';
-import 'package:ndao/user/domain/repositories/storage_repository.dart';
-import 'package:ndao/user/infrastructure/repositories/firebase_storage_repository.dart';
+import 'package:ndao/core/infrastructure/appwrite/appwrite_client.dart';
 import 'package:ndao/home/presentation/home_page.dart';
 import 'package:ndao/location/domain/providers/locator_provider.dart';
 import 'package:ndao/location/infrastructure/providers/geo_locator_provider.dart';
@@ -14,9 +8,11 @@ import 'package:ndao/user/domain/interactors/login_interactor.dart';
 import 'package:ndao/user/domain/interactors/register_user_interactor.dart';
 import 'package:ndao/user/domain/interactors/upload_profile_photo_interactor.dart';
 import 'package:ndao/user/domain/repositories/auth_repository.dart';
+import 'package:ndao/user/domain/repositories/storage_repository.dart';
 import 'package:ndao/user/domain/repositories/user_repository.dart';
-import 'package:ndao/user/infrastructure/repositories/firebase_auth_repository.dart';
-import 'package:ndao/user/infrastructure/repositories/firebase_user_repository.dart';
+import 'package:ndao/user/infrastructure/repositories/appwrite_auth_repository.dart';
+import 'package:ndao/user/infrastructure/repositories/appwrite_storage_repository.dart';
+import 'package:ndao/user/infrastructure/repositories/appwrite_user_repository.dart';
 import 'package:ndao/user/presentation/pages/driver_registration_page.dart';
 import 'package:ndao/user/presentation/pages/login_page.dart';
 import 'package:ndao/user/presentation/pages/registration_page.dart';
@@ -27,12 +23,14 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Load environment variables
-  await dotenv.load(fileName: '.env');
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (e) {
+    // Warning: Failed to load .env file
+  }
 
-  // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  // Initialize Appwrite
+  await AppwriteClientInitializer.instance.initialize();
 
   runApp(const MyApp());
 }
@@ -48,30 +46,31 @@ class MyApp extends StatelessWidget {
         // Location provider
         Provider<LocatorProvider>(create: (_) => GeoLocatorProvider()),
 
-        // Firebase instances
-        Provider<FirebaseAuth>(
-          create: (_) => FirebaseAuth.instance,
-        ),
-        Provider<FirebaseFirestore>(
-          create: (_) => FirebaseFirestore.instance,
-        ),
-        Provider<FirebaseStorage>(
-          create: (_) => FirebaseStorage.instance,
-        ),
-
-        // Auth repository
-        ProxyProvider<FirebaseAuth, AuthRepository>(
-          update: (_, firebaseAuth, __) => FirebaseAuthRepository(firebaseAuth),
+        // Appwrite clients
+        Provider<AppwriteClientInitializer>(
+          create: (_) => AppwriteClientInitializer.instance,
         ),
 
         // User repository
-        ProxyProvider<FirebaseFirestore, UserRepository>(
-          update: (_, firestore, __) => FirebaseUserRepository(firestore),
+        Provider<UserRepository>(
+          create: (context) => AppwriteUserRepository(
+            AppwriteClientInitializer.instance.databases,
+          ),
         ),
 
         // Storage repository
-        ProxyProvider<FirebaseStorage, StorageRepository>(
-          update: (_, storage, __) => FirebaseStorageRepository(storage),
+        Provider<StorageRepository>(
+          create: (context) => AppwriteStorageRepository(
+            AppwriteClientInitializer.instance.storage,
+          ),
+        ),
+
+        // Auth repository
+        ProxyProvider<UserRepository, AuthRepository>(
+          update: (_, userRepository, __) => AppwriteAuthRepository(
+            AppwriteClientInitializer.instance.account,
+            userRepository,
+          ),
         ),
 
         // Auth interactors

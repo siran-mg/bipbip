@@ -478,19 +478,40 @@ class _DriverRegistrationFormState extends State<DriverRegistrationForm> {
             ],
           ),
 
-          // Client registration link
+          const SizedBox(height: 16),
+
+          // Divider with text
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('Vous voulez vous inscrire comme client?'),
-              TextButton(
-                onPressed: () {
-                  // Navigate to client registration page
-                  Navigator.pushReplacementNamed(context, '/register');
-                },
-                child: const Text('S\'inscrire comme client'),
+              const Expanded(child: Divider()),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text(
+                  'Ou inscrivez-vous comme',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
+              const Expanded(child: Divider()),
             ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Client registration button
+          OutlinedButton.icon(
+            onPressed: () {
+              // Navigate to client registration page
+              Navigator.pushReplacementNamed(context, '/register');
+            },
+            icon: const Icon(Icons.person_add),
+            label: const Text('CLIENT'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              minimumSize: const Size(double.infinity, 50),
+            ),
           ),
         ],
       ),

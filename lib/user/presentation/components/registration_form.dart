@@ -323,19 +323,40 @@ class _RegistrationFormState extends State<RegistrationForm> {
             ],
           ),
 
-          // Driver registration link
+          const SizedBox(height: 16),
+
+          // Divider with text
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('Vous êtes chauffeur?'),
-              TextButton(
-                onPressed: () {
-                  // Navigate to driver registration page
-                  Navigator.pushReplacementNamed(context, '/driver-register');
-                },
-                child: const Text('Devenir chauffeur'),
+              const Expanded(child: Divider()),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text(
+                  'Ou inscrivez-vous comme',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
+              const Expanded(child: Divider()),
             ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Driver registration button
+          OutlinedButton.icon(
+            onPressed: () {
+              // Navigate to driver registration page
+              Navigator.pushReplacementNamed(context, '/driver-register');
+            },
+            icon: const Icon(Icons.directions_car),
+            label: const Text('CHAUFFEUR'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              minimumSize: const Size(double.infinity, 50),
+            ),
           ),
         ],
       ),

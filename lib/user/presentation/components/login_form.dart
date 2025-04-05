@@ -185,32 +185,62 @@ class _LoginFormState extends State<LoginForm> {
 
           const SizedBox(height: 24),
 
-          // Register link
+          const SizedBox(height: 16),
+
+          // Divider with text
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text("Vous n'avez pas de compte?"),
-              TextButton(
-                onPressed: () {
-                  // Navigate to registration page
-                  Navigator.pushNamed(context, '/register');
-                },
-                child: const Text('Créer un compte'),
+              const Expanded(child: Divider()),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text(
+                  'Pas encore inscrit ?',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
+              const Expanded(child: Divider()),
             ],
           ),
 
-          // Driver register link
+          const SizedBox(height: 24),
+
+          // Registration options
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              const Text("Vous êtes chauffeur?"),
-              TextButton(
-                onPressed: () {
-                  // Navigate to driver registration page
-                  Navigator.pushNamed(context, '/driver-register');
-                },
-                child: const Text('Devenir chauffeur'),
+              // Client registration button
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    // Navigate to registration page
+                    Navigator.pushNamed(context, '/register');
+                  },
+                  icon: const Icon(Icons.person_add),
+                  label: const Text('Client'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+
+              const SizedBox(width: 16),
+
+              // Driver registration button
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    // Navigate to driver registration page
+                    Navigator.pushNamed(context, '/driver-register');
+                  },
+                  icon: const Icon(Icons.directions_car),
+                  label: const Text('Chauffeur'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
               ),
             ],
           ),

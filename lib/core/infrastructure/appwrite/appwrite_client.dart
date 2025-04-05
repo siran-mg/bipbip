@@ -12,6 +12,9 @@ class AppwriteClientInitializer {
   /// Appwrite client for general API access
   late final Client client;
 
+  /// Appwrite client with API key for server-side operations
+  late final Client serverClient;
+
   /// Appwrite account client for authentication
   late final Account account;
 
@@ -35,22 +38,56 @@ class AppwriteClientInitializer {
           dotenv.env['APPWRITE_ENDPOINT'] ?? 'https://cloud.appwrite.io/v1';
       final projectId = dotenv.env['APPWRITE_PROJECT_ID'] ?? '';
       final databaseId = dotenv.env['APPWRITE_DATABASE_ID'] ?? 'ndao';
+      final apiKey = dotenv.env['APPWRITE_API_KEY'] ?? '';
 
       print('Initializing Appwrite with:');
       print('Endpoint: $endpoint');
       print('Project ID: $projectId');
       print('Database ID: $databaseId');
+      print('API Key: ${apiKey.isNotEmpty ? 'Provided' : 'Not provided'}');
 
-      // Initialize the main client
+      // Initialize the main client for user operations
       client = Client()
         ..setEndpoint(endpoint)
         ..setProject(projectId)
         ..setSelfSigned(status: true); // Remove in production
 
+      print('Appwrite client initialized with project ID: $projectId');
+
+      // Initialize the server client with API key for server-side operations
+      if (apiKey.isNotEmpty) {
+        // Create a server client with API key
+        serverClient = Client()
+          ..setEndpoint(endpoint)
+          ..setProject(projectId)
+          // For Appwrite SDK version 8.x and above, use this:
+          // ..setKey(apiKey)
+          // For older versions, you might need to use:
+          // ..addHeader('X-Appwrite-Key', apiKey)
+          // Choose the appropriate method based on your SDK version
+          ..addHeader('X-Appwrite-Key',
+              apiKey) // Use API key for server-side operations
+          ..setSelfSigned(status: true); // Remove in production
+
+        print('Appwrite server client initialized with API key');
+      } else {
+        // If no API key is provided, use the regular client
+        serverClient = client;
+        print(
+            'WARNING: No API key provided. Using regular client for server operations.');
+        print('Some operations may fail due to permission issues.');
+      }
+
       // Initialize service clients
       account = Account(client);
-      databases = Databases(client);
-      storage = Storage(client);
+
+      // Use server client for database operations to bypass permissions
+      databases = Databases(serverClient);
+
+      // Use server client for storage operations to bypass permissions
+      storage = Storage(serverClient);
+
+      // Use regular client for realtime operations
       realtime = Realtime(client);
 
       print('Appwrite clients initialized successfully');

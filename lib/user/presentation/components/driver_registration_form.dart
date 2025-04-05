@@ -36,7 +36,7 @@ class _DriverRegistrationFormState extends State<DriverRegistrationForm> {
   final _licensePlateController = TextEditingController();
   final _vehicleModelController = TextEditingController();
   final _vehicleColorController = TextEditingController();
-  
+
   String _selectedVehicleType = 'motorcycle';
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
@@ -68,7 +68,7 @@ class _DriverRegistrationFormState extends State<DriverRegistrationForm> {
       setState(() {
         _isLoading = true;
       });
-      
+
       // Call the onRegister callback with the form values
       widget
           .onRegister(
@@ -135,7 +135,7 @@ class _DriverRegistrationFormState extends State<DriverRegistrationForm> {
               ],
             ),
           ),
-          
+
           // Personal Information Section
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8.0),
@@ -147,7 +147,7 @@ class _DriverRegistrationFormState extends State<DriverRegistrationForm> {
               ),
             ),
           ),
-          
+
           // Given name field
           TextFormField(
             controller: _givenNameController,
@@ -165,9 +165,9 @@ class _DriverRegistrationFormState extends State<DriverRegistrationForm> {
               return null;
             },
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Family name field
           TextFormField(
             controller: _familyNameController,
@@ -185,9 +185,9 @@ class _DriverRegistrationFormState extends State<DriverRegistrationForm> {
               return null;
             },
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Email field
           TextFormField(
             controller: _emailController,
@@ -202,19 +202,20 @@ class _DriverRegistrationFormState extends State<DriverRegistrationForm> {
               if (value == null || value.isEmpty) {
                 return 'Veuillez entrer votre email';
               }
-              
+
               // Simple email validation
-              final emailRegExp = RegExp(r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+');
+              final emailRegExp =
+                  RegExp(r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+');
               if (!emailRegExp.hasMatch(value)) {
                 return 'Veuillez entrer un email valide';
               }
-              
+
               return null;
             },
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Phone field
           TextFormField(
             controller: _phoneController,
@@ -232,9 +233,9 @@ class _DriverRegistrationFormState extends State<DriverRegistrationForm> {
               return null;
             },
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Vehicle Information Section
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8.0),
@@ -246,7 +247,7 @@ class _DriverRegistrationFormState extends State<DriverRegistrationForm> {
               ),
             ),
           ),
-          
+
           // License plate field
           TextFormField(
             controller: _licensePlateController,
@@ -264,9 +265,9 @@ class _DriverRegistrationFormState extends State<DriverRegistrationForm> {
               return null;
             },
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Vehicle model field
           TextFormField(
             controller: _vehicleModelController,
@@ -284,9 +285,9 @@ class _DriverRegistrationFormState extends State<DriverRegistrationForm> {
               return null;
             },
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Vehicle color field
           TextFormField(
             controller: _vehicleColorController,
@@ -304,9 +305,9 @@ class _DriverRegistrationFormState extends State<DriverRegistrationForm> {
               return null;
             },
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Vehicle type dropdown
           DropdownButtonFormField<String>(
             decoration: const InputDecoration(
@@ -335,9 +336,9 @@ class _DriverRegistrationFormState extends State<DriverRegistrationForm> {
               return null;
             },
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Account Information Section
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 8.0),
@@ -349,7 +350,7 @@ class _DriverRegistrationFormState extends State<DriverRegistrationForm> {
               ),
             ),
           ),
-          
+
           // Password field
           TextFormField(
             controller: _passwordController,
@@ -374,17 +375,41 @@ class _DriverRegistrationFormState extends State<DriverRegistrationForm> {
               if (value == null || value.isEmpty) {
                 return 'Veuillez entrer un mot de passe';
               }
-              
-              if (value.length < 6) {
-                return 'Le mot de passe doit contenir au moins 6 caractères';
+
+              if (value.length < 8) {
+                return 'Le mot de passe doit contenir au moins 8 caractères';
               }
-              
+
+              // Check for password complexity
+              bool hasUppercase = value.contains(RegExp(r'[A-Z]'));
+              bool hasLowercase = value.contains(RegExp(r'[a-z]'));
+              bool hasDigit = value.contains(RegExp(r'[0-9]'));
+              bool hasSpecialChar =
+                  value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
+
+              if (!(hasUppercase && hasLowercase && hasDigit) &&
+                  !hasSpecialChar) {
+                return 'Le mot de passe doit contenir au moins 3 des éléments suivants: majuscules, minuscules, chiffres, caractères spéciaux';
+              }
+
+              // Check for common passwords
+              List<String> commonPasswords = [
+                'password',
+                '12345678',
+                'qwerty123',
+                'admin123',
+                '123456789'
+              ];
+              if (commonPasswords.contains(value.toLowerCase())) {
+                return 'Ce mot de passe est trop courant. Veuillez en choisir un plus sécurisé';
+              }
+
               return null;
             },
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Confirm password field
           TextFormField(
             controller: _confirmPasswordController,
@@ -395,7 +420,9 @@ class _DriverRegistrationFormState extends State<DriverRegistrationForm> {
               border: const OutlineInputBorder(),
               suffixIcon: IconButton(
                 icon: Icon(
-                  _isConfirmPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                  _isConfirmPasswordVisible
+                      ? Icons.visibility_off
+                      : Icons.visibility,
                 ),
                 onPressed: () {
                   setState(() {
@@ -409,17 +436,17 @@ class _DriverRegistrationFormState extends State<DriverRegistrationForm> {
               if (value == null || value.isEmpty) {
                 return 'Veuillez confirmer votre mot de passe';
               }
-              
+
               if (value != _passwordController.text) {
                 return 'Les mots de passe ne correspondent pas';
               }
-              
+
               return null;
             },
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Register button
           SizedBox(
             height: 50,
@@ -433,9 +460,9 @@ class _DriverRegistrationFormState extends State<DriverRegistrationForm> {
                     ),
                   ),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Login link
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -450,7 +477,7 @@ class _DriverRegistrationFormState extends State<DriverRegistrationForm> {
               ),
             ],
           ),
-          
+
           // Client registration link
           Row(
             mainAxisAlignment: MainAxisAlignment.center,

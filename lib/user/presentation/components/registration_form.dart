@@ -221,8 +221,32 @@ class _RegistrationFormState extends State<RegistrationForm> {
                 return 'Veuillez entrer un mot de passe';
               }
 
-              if (value.length < 6) {
-                return 'Le mot de passe doit contenir au moins 6 caractères';
+              if (value.length < 8) {
+                return 'Le mot de passe doit contenir au moins 8 caractères';
+              }
+
+              // Check for password complexity
+              bool hasUppercase = value.contains(RegExp(r'[A-Z]'));
+              bool hasLowercase = value.contains(RegExp(r'[a-z]'));
+              bool hasDigit = value.contains(RegExp(r'[0-9]'));
+              bool hasSpecialChar =
+                  value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
+
+              if (!(hasUppercase && hasLowercase && hasDigit) &&
+                  !hasSpecialChar) {
+                return 'Le mot de passe doit contenir au moins 3 des éléments suivants: majuscules, minuscules, chiffres, caractères spéciaux';
+              }
+
+              // Check for common passwords
+              List<String> commonPasswords = [
+                'password',
+                '12345678',
+                'qwerty123',
+                'admin123',
+                '123456789'
+              ];
+              if (commonPasswords.contains(value.toLowerCase())) {
+                return 'Ce mot de passe est trop courant. Veuillez en choisir un plus sécurisé';
               }
 
               return null;

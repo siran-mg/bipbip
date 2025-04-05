@@ -55,6 +55,17 @@ class MyApp extends StatelessWidget {
         Provider<UserRepository>(
           create: (context) => AppwriteUserRepository(
             AppwriteClientInitializer.instance.databases,
+            databaseId: dotenv.env['APPWRITE_DATABASE_ID'] ?? 'ndao',
+            usersCollectionId:
+                dotenv.env['APPWRITE_USERS_COLLECTION_ID'] ?? 'users',
+            userRolesCollectionId:
+                dotenv.env['APPWRITE_USER_ROLES_COLLECTION_ID'] ?? 'user_roles',
+            driverDetailsCollectionId:
+                dotenv.env['APPWRITE_DRIVER_DETAILS_COLLECTION_ID'] ??
+                    'driver_details',
+            clientDetailsCollectionId:
+                dotenv.env['APPWRITE_CLIENT_DETAILS_COLLECTION_ID'] ??
+                    'client_details',
           ),
         ),
 
@@ -62,6 +73,9 @@ class MyApp extends StatelessWidget {
         Provider<StorageRepository>(
           create: (context) => AppwriteStorageRepository(
             AppwriteClientInitializer.instance.storage,
+            profilePhotosBucketId:
+                dotenv.env['APPWRITE_PROFILE_PHOTOS_BUCKET_ID'] ??
+                    'profile_photos',
           ),
         ),
 

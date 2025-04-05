@@ -29,23 +29,43 @@ class AppwriteClientInitializer {
 
   /// Initialize Appwrite clients
   Future<void> initialize() async {
-    // Get Appwrite configuration from environment variables
-    final endpoint =
-        dotenv.env['APPWRITE_ENDPOINT'] ?? 'https://cloud.appwrite.io/v1';
-    final projectId = dotenv.env['APPWRITE_PROJECT_ID'] ?? '';
+    try {
+      // Get Appwrite configuration from environment variables
+      final endpoint =
+          dotenv.env['APPWRITE_ENDPOINT'] ?? 'https://cloud.appwrite.io/v1';
+      final projectId = dotenv.env['APPWRITE_PROJECT_ID'] ?? '';
+      final databaseId = dotenv.env['APPWRITE_DATABASE_ID'] ?? 'ndao';
 
-    // Initialize the main client
-    client = Client()
-      ..setEndpoint(endpoint)
-      ..setProject(projectId)
-      ..setSelfSigned(status: true); // Remove in production
+      print('Initializing Appwrite with:');
+      print('Endpoint: $endpoint');
+      print('Project ID: $projectId');
+      print('Database ID: $databaseId');
 
-    // Initialize service clients
-    account = Account(client);
-    databases = Databases(client);
-    storage = Storage(client);
-    realtime = Realtime(client);
+      // Initialize the main client
+      client = Client()
+        ..setEndpoint(endpoint)
+        ..setProject(projectId)
+        ..setSelfSigned(status: true); // Remove in production
 
-    // Appwrite clients initialized successfully
+      // Initialize service clients
+      account = Account(client);
+      databases = Databases(client);
+      storage = Storage(client);
+      realtime = Realtime(client);
+
+      print('Appwrite clients initialized successfully');
+
+      // Print a reminder about database setup
+      print(
+          'Make sure you have created the following in your Appwrite console:');
+      print('1. Database with ID: "$databaseId"');
+      print(
+          '2. Collections: "${dotenv.env['APPWRITE_USERS_COLLECTION_ID'] ?? 'users'}", "${dotenv.env['APPWRITE_USER_ROLES_COLLECTION_ID'] ?? 'user_roles'}", etc.');
+      print(
+          '3. Storage bucket with ID: "${dotenv.env['APPWRITE_PROFILE_PHOTOS_BUCKET_ID'] ?? 'profile_photos'}"');
+    } catch (e) {
+      print('Error initializing Appwrite: $e');
+      rethrow;
+    }
   }
 }

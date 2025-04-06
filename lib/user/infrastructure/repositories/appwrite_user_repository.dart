@@ -23,7 +23,7 @@ class AppwriteUserRepository implements UserRepository {
   /// Collection ID for user roles collection
   final String _userRolesCollectionId;
 
-  /// Creates a new AppwriteUserRepository with the given database client
+  /// Creates a new AppwriteUserRepository with the given database client and vehicle repository
   AppwriteUserRepository(
     this._databases,
     this._vehicleRepository, {
@@ -81,12 +81,15 @@ class AppwriteUserRepository implements UserRepository {
             'current_latitude': user.driverDetails!.currentLatitude,
             'current_longitude': user.driverDetails!.currentLongitude,
             'rating': user.driverDetails!.rating,
+            'created_at': DateTime.now().toIso8601String(),
+            'updated_at': DateTime.now().toIso8601String(),
           },
         );
       }
 
       // Save client details if the user is a client
       if (user.isClient && user.clientDetails != null) {
+        final now = DateTime.now().toIso8601String();
         await _databases.createDocument(
           databaseId: _databaseId,
           collectionId: _clientDetailsCollectionId,
@@ -94,6 +97,8 @@ class AppwriteUserRepository implements UserRepository {
           data: {
             'user_id': user.id,
             'rating': user.clientDetails!.rating,
+            'created_at': now,
+            'updated_at': now
           },
         );
       }
@@ -140,19 +145,22 @@ class AppwriteUserRepository implements UserRepository {
             documentId: id,
           );
 
+          // Get the driver's vehicles
+          final vehicles = await _vehicleRepository.getVehiclesForDriver(id);
+
           driverDetails = DriverDetails(
             isAvailable: driverDoc.data['is_available'] ?? false,
             currentLatitude: driverDoc.data['current_latitude'],
             currentLongitude: driverDoc.data['current_longitude'],
             rating: driverDoc.data['rating'],
+            vehicles: vehicles,
           );
-
-          // Fetch vehicles for this driver
-          final vehicles = await _vehicleRepository.getVehiclesForDriver(id);
-          driverDetails = driverDetails.copyWith(vehicles: vehicles);
         } catch (e) {
           // Driver details not found, create with defaults
-          driverDetails = DriverDetails();
+          driverDetails = DriverDetails(
+            isAvailable: false,
+            vehicles: [],
+          );
         }
       }
 
@@ -227,6 +235,7 @@ class AppwriteUserRepository implements UserRepository {
               'current_latitude': user.driverDetails!.currentLatitude,
               'current_longitude': user.driverDetails!.currentLongitude,
               'rating': user.driverDetails!.rating,
+              'updated_at': DateTime.now().toIso8601String(),
             },
           );
         } catch (e) {
@@ -241,6 +250,8 @@ class AppwriteUserRepository implements UserRepository {
               'current_latitude': user.driverDetails!.currentLatitude,
               'current_longitude': user.driverDetails!.currentLongitude,
               'rating': user.driverDetails!.rating,
+              'created_at': DateTime.now().toIso8601String(),
+              'updated_at': DateTime.now().toIso8601String(),
             },
           );
         }
@@ -259,6 +270,7 @@ class AppwriteUserRepository implements UserRepository {
           );
         } catch (e) {
           // Client details not found, create them
+          final now = DateTime.now().toIso8601String();
           await _databases.createDocument(
             databaseId: _databaseId,
             collectionId: _clientDetailsCollectionId,
@@ -266,6 +278,8 @@ class AppwriteUserRepository implements UserRepository {
             data: {
               'user_id': user.id,
               'rating': user.clientDetails!.rating,
+              'created_at': now,
+              'updated_at': now
             },
           );
         }
@@ -369,6 +383,10 @@ class AppwriteUserRepository implements UserRepository {
           data: {
             'user_id': userId,
             'is_available': false,
+            'vehicle_license_plate': 'UNKNOWN',
+            'vehicle_model': 'UNKNOWN',
+            'vehicle_color': 'UNKNOWN',
+            'vehicle_type': 'motorcycle',
           },
         );
       }
@@ -465,6 +483,7 @@ class AppwriteUserRepository implements UserRepository {
             'current_latitude': driverDetails.currentLatitude,
             'current_longitude': driverDetails.currentLongitude,
             'rating': driverDetails.rating,
+            'updated_at': DateTime.now().toIso8601String(),
           },
         );
       } catch (e) {
@@ -479,16 +498,14 @@ class AppwriteUserRepository implements UserRepository {
             'current_latitude': driverDetails.currentLatitude,
             'current_longitude': driverDetails.currentLongitude,
             'rating': driverDetails.rating,
+            'created_at': DateTime.now().toIso8601String(),
+            'updated_at': DateTime.now().toIso8601String(),
           },
         );
       }
 
-      // Fetch vehicles for this driver
-      final vehicles = await _vehicleRepository.getVehiclesForDriver(userId);
-      final updatedDriverDetails = driverDetails.copyWith(vehicles: vehicles);
-
       // Return the updated user
-      return user.copyWith(driverDetails: updatedDriverDetails);
+      return user.copyWith(driverDetails: driverDetails);
     } on AppwriteException catch (e) {
       throw Exception('Failed to update driver details: ${e.message}');
     } catch (e) {
@@ -513,16 +530,16 @@ class AppwriteUserRepository implements UserRepository {
 
       // Update client details
       try {
+        final now = DateTime.now().toIso8601String();
         await _databases.updateDocument(
           databaseId: _databaseId,
           collectionId: _clientDetailsCollectionId,
           documentId: userId,
-          data: {
-            'rating': clientDetails.rating,
-          },
+          data: {'rating': clientDetails.rating, 'updated_at': now},
         );
       } catch (e) {
         // Client details not found, create them
+        final now = DateTime.now().toIso8601String();
         await _databases.createDocument(
           databaseId: _databaseId,
           collectionId: _clientDetailsCollectionId,
@@ -530,6 +547,8 @@ class AppwriteUserRepository implements UserRepository {
           data: {
             'user_id': userId,
             'rating': clientDetails.rating,
+            'created_at': now,
+            'updated_at': now
           },
         );
       }
@@ -575,6 +594,7 @@ class AppwriteUserRepository implements UserRepository {
           isAvailable: false,
           currentLatitude: latitude,
           currentLongitude: longitude,
+          vehicles: [],
         );
 
         await _databases.createDocument(
@@ -586,12 +606,14 @@ class AppwriteUserRepository implements UserRepository {
             'is_available': driverDetails.isAvailable,
             'current_latitude': driverDetails.currentLatitude,
             'current_longitude': driverDetails.currentLongitude,
+            'created_at': DateTime.now().toIso8601String(),
+            'updated_at': DateTime.now().toIso8601String(),
           },
         );
       }
 
-      // Create or update driver details
-      final baseDriverDetails = user.driverDetails?.copyWith(
+      // Return the updated user
+      final updatedDriverDetails = user.driverDetails?.copyWith(
             currentLatitude: latitude,
             currentLongitude: longitude,
           ) ??
@@ -599,12 +621,8 @@ class AppwriteUserRepository implements UserRepository {
             isAvailable: false,
             currentLatitude: latitude,
             currentLongitude: longitude,
+            vehicles: [],
           );
-
-      // Fetch vehicles for this driver
-      final vehicles = await _vehicleRepository.getVehiclesForDriver(userId);
-      final updatedDriverDetails =
-          baseDriverDetails.copyWith(vehicles: vehicles);
 
       return user.copyWith(driverDetails: updatedDriverDetails);
     } on AppwriteException catch (e) {
@@ -643,6 +661,7 @@ class AppwriteUserRepository implements UserRepository {
         // Driver details not found, create them with default values
         final driverDetails = DriverDetails(
           isAvailable: isAvailable,
+          vehicles: [],
         );
 
         await _databases.createDocument(
@@ -652,22 +671,20 @@ class AppwriteUserRepository implements UserRepository {
           data: {
             'user_id': userId,
             'is_available': driverDetails.isAvailable,
+            'created_at': DateTime.now().toIso8601String(),
+            'updated_at': DateTime.now().toIso8601String(),
           },
         );
       }
 
-      // Create or update driver details
-      final baseDriverDetails = user.driverDetails?.copyWith(
+      // Return the updated user
+      final updatedDriverDetails = user.driverDetails?.copyWith(
             isAvailable: isAvailable,
           ) ??
           DriverDetails(
             isAvailable: isAvailable,
+            vehicles: [],
           );
-
-      // Fetch vehicles for this driver
-      final vehicles = await _vehicleRepository.getVehiclesForDriver(userId);
-      final updatedDriverDetails =
-          baseDriverDetails.copyWith(vehicles: vehicles);
 
       return user.copyWith(driverDetails: updatedDriverDetails);
     } on AppwriteException catch (e) {
@@ -693,7 +710,6 @@ class AppwriteUserRepository implements UserRepository {
         final userId = driverDoc.data['user_id'];
         final user = await getUserById(userId);
         if (user != null) {
-          // Vehicles are already fetched in getUserById
           drivers.add(user);
         }
       }

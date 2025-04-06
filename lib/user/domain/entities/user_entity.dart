@@ -1,4 +1,4 @@
-import 'vehicle_entity.dart';
+import 'package:ndao/user/domain/entities/vehicle_entity.dart';
 
 /// Represents a user in the system
 class UserEntity {
@@ -101,67 +101,40 @@ class DriverDetails {
   /// Driver's current longitude
   final double? currentLongitude;
 
+  /// Driver's rating (1-5)
+  final double? rating;
+
   /// Driver's vehicles
   final List<VehicleEntity> vehicles;
 
-  /// Driver's rating (1-5)
-  final double? rating;
+  /// Driver's primary vehicle
+  VehicleEntity? get primaryVehicle => vehicles.isNotEmpty
+      ? vehicles.firstWhere((v) => v.isPrimary, orElse: () => vehicles.first)
+      : null;
 
   /// Creates new DriverDetails
   DriverDetails({
     this.isAvailable = false,
     this.currentLatitude,
     this.currentLongitude,
-    this.vehicles = const [],
     this.rating,
+    this.vehicles = const [],
   });
-
-  /// Get the primary vehicle
-  VehicleEntity? get primaryVehicle {
-    if (vehicles.isEmpty) return null;
-    return vehicles.firstWhere(
-      (vehicle) => vehicle.isPrimary,
-      orElse: () => vehicles.first,
-    );
-  }
 
   /// Creates a copy of this DriverDetails with the given fields replaced with new values
   DriverDetails copyWith({
     bool? isAvailable,
     double? currentLatitude,
     double? currentLongitude,
-    List<VehicleEntity>? vehicles,
     double? rating,
+    List<VehicleEntity>? vehicles,
   }) {
     return DriverDetails(
       isAvailable: isAvailable ?? this.isAvailable,
       currentLatitude: currentLatitude ?? this.currentLatitude,
       currentLongitude: currentLongitude ?? this.currentLongitude,
-      vehicles: vehicles ?? this.vehicles,
       rating: rating ?? this.rating,
-    );
-  }
-
-  /// Add a vehicle to the driver
-  DriverDetails addVehicle(VehicleEntity vehicle) {
-    return copyWith(vehicles: [...vehicles, vehicle]);
-  }
-
-  /// Remove a vehicle from the driver
-  DriverDetails removeVehicle(String vehicleId) {
-    return copyWith(
-      vehicles: vehicles.where((v) => v.id != vehicleId).toList(),
-    );
-  }
-
-  /// Set a vehicle as primary
-  DriverDetails setPrimaryVehicle(String vehicleId) {
-    return copyWith(
-      vehicles: vehicles
-          .map((v) => v.copyWith(
-                isPrimary: v.id == vehicleId,
-              ))
-          .toList(),
+      vehicles: vehicles ?? this.vehicles,
     );
   }
 }

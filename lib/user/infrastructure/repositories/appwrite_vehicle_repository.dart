@@ -37,6 +37,7 @@ class AppwriteVehicleRepository implements VehicleRepository {
   }) async {
     try {
       // Create the vehicle
+      final now = DateTime.now().toIso8601String();
       final vehicleDoc = await _databases.createDocument(
         databaseId: _databaseId,
         collectionId: _vehiclesCollectionId,
@@ -47,10 +48,13 @@ class AppwriteVehicleRepository implements VehicleRepository {
           'model': model,
           'type': type,
           'photo_url': null,
+          'created_at': now,
+          'updated_at': now,
         },
       );
 
       // Link the vehicle to the driver
+      final linkTime = DateTime.now().toIso8601String();
       await _databases.createDocument(
         databaseId: _databaseId,
         collectionId: _driverVehiclesCollectionId,
@@ -59,6 +63,8 @@ class AppwriteVehicleRepository implements VehicleRepository {
           'driver_id': driverId,
           'vehicle_id': vehicleDoc.$id,
           'is_primary': isPrimary,
+          'created_at': linkTime,
+          'updated_at': linkTime,
         },
       );
 
@@ -179,6 +185,7 @@ class AppwriteVehicleRepository implements VehicleRepository {
   @override
   Future<VehicleEntity> updateVehicle(VehicleEntity vehicle) async {
     try {
+      final updateTime = DateTime.now().toIso8601String();
       await _databases.updateDocument(
         databaseId: _databaseId,
         collectionId: _vehiclesCollectionId,
@@ -189,6 +196,7 @@ class AppwriteVehicleRepository implements VehicleRepository {
           'model': vehicle.model,
           'type': vehicle.type,
           if (vehicle.photoUrl != null) 'photo_url': vehicle.photoUrl,
+          'updated_at': updateTime,
         },
       );
 
@@ -247,12 +255,14 @@ class AppwriteVehicleRepository implements VehicleRepository {
       }
 
       // Update the relationship to be primary
+      final updateTime = DateTime.now().toIso8601String();
       await _databases.updateDocument(
         databaseId: _databaseId,
         collectionId: _driverVehiclesCollectionId,
         documentId: driverVehicleDocs.documents.first.$id,
         data: {
           'is_primary': true,
+          'updated_at': updateTime,
         },
       );
 
@@ -330,12 +340,14 @@ class AppwriteVehicleRepository implements VehicleRepository {
 
       // Update all other vehicles to not be primary
       for (final doc in driverVehicleDocs.documents) {
+        final updateTime = DateTime.now().toIso8601String();
         await _databases.updateDocument(
           databaseId: _databaseId,
           collectionId: _driverVehiclesCollectionId,
           documentId: doc.$id,
           data: {
             'is_primary': false,
+            'updated_at': updateTime,
           },
         );
       }

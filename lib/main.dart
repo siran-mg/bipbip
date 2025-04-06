@@ -4,6 +4,7 @@ import 'package:ndao/core/infrastructure/appwrite/appwrite_client.dart';
 import 'package:ndao/home/presentation/pages/home_wrapper.dart';
 import 'package:ndao/location/domain/providers/locator_provider.dart';
 import 'package:ndao/location/infrastructure/providers/geo_locator_provider.dart';
+import 'package:ndao/user/domain/interactors/forgot_password_interactor.dart';
 import 'package:ndao/user/domain/interactors/login_interactor.dart';
 import 'package:ndao/user/domain/interactors/logout_interactor.dart';
 import 'package:ndao/user/domain/interactors/register_user_interactor.dart';
@@ -18,6 +19,7 @@ import 'package:ndao/user/infrastructure/repositories/appwrite_storage_repositor
 import 'package:ndao/user/infrastructure/repositories/appwrite_user_repository.dart';
 import 'package:ndao/user/infrastructure/repositories/appwrite_vehicle_repository.dart';
 import 'package:ndao/user/presentation/pages/driver_registration_page.dart';
+import 'package:ndao/user/presentation/pages/forgot_password_page.dart';
 import 'package:ndao/user/presentation/pages/login_page.dart';
 import 'package:ndao/user/presentation/pages/registration_page.dart';
 import 'package:ndao/user/presentation/pages/splash_page.dart';
@@ -119,6 +121,10 @@ class MyApp extends StatelessWidget {
           update: (_, repository, __) => LogoutInteractor(repository),
         ),
 
+        ProxyProvider<AuthRepository, ForgotPasswordInteractor>(
+          update: (_, repository, __) => ForgotPasswordInteractor(repository),
+        ),
+
         // Vehicle interactor
         ProxyProvider<VehicleRepository, VehicleInteractor>(
           update: (_, vehicleRepository, __) =>
@@ -194,6 +200,7 @@ class MyApp extends StatelessWidget {
           '/login': (context) => const LoginPage(),
           '/register': (context) => const RegistrationPage(),
           '/driver-register': (context) => const DriverRegistrationPage(),
+          '/forgot-password': (context) => const ForgotPasswordPage(),
           '/home': (context) => const HomeWrapper(),
         },
       ),

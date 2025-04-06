@@ -162,6 +162,7 @@ class _LoginFormState extends State<LoginForm> {
             child: TextButton(
               onPressed: () {
                 // Navigate to forgot password page
+                Navigator.pushNamed(context, '/forgot-password');
               },
               child: const Text('Mot de passe oublié?'),
             ),

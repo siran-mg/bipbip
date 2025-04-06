@@ -150,4 +150,20 @@ class AppwriteAuthRepository implements AuthRepository {
       return false;
     }
   }
+
+  @override
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      // Send password recovery email
+      await _account.createRecovery(
+        email: email,
+        url:
+            'https://ndao.app/reset-password', // This URL should be configured in your Appwrite console
+      );
+    } on AppwriteException catch (e) {
+      throw Exception('Failed to send password reset email: ${e.message}');
+    } catch (e) {
+      throw Exception('Failed to send password reset email: ${e.toString()}');
+    }
+  }
 }

@@ -44,4 +44,11 @@ abstract class AuthRepository {
   ///
   /// Returns true if a user is authenticated, false otherwise
   Future<bool> isAuthenticated();
+
+  /// Send a password reset email to the user
+  ///
+  /// [email] The email address of the user
+  /// Returns a Future that completes when the email is sent
+  /// Throws an exception if the operation fails
+  Future<void> sendPasswordResetEmail(String email);
 }

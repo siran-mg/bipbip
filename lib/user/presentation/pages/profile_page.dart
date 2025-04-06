@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:ndao/user/domain/entities/user_entity.dart';
 import 'package:ndao/user/domain/entities/vehicle_entity.dart';
@@ -42,7 +43,8 @@ class _ProfilePageState extends State<ProfilePage> {
       });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Erreur lors du chargement des données: ${e.toString()}';
+        _errorMessage =
+            'Erreur lors du chargement des données: ${e.toString()}';
         _isLoading = false;
       });
     }
@@ -92,14 +94,14 @@ class _ProfilePageState extends State<ProfilePage> {
           children: [
             // Profile header with photo
             _buildProfileHeader(),
-            
+
             const SizedBox(height: 24),
-            
+
             // User information section
             _buildUserInfoSection(),
-            
+
             const SizedBox(height: 24),
-            
+
             // Role-specific sections
             if (_user!.isClient) _buildClientSection(),
             if (_user!.isDriver) _buildDriverSection(),
@@ -123,16 +125,16 @@ class _ProfilePageState extends State<ProfilePage> {
               });
             },
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // User name
           Text(
             _user!.fullName,
             style: Theme.of(context).textTheme.headlineMedium,
             textAlign: TextAlign.center,
           ),
-          
+
           // User roles
           Wrap(
             alignment: WrapAlignment.center,
@@ -179,7 +181,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildClientSection() {
     final clientDetails = _user!.clientDetails;
-    
+
     return Card(
       elevation: 2,
       child: Padding(
@@ -196,11 +198,8 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             const SizedBox(height: 16),
             if (clientDetails?.rating != null)
-              _buildInfoRow(
-                Icons.star, 
-                'Note', 
-                '${clientDetails!.rating!.toStringAsFixed(1)}/5.0'
-              ),
+              _buildInfoRow(Icons.star, 'Note',
+                  '${clientDetails!.rating!.toStringAsFixed(1)}/5.0'),
             if (clientDetails?.rating == null)
               const Text('Aucune note pour le moment'),
           ],
@@ -211,11 +210,11 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildDriverSection() {
     final driverDetails = _user!.driverDetails;
-    
+
     if (driverDetails == null) {
       return const SizedBox.shrink();
     }
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -236,28 +235,29 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 const SizedBox(height: 16),
                 _buildInfoRow(
-                  Icons.star, 
-                  'Note', 
-                  driverDetails.rating != null 
-                    ? '${driverDetails.rating!.toStringAsFixed(1)}/5.0'
-                    : 'Aucune note'
-                ),
+                    Icons.star,
+                    'Note',
+                    driverDetails.rating != null
+                        ? '${driverDetails.rating!.toStringAsFixed(1)}/5.0'
+                        : 'Aucune note'),
                 const Divider(),
                 _buildInfoRow(
-                  Icons.circle, 
-                  'Statut', 
+                  Icons.circle,
+                  'Statut',
                   driverDetails.isAvailable ? 'Disponible' : 'Non disponible',
-                  valueColor: driverDetails.isAvailable ? Colors.green : Colors.red,
+                  valueColor:
+                      driverDetails.isAvailable ? Colors.green : Colors.red,
                 ),
               ],
             ),
           ),
         ),
-        
+
         const SizedBox(height: 24),
-        
+
         // Vehicles section
-        if (driverDetails.vehicles.isNotEmpty) _buildVehiclesSection(driverDetails.vehicles),
+        if (driverDetails.vehicles.isNotEmpty)
+          _buildVehiclesSection(driverDetails.vehicles),
       ],
     );
   }
@@ -278,7 +278,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
             const SizedBox(height: 16),
-            ...vehicles.map((vehicle) => _buildVehicleItem(vehicle)).toList(),
+            ...vehicles.map((vehicle) => _buildVehicleItem(vehicle)),
           ],
         ),
       ),
@@ -298,10 +298,14 @@ class _ProfilePageState extends State<ProfilePage> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
               color: Colors.grey.shade200,
-              image: vehicle.photoUrl != null
+              image: vehicle.photoUrl != null && !kIsWeb
                   ? DecorationImage(
                       image: NetworkImage(vehicle.photoUrl!),
                       fit: BoxFit.cover,
+                      onError: (_, __) {
+                        // Handle image loading error
+                        return;
+                      },
                     )
                   : null,
             ),
@@ -313,9 +317,9 @@ class _ProfilePageState extends State<ProfilePage> {
                   )
                 : null,
           ),
-          
+
           const SizedBox(width: 16),
-          
+
           // Vehicle details
           Expanded(
             child: Column(
@@ -363,7 +367,8 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value, {Color? valueColor}) {
+  Widget _buildInfoRow(IconData icon, String label, String value,
+      {Color? valueColor}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(

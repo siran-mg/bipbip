@@ -2,6 +2,7 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import 'package:ndao/core/infrastructure/appwrite/appwrite_client.dart';
 import 'package:ndao/user/domain/interactors/forgot_password_interactor.dart';
+import 'package:ndao/user/domain/interactors/get_current_user_interactor.dart';
 import 'package:ndao/user/domain/interactors/login_interactor.dart';
 import 'package:ndao/user/domain/interactors/logout_interactor.dart';
 import 'package:ndao/user/domain/interactors/register_user_interactor.dart';
@@ -34,6 +35,11 @@ class AuthProviders {
 
       ProxyProvider<AuthRepository, ForgotPasswordInteractor>(
         update: (_, repository, __) => ForgotPasswordInteractor(repository),
+      ),
+
+      // Get current user interactor
+      ProxyProvider<AuthRepository, GetCurrentUserInteractor>(
+        update: (_, repository, __) => GetCurrentUserInteractor(repository),
       ),
 
       // User registration interactor

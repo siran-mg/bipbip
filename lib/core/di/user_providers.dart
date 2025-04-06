@@ -2,9 +2,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import 'package:ndao/core/infrastructure/appwrite/appwrite_client.dart';
-import 'package:ndao/user/domain/interactors/get_current_user_interactor.dart';
 import 'package:ndao/user/domain/interactors/upload_profile_photo_interactor.dart';
-import 'package:ndao/user/domain/repositories/auth_repository.dart';
 import 'package:ndao/user/domain/repositories/storage_repository.dart';
 import 'package:ndao/user/domain/repositories/user_repository.dart';
 import 'package:ndao/user/domain/repositories/vehicle_repository.dart';
@@ -53,12 +51,6 @@ class UserProviders {
           storageRepository: storageRepository,
           userRepository: userRepository,
         ),
-      ),
-
-      // Get current user interactor
-      ProxyProvider<AuthRepository, GetCurrentUserInteractor>(
-        update: (_, authRepository, __) =>
-            GetCurrentUserInteractor(authRepository),
       ),
     ];
   }

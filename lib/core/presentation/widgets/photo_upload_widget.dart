@@ -6,28 +6,28 @@ import 'package:ndao/core/presentation/utils/image_picker_util.dart';
 class PhotoUploadWidget extends StatelessWidget {
   /// The current photo file
   final File? photoFile;
-  
+
   /// The placeholder image asset path
   final String placeholderAsset;
-  
+
   /// The placeholder icon
   final IconData placeholderIcon;
-  
+
   /// The label text
   final String labelText;
-  
+
   /// Callback when photo is picked
   final Function(File) onPhotoPicked;
-  
+
   /// Creates a new PhotoUploadWidget
   const PhotoUploadWidget({
-    Key? key,
+    super.key,
     this.photoFile,
     this.placeholderAsset = 'assets/images/profile_placeholder.png',
     this.placeholderIcon = Icons.person,
     required this.labelText,
     required this.onPhotoPicked,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

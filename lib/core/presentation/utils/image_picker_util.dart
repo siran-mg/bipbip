@@ -6,7 +6,8 @@ import 'package:image_picker/image_picker.dart';
 class ImagePickerUtil {
   /// Pick an image from gallery or camera
   static Future<File?> pickImage(BuildContext context) async {
-    return await showModalBottomSheet<File?>(
+    // Show a bottom sheet with options
+    final ImageSource? source = await showModalBottomSheet<ImageSource>(
       context: context,
       builder: (BuildContext context) {
         return SafeArea(
@@ -15,15 +16,15 @@ class ImagePickerUtil {
               ListTile(
                 leading: const Icon(Icons.photo_library),
                 title: const Text('Galerie'),
-                onTap: () async {
-                  Navigator.pop(context, await _getImage(ImageSource.gallery));
+                onTap: () {
+                  Navigator.pop(context, ImageSource.gallery);
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.photo_camera),
                 title: const Text('Caméra'),
-                onTap: () async {
-                  Navigator.pop(context, await _getImage(ImageSource.camera));
+                onTap: () {
+                  Navigator.pop(context, ImageSource.camera);
                 },
               ),
             ],
@@ -31,6 +32,14 @@ class ImagePickerUtil {
         );
       },
     );
+
+    // If user canceled the bottom sheet
+    if (source == null) {
+      return null;
+    }
+
+    // Get the image from the selected source
+    return await _getImage(source);
   }
 
   /// Get image from source

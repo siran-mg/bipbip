@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ndao/core/presentation/routes/app_routes.dart';
 
 /// A form for user login
 class LoginForm extends StatefulWidget {
@@ -46,12 +45,14 @@ class _LoginFormState extends State<LoginForm> {
         // Handle successful login if needed
       }).catchError((error) {
         // Show error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Login failed: ${error.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Login failed: ${error.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }).whenComplete(() {
         if (mounted) {
           setState(() {
@@ -217,7 +218,7 @@ class _LoginFormState extends State<LoginForm> {
                 child: OutlinedButton.icon(
                   onPressed: () {
                     // Navigate to registration page
-                    Navigator.pushNamed(context, AppRoutes.register);
+                    Navigator.pushNamed(context, '/register');
                   },
                   icon: const Icon(Icons.person_add),
                   label: const Text('Client'),
@@ -234,7 +235,7 @@ class _LoginFormState extends State<LoginForm> {
                 child: OutlinedButton.icon(
                   onPressed: () {
                     // Navigate to driver registration page
-                    Navigator.pushNamed(context, AppRoutes.driverRegister);
+                    Navigator.pushNamed(context, '/driver-register');
                   },
                   icon: const Icon(Icons.directions_car),
                   label: const Text('Chauffeur'),

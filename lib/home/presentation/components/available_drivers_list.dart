@@ -35,7 +35,7 @@ class _AvailableDriversListState extends State<AvailableDriversList> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Text(
-            "Les chauffeurs à proximité",
+            'Les chauffeurs à proximité',
             style: TextStyle(
               fontSize: 16.0,
               fontWeight: FontWeight.bold,

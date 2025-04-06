@@ -49,9 +49,9 @@ class GeoLocatorProvider implements LocatorProvider {
 
   @override
   Future<String?> getAddressFromPosition(PositionEntity position) async {
-    String apiKey = "AIzaSyCJCvIC_A4mfdgn2v1FmHeX_64Tnq2PnF4";
+    String apiKey = 'AIzaSyCJCvIC_A4mfdgn2v1FmHeX_64Tnq2PnF4';
     String url =
-        "https://maps.googleapis.com/maps/api/geocode/json?latlng=${position.latitude},${position.longitude}&key=$apiKey";
+        'https://maps.googleapis.com/maps/api/geocode/json?latlng=${position.latitude},${position.longitude}&key=$apiKey';
 
     final response = await Dio().get(url);
     if (response.statusCode == 200) {

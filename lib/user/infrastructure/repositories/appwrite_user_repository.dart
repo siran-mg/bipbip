@@ -270,6 +270,7 @@ class AppwriteUserRepository implements UserRepository {
             documentId: user.id,
             data: {
               'rating': user.clientDetails!.rating,
+              'updated_at': DateTime.now().toIso8601String(),
             },
           );
         } catch (e) {

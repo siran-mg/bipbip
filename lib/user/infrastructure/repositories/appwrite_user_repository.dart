@@ -41,6 +41,7 @@ class AppwriteUserRepository implements UserRepository {
   @override
   Future<UserEntity> saveUser(UserEntity user) async {
     try {
+      final now = DateTime.now().toIso8601String();
       // Save the user
       await _databases.createDocument(
         databaseId: _databaseId,
@@ -52,6 +53,8 @@ class AppwriteUserRepository implements UserRepository {
           'email': user.email,
           'phone_number': user.phoneNumber,
           'profile_picture_url': user.profilePictureUrl,
+          'created_at': now,
+          'updated_at': now,
         },
       );
 
@@ -81,15 +84,14 @@ class AppwriteUserRepository implements UserRepository {
             'current_latitude': user.driverDetails!.currentLatitude,
             'current_longitude': user.driverDetails!.currentLongitude,
             'rating': user.driverDetails!.rating,
-            'created_at': DateTime.now().toIso8601String(),
-            'updated_at': DateTime.now().toIso8601String(),
+            'created_at': now,
+            'updated_at': now,
           },
         );
       }
 
       // Save client details if the user is a client
       if (user.isClient && user.clientDetails != null) {
-        final now = DateTime.now().toIso8601String();
         await _databases.createDocument(
           databaseId: _databaseId,
           collectionId: _clientDetailsCollectionId,

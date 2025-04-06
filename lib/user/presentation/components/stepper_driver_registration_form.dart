@@ -54,6 +54,7 @@ class _StepperDriverRegistrationFormState
   File? _profilePhoto;
   File? _vehiclePhoto;
   int _currentStep = 0;
+  bool _isLoading = false;
 
   final List<Map<String, dynamic>> _vehicleTypes = [
     {'value': 'motorcycle', 'label': 'Moto'},
@@ -78,6 +79,11 @@ class _StepperDriverRegistrationFormState
 
   void _submitForm() {
     if (_vehicleInfoFormKey.currentState!.validate()) {
+      // Set loading state
+      setState(() {
+        _isLoading = true;
+      });
+
       // Call the onRegister callback with the form values
       widget
           .onRegister(
@@ -95,9 +101,17 @@ class _StepperDriverRegistrationFormState
       )
           .then((_) {
         // Handle successful registration if needed
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }).catchError((error) {
         // Show error message
         if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Inscription échouée: ${error.toString()}'),
@@ -111,110 +125,123 @@ class _StepperDriverRegistrationFormState
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Stack(
       children: [
-        Expanded(
-          child: Stepper(
-            type: StepperType.horizontal,
-            currentStep: _currentStep,
-            onStepContinue: () {
-              if (_currentStep == 0) {
-                if (_personalInfoFormKey.currentState!.validate()) {
-                  setState(() {
-                    _currentStep += 1;
-                  });
-                }
-              } else if (_currentStep == 1) {
-                if (_accountInfoFormKey.currentState!.validate()) {
-                  setState(() {
-                    _currentStep += 1;
-                  });
-                }
-              } else if (_currentStep == 2) {
-                _submitForm();
-              }
-            },
-            onStepCancel: () {
-              if (_currentStep > 0) {
-                setState(() {
-                  _currentStep -= 1;
-                });
-              }
-            },
-            controlsBuilder: (context, details) {
-              return StepperControls(
+        Column(
+          children: [
+            Expanded(
+              child: Stepper(
+                type: StepperType.horizontal,
                 currentStep: _currentStep,
-                totalSteps: 3,
-                onStepContinue: details.onStepContinue!,
-                onStepCancel: details.onStepCancel!,
-              );
-            },
-            steps: [
-              Step(
-                title: const Text('Profil'),
-                content: PersonalInfoStep(
-                  formKey: _personalInfoFormKey,
-                  givenNameController: _givenNameController,
-                  familyNameController: _familyNameController,
-                  phoneController: _phoneController,
-                  profilePhoto: _profilePhoto,
-                  onProfilePhotoPicked: (file) {
-                    setState(() {
-                      _profilePhoto = file;
-                    });
-                  },
-                ),
-                isActive: _currentStep >= 0,
-                state:
-                    _currentStep > 0 ? StepState.complete : StepState.indexed,
+                onStepContinue: _isLoading
+                    ? null
+                    : () {
+                        if (_currentStep == 0) {
+                          if (_personalInfoFormKey.currentState!.validate()) {
+                            setState(() {
+                              _currentStep += 1;
+                            });
+                          }
+                        } else if (_currentStep == 1) {
+                          if (_accountInfoFormKey.currentState!.validate()) {
+                            setState(() {
+                              _currentStep += 1;
+                            });
+                          }
+                        } else if (_currentStep == 2) {
+                          _submitForm();
+                        }
+                      },
+                onStepCancel: _isLoading
+                    ? null
+                    : () {
+                        if (_currentStep > 0) {
+                          setState(() {
+                            _currentStep -= 1;
+                          });
+                        }
+                      },
+                controlsBuilder: (context, details) {
+                  return StepperControls(
+                    currentStep: _currentStep,
+                    totalSteps: 3,
+                    onStepContinue: details.onStepContinue,
+                    onStepCancel: details.onStepCancel,
+                    isLoading: _isLoading,
+                  );
+                },
+                steps: [
+                  Step(
+                    title: const Text('Profil'),
+                    content: PersonalInfoStep(
+                      formKey: _personalInfoFormKey,
+                      givenNameController: _givenNameController,
+                      familyNameController: _familyNameController,
+                      phoneController: _phoneController,
+                      profilePhoto: _profilePhoto,
+                      onProfilePhotoPicked: (file) {
+                        setState(() {
+                          _profilePhoto = file;
+                        });
+                      },
+                    ),
+                    isActive: _currentStep >= 0,
+                    state: _currentStep > 0
+                        ? StepState.complete
+                        : StepState.indexed,
+                  ),
+                  Step(
+                    title: const Text('Compte'),
+                    content: AccountInfoStep(
+                      formKey: _accountInfoFormKey,
+                      emailController: _emailController,
+                      passwordController: _passwordController,
+                      confirmPasswordController: _confirmPasswordController,
+                    ),
+                    isActive: _currentStep >= 1,
+                    state: _currentStep > 1
+                        ? StepState.complete
+                        : StepState.indexed,
+                  ),
+                  Step(
+                    title: const Text('Véhicule'),
+                    content: VehicleInfoStep(
+                      formKey: _vehicleInfoFormKey,
+                      licensePlateController: _licensePlateController,
+                      vehicleModelController: _vehicleModelController,
+                      vehicleBrandController: _vehicleBrandController,
+                      selectedVehicleType: _selectedVehicleType,
+                      vehiclePhoto: _vehiclePhoto,
+                      onVehicleTypeChanged: (value) {
+                        setState(() {
+                          _selectedVehicleType = value;
+                        });
+                      },
+                      onVehiclePhotoPicked: (file) {
+                        setState(() {
+                          _vehiclePhoto = file;
+                        });
+                      },
+                      vehicleTypes: _vehicleTypes,
+                    ),
+                    isActive: _currentStep >= 2,
+                    state: _currentStep > 2
+                        ? StepState.complete
+                        : StepState.indexed,
+                  ),
+                ],
               ),
-              Step(
-                title: const Text('Compte'),
-                content: AccountInfoStep(
-                  formKey: _accountInfoFormKey,
-                  emailController: _emailController,
-                  passwordController: _passwordController,
-                  confirmPasswordController: _confirmPasswordController,
-                ),
-                isActive: _currentStep >= 1,
-                state:
-                    _currentStep > 1 ? StepState.complete : StepState.indexed,
-              ),
-              Step(
-                title: const Text('Véhicule'),
-                content: VehicleInfoStep(
-                  formKey: _vehicleInfoFormKey,
-                  licensePlateController: _licensePlateController,
-                  vehicleModelController: _vehicleModelController,
-                  vehicleBrandController: _vehicleBrandController,
-                  selectedVehicleType: _selectedVehicleType,
-                  vehiclePhoto: _vehiclePhoto,
-                  onVehicleTypeChanged: (value) {
-                    setState(() {
-                      _selectedVehicleType = value;
-                    });
-                  },
-                  onVehiclePhotoPicked: (file) {
-                    setState(() {
-                      _vehiclePhoto = file;
-                    });
-                  },
-                  vehicleTypes: _vehicleTypes,
-                ),
-                isActive: _currentStep >= 2,
-                state:
-                    _currentStep > 2 ? StepState.complete : StepState.indexed,
-              ),
-            ],
-          ),
-        ),
+            ),
 
-        // Footer with login link and client registration option
-        RegistrationFooter(
-          alternativeText: 'Ou inscrivez-vous comme',
-          alternativeIcon: Icons.person_add,
-          alternativeLabel: 'CLIENT',
-          alternativeRoute: '/register',
+            // Footer with login link and client registration option
+            RegistrationFooter(
+              alternativeText: 'Ou inscrivez-vous comme',
+              alternativeIcon: Icons.person_add,
+              alternativeLabel: 'CLIENT',
+              alternativeRoute: '/register',
+              enabled: !_isLoading,
+            ),
+          ],
         ),
       ],
     );

@@ -4,15 +4,18 @@ import 'package:flutter/material.dart';
 class RegistrationFooter extends StatelessWidget {
   /// Text for the alternative registration option
   final String alternativeText;
-  
+
   /// Icon for the alternative registration option
   final IconData alternativeIcon;
-  
+
   /// Label for the alternative registration option
   final String alternativeLabel;
-  
+
   /// Route for the alternative registration option
   final String alternativeRoute;
+
+  /// Whether the footer is enabled
+  final bool enabled;
 
   /// Creates a new RegistrationFooter
   const RegistrationFooter({
@@ -21,6 +24,7 @@ class RegistrationFooter extends StatelessWidget {
     required this.alternativeIcon,
     required this.alternativeLabel,
     required this.alternativeRoute,
+    this.enabled = true,
   });
 
   @override
@@ -35,19 +39,21 @@ class RegistrationFooter extends StatelessWidget {
             children: [
               const Text('Vous avez déjà un compte?'),
               TextButton(
-                onPressed: () {
-                  // Navigate back to login page
-                  Navigator.pop(context);
-                },
+                onPressed: enabled
+                    ? () {
+                        // Navigate back to login page
+                        Navigator.pop(context);
+                      }
+                    : null,
                 child: const Text('Se connecter'),
               ),
             ],
           ),
         ),
-        
+
         // Alternative registration link
         const SizedBox(height: 16),
-        
+
         // Divider with text
         Row(
           children: [
@@ -65,15 +71,17 @@ class RegistrationFooter extends StatelessWidget {
             const Expanded(child: Divider()),
           ],
         ),
-        
+
         const SizedBox(height: 16),
-        
+
         // Alternative registration button
         OutlinedButton.icon(
-          onPressed: () {
-            // Navigate to alternative registration page
-            Navigator.pushReplacementNamed(context, alternativeRoute);
-          },
+          onPressed: enabled
+              ? () {
+                  // Navigate to alternative registration page
+                  Navigator.pushReplacementNamed(context, alternativeRoute);
+                }
+              : null,
           icon: Icon(alternativeIcon),
           label: Text(alternativeLabel),
           style: OutlinedButton.styleFrom(

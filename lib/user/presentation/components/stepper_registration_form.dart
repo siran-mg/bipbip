@@ -24,22 +24,24 @@ class StepperRegistrationForm extends StatefulWidget {
   });
 
   @override
-  State<StepperRegistrationForm> createState() => _StepperRegistrationFormState();
+  State<StepperRegistrationForm> createState() =>
+      _StepperRegistrationFormState();
 }
 
 class _StepperRegistrationFormState extends State<StepperRegistrationForm> {
   final _personalInfoFormKey = GlobalKey<FormState>();
   final _accountInfoFormKey = GlobalKey<FormState>();
-  
+
   final _givenNameController = TextEditingController();
   final _familyNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  
+
   File? _profilePhoto;
   int _currentStep = 0;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -54,19 +56,34 @@ class _StepperRegistrationFormState extends State<StepperRegistrationForm> {
 
   void _submitForm() {
     if (_accountInfoFormKey.currentState!.validate()) {
+      // Set loading state
+      setState(() {
+        _isLoading = true;
+      });
+
       // Call the onRegister callback with the form values
-      widget.onRegister(
+      widget
+          .onRegister(
         _givenNameController.text.trim(),
         _familyNameController.text.trim(),
         _emailController.text.trim(),
         _phoneController.text.trim(),
         _passwordController.text,
         _profilePhoto,
-      ).then((_) {
+      )
+          .then((_) {
         // Handle successful registration if needed
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }).catchError((error) {
         // Show error message
         if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Inscription échouée: ${error.toString()}'),
@@ -80,77 +97,91 @@ class _StepperRegistrationFormState extends State<StepperRegistrationForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Stack(
       children: [
-        Expanded(
-          child: Stepper(
-            type: StepperType.horizontal,
-            currentStep: _currentStep,
-            onStepContinue: () {
-              if (_currentStep == 0) {
-                if (_personalInfoFormKey.currentState!.validate()) {
-                  setState(() {
-                    _currentStep += 1;
-                  });
-                }
-              } else if (_currentStep == 1) {
-                _submitForm();
-              }
-            },
-            onStepCancel: () {
-              if (_currentStep > 0) {
-                setState(() {
-                  _currentStep -= 1;
-                });
-              }
-            },
-            controlsBuilder: (context, details) {
-              return StepperControls(
+        Column(
+          children: [
+            Expanded(
+              child: Stepper(
+                type: StepperType.horizontal,
                 currentStep: _currentStep,
-                totalSteps: 2,
-                onStepContinue: details.onStepContinue!,
-                onStepCancel: details.onStepCancel!,
-              );
-            },
-            steps: [
-              Step(
-                title: const Text('Profil'),
-                content: PersonalInfoStep(
-                  formKey: _personalInfoFormKey,
-                  givenNameController: _givenNameController,
-                  familyNameController: _familyNameController,
-                  phoneController: _phoneController,
-                  profilePhoto: _profilePhoto,
-                  onProfilePhotoPicked: (file) {
-                    setState(() {
-                      _profilePhoto = file;
-                    });
-                  },
-                ),
-                isActive: _currentStep >= 0,
-                state: _currentStep > 0 ? StepState.complete : StepState.indexed,
+                onStepContinue: _isLoading
+                    ? null
+                    : () {
+                        if (_currentStep == 0) {
+                          if (_personalInfoFormKey.currentState!.validate()) {
+                            setState(() {
+                              _currentStep += 1;
+                            });
+                          }
+                        } else if (_currentStep == 1) {
+                          _submitForm();
+                        }
+                      },
+                onStepCancel: _isLoading
+                    ? null
+                    : () {
+                        if (_currentStep > 0) {
+                          setState(() {
+                            _currentStep -= 1;
+                          });
+                        }
+                      },
+                controlsBuilder: (context, details) {
+                  return StepperControls(
+                    currentStep: _currentStep,
+                    totalSteps: 2,
+                    onStepContinue: details.onStepContinue,
+                    onStepCancel: details.onStepCancel,
+                    isLoading: _isLoading,
+                  );
+                },
+                steps: [
+                  Step(
+                    title: const Text('Profil'),
+                    content: PersonalInfoStep(
+                      formKey: _personalInfoFormKey,
+                      givenNameController: _givenNameController,
+                      familyNameController: _familyNameController,
+                      phoneController: _phoneController,
+                      profilePhoto: _profilePhoto,
+                      onProfilePhotoPicked: (file) {
+                        setState(() {
+                          _profilePhoto = file;
+                        });
+                      },
+                    ),
+                    isActive: _currentStep >= 0,
+                    state: _currentStep > 0
+                        ? StepState.complete
+                        : StepState.indexed,
+                  ),
+                  Step(
+                    title: const Text('Compte'),
+                    content: AccountInfoStep(
+                      formKey: _accountInfoFormKey,
+                      emailController: _emailController,
+                      passwordController: _passwordController,
+                      confirmPasswordController: _confirmPasswordController,
+                    ),
+                    isActive: _currentStep >= 1,
+                    state: _currentStep > 1
+                        ? StepState.complete
+                        : StepState.indexed,
+                  ),
+                ],
               ),
-              Step(
-                title: const Text('Compte'),
-                content: AccountInfoStep(
-                  formKey: _accountInfoFormKey,
-                  emailController: _emailController,
-                  passwordController: _passwordController,
-                  confirmPasswordController: _confirmPasswordController,
-                ),
-                isActive: _currentStep >= 1,
-                state: _currentStep > 1 ? StepState.complete : StepState.indexed,
-              ),
-            ],
-          ),
-        ),
-        
-        // Footer with login link and driver registration option
-        RegistrationFooter(
-          alternativeText: 'Ou inscrivez-vous comme',
-          alternativeIcon: Icons.directions_car,
-          alternativeLabel: 'CHAUFFEUR',
-          alternativeRoute: '/driver-register',
+            ),
+
+            // Footer with login link and driver registration option
+            RegistrationFooter(
+              alternativeText: 'Ou inscrivez-vous comme',
+              alternativeIcon: Icons.directions_car,
+              alternativeLabel: 'CHAUFFEUR',
+              alternativeRoute: '/driver-register',
+              enabled: !_isLoading,
+            ),
+          ],
         ),
       ],
     );

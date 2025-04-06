@@ -68,6 +68,8 @@ class AppwriteUserRepository implements UserRepository {
             'user_id': user.id,
             'role': role,
             'is_active': true,
+            'created_at': now,
+            'updated_at': now,
           },
         );
       }

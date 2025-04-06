@@ -25,9 +25,10 @@ class LoginPage extends StatelessWidget {
                   // Use the login interactor to sign in
                   await loginInteractor.execute(email, password);
 
-                  // Navigate to home page after successful login
+                  // Navigate to home page after successful login and clear navigation stack
                   if (context.mounted) {
-                    Navigator.pushReplacementNamed(context, '/home');
+                    Navigator.pushNamedAndRemoveUntil(
+                        context, '/home', (route) => false);
                   }
                   return Future.value();
                 } catch (e) {

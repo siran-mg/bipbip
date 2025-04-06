@@ -63,8 +63,9 @@ class RegistrationPage extends StatelessWidget {
                     ),
                   );
 
-                  // Navigate to home page
-                  Navigator.pushReplacementNamed(context, '/home');
+                  // Navigate to home page and clear navigation stack
+                  Navigator.pushNamedAndRemoveUntil(
+                      context, '/home', (route) => false);
                 }
 
                 return Future.value();

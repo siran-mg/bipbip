@@ -23,15 +23,16 @@ class _SplashPageState extends State<SplashPage> {
 
   Future<void> _checkAuthStatus() async {
     final authRepository = Provider.of<AuthRepository>(context, listen: false);
-    
+
     try {
       // Check if user is already authenticated
       final isAuthenticated = await authRepository.isAuthenticated();
-      
+
       if (mounted) {
         if (isAuthenticated) {
-          // User is authenticated, navigate to home page
-          Navigator.of(context).pushReplacementNamed('/home');
+          // User is authenticated, navigate to home page and clear navigation stack
+          Navigator.of(context)
+              .pushNamedAndRemoveUntil('/home', (route) => false);
         } else {
           // User is not authenticated, navigate to login page
           Navigator.of(context).pushReplacementNamed('/login');

@@ -18,10 +18,12 @@ class _HomeWrapperState extends State<HomeWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    final logoutInteractor = Provider.of<LogoutInteractor>(context, listen: false);
+    final logoutInteractor =
+        Provider.of<LogoutInteractor>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false, // Remove back button
         title: const Text('Ndao'),
         actions: [
           // Logout button
@@ -44,13 +46,14 @@ class _HomeWrapperState extends State<HomeWrapper> {
                 // Close loading dialog and navigate to login page
                 if (context.mounted) {
                   Navigator.of(context).pop(); // Close dialog
-                  Navigator.of(context).pushReplacementNamed('/login');
+                  Navigator.of(context)
+                      .pushNamedAndRemoveUntil('/login', (route) => false);
                 }
               } catch (e) {
                 // Close loading dialog
                 if (context.mounted) {
                   Navigator.of(context).pop(); // Close dialog
-                  
+
                   // Show error message
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -64,7 +67,9 @@ class _HomeWrapperState extends State<HomeWrapper> {
           ),
         ],
       ),
-      body: _selectedIndex == 0 ? const HomePage() : const Center(child: Text('Profile')),
+      body: _selectedIndex == 0
+          ? const HomePage()
+          : const Center(child: Text('Profile')),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) {

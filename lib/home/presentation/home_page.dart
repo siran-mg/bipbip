@@ -7,35 +7,30 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ndao'),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                spacing: 4.0,
-                children: [
-                  Icon(Icons.location_on),
-                  Text('Sabotsy Namehana'),
-                ],
-              ),
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              spacing: 4.0,
+              children: [
+                Icon(Icons.location_on),
+                Text('Sabotsy Namehana'),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.only(
-                left: 16.0,
-                right: 16.0,
-                bottom: 16.0,
-              ),
-              child: const SearchDriverForm(),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(
+              left: 16.0,
+              right: 16.0,
+              bottom: 16.0,
             ),
-            // Available drivers list
-            const AvailableDriversList(),
-          ],
-        ),
+            child: const SearchDriverForm(),
+          ),
+          // Available drivers list
+          const AvailableDriversList(),
+        ],
       ),
     );
   }

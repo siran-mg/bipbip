@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ndao/core/infrastructure/appwrite/appwrite_client.dart';
-import 'package:ndao/home/presentation/home_page.dart';
+import 'package:ndao/home/presentation/pages/home_wrapper.dart';
 import 'package:ndao/location/domain/providers/locator_provider.dart';
 import 'package:ndao/location/infrastructure/providers/geo_locator_provider.dart';
 import 'package:ndao/user/domain/interactors/login_interactor.dart';
+import 'package:ndao/user/domain/interactors/logout_interactor.dart';
 import 'package:ndao/user/domain/interactors/register_user_interactor.dart';
 import 'package:ndao/user/domain/interactors/upload_profile_photo_interactor.dart';
 import 'package:ndao/user/domain/interactors/vehicle_interactor.dart';
@@ -19,6 +20,7 @@ import 'package:ndao/user/infrastructure/repositories/appwrite_vehicle_repositor
 import 'package:ndao/user/presentation/pages/driver_registration_page.dart';
 import 'package:ndao/user/presentation/pages/login_page.dart';
 import 'package:ndao/user/presentation/pages/registration_page.dart';
+import 'package:ndao/user/presentation/pages/splash_page.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -113,6 +115,10 @@ class MyApp extends StatelessWidget {
           update: (_, repository, __) => LoginInteractor(repository),
         ),
 
+        ProxyProvider<AuthRepository, LogoutInteractor>(
+          update: (_, repository, __) => LogoutInteractor(repository),
+        ),
+
         // Vehicle interactor
         ProxyProvider<VehicleRepository, VehicleInteractor>(
           update: (_, vehicleRepository, __) =>
@@ -182,26 +188,13 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
-        initialRoute: '/login',
+        initialRoute: '/',
         routes: {
+          '/': (context) => const SplashPage(),
           '/login': (context) => const LoginPage(),
           '/register': (context) => const RegistrationPage(),
           '/driver-register': (context) => const DriverRegistrationPage(),
-          '/home': (context) => Scaffold(
-                body: const HomePage(),
-                bottomNavigationBar: BottomNavigationBar(
-                  items: [
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.home),
-                      label: 'Accueil',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Icon(Icons.person),
-                      label: 'Profile',
-                    ),
-                  ],
-                ),
-              ),
+          '/home': (context) => const HomeWrapper(),
         },
       ),
     );

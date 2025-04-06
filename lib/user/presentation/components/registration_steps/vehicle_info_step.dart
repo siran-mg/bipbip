@@ -7,28 +7,28 @@ import 'package:ndao/core/presentation/widgets/photo_upload_widget.dart';
 class VehicleInfoStep extends StatelessWidget {
   /// Form key for validation
   final GlobalKey<FormState> formKey;
-  
+
   /// Controller for license plate field
   final TextEditingController licensePlateController;
-  
+
   /// Controller for vehicle model field
   final TextEditingController vehicleModelController;
-  
-  /// Controller for vehicle color field
-  final TextEditingController vehicleColorController;
-  
+
+  /// Controller for vehicle brand field
+  final TextEditingController vehicleBrandController;
+
   /// Selected vehicle type
   final String selectedVehicleType;
-  
+
   /// Vehicle photo file
   final File? vehiclePhoto;
-  
+
   /// Callback when vehicle type is changed
   final Function(String) onVehicleTypeChanged;
-  
+
   /// Callback when vehicle photo is picked
   final Function(File) onVehiclePhotoPicked;
-  
+
   /// List of vehicle types
   final List<Map<String, dynamic>> vehicleTypes;
 
@@ -38,7 +38,7 @@ class VehicleInfoStep extends StatelessWidget {
     required this.formKey,
     required this.licensePlateController,
     required this.vehicleModelController,
-    required this.vehicleColorController,
+    required this.vehicleBrandController,
     required this.selectedVehicleType,
     required this.vehiclePhoto,
     required this.onVehicleTypeChanged,
@@ -62,9 +62,9 @@ class VehicleInfoStep extends StatelessWidget {
               onPhotoPicked: onVehiclePhotoPicked,
             ),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Vehicle type dropdown
           DropdownButtonFormField<String>(
             value: selectedVehicleType,
@@ -84,13 +84,13 @@ class VehicleInfoStep extends StatelessWidget {
               }
             },
             validator: (value) => FormValidators.validateRequired(
-              value, 
+              value,
               'type de véhicule',
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // License plate field
           TextFormField(
             controller: licensePlateController,
@@ -101,13 +101,13 @@ class VehicleInfoStep extends StatelessWidget {
             ),
             textCapitalization: TextCapitalization.characters,
             validator: (value) => FormValidators.validateRequired(
-              value, 
+              value,
               'plaque d\'immatriculation',
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Vehicle model field
           TextFormField(
             controller: vehicleModelController,
@@ -118,25 +118,25 @@ class VehicleInfoStep extends StatelessWidget {
             ),
             textCapitalization: TextCapitalization.words,
             validator: (value) => FormValidators.validateRequired(
-              value, 
+              value,
               'modèle du véhicule',
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
-          // Vehicle color field
+
+          // Vehicle brand field
           TextFormField(
-            controller: vehicleColorController,
+            controller: vehicleBrandController,
             decoration: const InputDecoration(
-              labelText: 'Couleur du véhicule',
-              hintText: 'Entrez la couleur de votre véhicule',
-              prefixIcon: Icon(Icons.color_lens),
+              labelText: 'Marque du véhicule',
+              hintText: 'Entrez la marque de votre véhicule',
+              prefixIcon: Icon(Icons.business),
             ),
             textCapitalization: TextCapitalization.words,
             validator: (value) => FormValidators.validateRequired(
-              value, 
-              'couleur du véhicule',
+              value,
+              'marque du véhicule',
             ),
           ),
         ],

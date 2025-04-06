@@ -48,7 +48,7 @@ class _StepperDriverRegistrationFormState
   final _confirmPasswordController = TextEditingController();
   final _licensePlateController = TextEditingController();
   final _vehicleModelController = TextEditingController();
-  final _vehicleColorController = TextEditingController();
+  final _vehicleBrandController = TextEditingController();
 
   String _selectedVehicleType = 'motorcycle';
   File? _profilePhoto;
@@ -72,14 +72,15 @@ class _StepperDriverRegistrationFormState
     _confirmPasswordController.dispose();
     _licensePlateController.dispose();
     _vehicleModelController.dispose();
-    _vehicleColorController.dispose();
+    _vehicleBrandController.dispose();
     super.dispose();
   }
 
   void _submitForm() {
     if (_vehicleInfoFormKey.currentState!.validate()) {
       // Call the onRegister callback with the form values
-      widget.onRegister(
+      widget
+          .onRegister(
         _givenNameController.text.trim(),
         _familyNameController.text.trim(),
         _emailController.text.trim(),
@@ -87,11 +88,12 @@ class _StepperDriverRegistrationFormState
         _passwordController.text,
         _licensePlateController.text.trim(),
         _vehicleModelController.text.trim(),
-        _vehicleColorController.text.trim(),
+        _vehicleBrandController.text.trim(),
         _selectedVehicleType,
         _profilePhoto,
         _vehiclePhoto,
-      ).then((_) {
+      )
+          .then((_) {
         // Handle successful registration if needed
       }).catchError((error) {
         // Show error message
@@ -163,7 +165,8 @@ class _StepperDriverRegistrationFormState
                   },
                 ),
                 isActive: _currentStep >= 0,
-                state: _currentStep > 0 ? StepState.complete : StepState.indexed,
+                state:
+                    _currentStep > 0 ? StepState.complete : StepState.indexed,
               ),
               Step(
                 title: const Text('Compte'),
@@ -174,7 +177,8 @@ class _StepperDriverRegistrationFormState
                   confirmPasswordController: _confirmPasswordController,
                 ),
                 isActive: _currentStep >= 1,
-                state: _currentStep > 1 ? StepState.complete : StepState.indexed,
+                state:
+                    _currentStep > 1 ? StepState.complete : StepState.indexed,
               ),
               Step(
                 title: const Text('Véhicule'),
@@ -182,7 +186,7 @@ class _StepperDriverRegistrationFormState
                   formKey: _vehicleInfoFormKey,
                   licensePlateController: _licensePlateController,
                   vehicleModelController: _vehicleModelController,
-                  vehicleColorController: _vehicleColorController,
+                  vehicleBrandController: _vehicleBrandController,
                   selectedVehicleType: _selectedVehicleType,
                   vehiclePhoto: _vehiclePhoto,
                   onVehicleTypeChanged: (value) {
@@ -198,12 +202,13 @@ class _StepperDriverRegistrationFormState
                   vehicleTypes: _vehicleTypes,
                 ),
                 isActive: _currentStep >= 2,
-                state: _currentStep > 2 ? StepState.complete : StepState.indexed,
+                state:
+                    _currentStep > 2 ? StepState.complete : StepState.indexed,
               ),
             ],
           ),
         ),
-        
+
         // Footer with login link and client registration option
         RegistrationFooter(
           alternativeText: 'Ou inscrivez-vous comme',

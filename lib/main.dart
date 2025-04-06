@@ -7,12 +7,15 @@ import 'package:ndao/location/infrastructure/providers/geo_locator_provider.dart
 import 'package:ndao/user/domain/interactors/login_interactor.dart';
 import 'package:ndao/user/domain/interactors/register_user_interactor.dart';
 import 'package:ndao/user/domain/interactors/upload_profile_photo_interactor.dart';
+import 'package:ndao/user/domain/interactors/vehicle_interactor.dart';
 import 'package:ndao/user/domain/repositories/auth_repository.dart';
 import 'package:ndao/user/domain/repositories/storage_repository.dart';
 import 'package:ndao/user/domain/repositories/user_repository.dart';
+import 'package:ndao/user/domain/repositories/vehicle_repository.dart';
 import 'package:ndao/user/infrastructure/repositories/appwrite_auth_repository.dart';
 import 'package:ndao/user/infrastructure/repositories/appwrite_storage_repository.dart';
 import 'package:ndao/user/infrastructure/repositories/appwrite_user_repository.dart';
+import 'package:ndao/user/infrastructure/repositories/appwrite_vehicle_repository.dart';
 import 'package:ndao/user/presentation/pages/driver_registration_page.dart';
 import 'package:ndao/user/presentation/pages/login_page.dart';
 import 'package:ndao/user/presentation/pages/registration_page.dart';
@@ -51,10 +54,28 @@ class MyApp extends StatelessWidget {
           create: (_) => AppwriteClientInitializer.instance,
         ),
 
-        // User repository
-        Provider<UserRepository>(
-          create: (context) => AppwriteUserRepository(
+        // Vehicle repository
+        Provider<VehicleRepository>(
+          create: (context) => AppwriteVehicleRepository(
             AppwriteClientInitializer.instance.databases,
+            AppwriteClientInitializer.instance.storage,
+            databaseId: dotenv.env['APPWRITE_DATABASE_ID'] ?? 'ndao',
+            vehiclesCollectionId:
+                dotenv.env['APPWRITE_VEHICLES_COLLECTION_ID'] ?? 'vehicles',
+            driverVehiclesCollectionId:
+                dotenv.env['APPWRITE_DRIVER_VEHICLES_COLLECTION_ID'] ??
+                    'driver_vehicles',
+            vehiclePhotosBucketId:
+                dotenv.env['APPWRITE_VEHICLE_PHOTOS_BUCKET_ID'] ??
+                    'vehicle_photos',
+          ),
+        ),
+
+        // User repository
+        ProxyProvider<VehicleRepository, UserRepository>(
+          update: (_, vehicleRepository, __) => AppwriteUserRepository(
+            AppwriteClientInitializer.instance.databases,
+            vehicleRepository,
             databaseId: dotenv.env['APPWRITE_DATABASE_ID'] ?? 'ndao',
             usersCollectionId:
                 dotenv.env['APPWRITE_USERS_COLLECTION_ID'] ?? 'users',
@@ -92,10 +113,18 @@ class MyApp extends StatelessWidget {
           update: (_, repository, __) => LoginInteractor(repository),
         ),
 
+        // Vehicle interactor
+        ProxyProvider<VehicleRepository, VehicleInteractor>(
+          update: (_, vehicleRepository, __) =>
+              VehicleInteractor(vehicleRepository),
+        ),
+
         // User registration interactor
-        ProxyProvider2<AuthRepository, UserRepository, RegisterUserInteractor>(
-          update: (_, authRepository, userRepository, __) =>
-              RegisterUserInteractor(authRepository, userRepository),
+        ProxyProvider3<AuthRepository, UserRepository, VehicleInteractor,
+            RegisterUserInteractor>(
+          update: (_, authRepository, userRepository, vehicleInteractor, __) =>
+              RegisterUserInteractor(
+                  authRepository, userRepository, vehicleInteractor),
         ),
 
         // Profile photo interactor

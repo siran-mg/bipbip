@@ -33,7 +33,7 @@ class DriverRegistrationPage extends StatelessWidget {
               password,
               licensePlate,
               vehicleModel,
-              vehicleColor,
+              vehicleBrand,
               vehicleType,
               profilePhoto,
               vehiclePhoto,
@@ -48,8 +48,10 @@ class DriverRegistrationPage extends StatelessWidget {
                   password,
                   licensePlate,
                   vehicleModel,
-                  vehicleColor,
+                  vehicleBrand,
                   vehicleType,
+                  profilePhoto,
+                  vehiclePhoto,
                 );
 
                 // Upload profile photo if provided

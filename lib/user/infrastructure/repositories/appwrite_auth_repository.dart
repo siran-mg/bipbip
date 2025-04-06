@@ -92,12 +92,7 @@ class AppwriteAuthRepository implements AuthRepository {
         email: email,
         phoneNumber: phoneNumber,
         roles: ['driver'],
-        driverDetails: DriverDetails(
-          licensePlate: 'UNKNOWN',
-          model: 'UNKNOWN',
-          color: 'UNKNOWN',
-          vehicleType: 'motorcycle',
-        ),
+        driverDetails: DriverDetails(),
       );
 
       // Save the user entity

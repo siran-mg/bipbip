@@ -18,7 +18,6 @@ class DriverItem extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Row(
-              spacing: 16.0,
               children: [
                 CircleAvatar(
                   radius: 24.0,
@@ -29,7 +28,7 @@ class DriverItem extends StatelessWidget {
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 4.0,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     TextButton(
                       onPressed: () {},
@@ -56,7 +55,7 @@ class DriverItem extends StatelessWidget {
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
-              spacing: 4.0,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text('5 km'),
                 Text('15 min'),
@@ -67,8 +66,8 @@ class DriverItem extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(driver.driverDetails != null
-                ? '${driver.driverDetails!.model} (${driver.driverDetails!.color})'
+            Text(driver.driverDetails?.primaryVehicle != null
+                ? '${driver.driverDetails!.primaryVehicle!.brand} ${driver.driverDetails!.primaryVehicle!.model}'
                 : 'Unknown vehicle'),
             ElevatedButton.icon(
               onPressed: () {

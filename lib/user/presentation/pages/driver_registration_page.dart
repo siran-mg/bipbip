@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ndao/user/domain/interactors/login_interactor.dart';
 import 'package:ndao/user/domain/interactors/register_user_interactor.dart';
 import 'package:ndao/user/domain/interactors/upload_profile_photo_interactor.dart';
 import 'package:ndao/user/presentation/components/stepper_driver_registration_form.dart';
@@ -16,6 +17,8 @@ class DriverRegistrationPage extends StatelessWidget {
         Provider.of<RegisterUserInteractor>(context, listen: false);
     final uploadProfilePhotoInteractor =
         Provider.of<UploadProfilePhotoInteractor>(context, listen: false);
+    final loginInteractor =
+        Provider.of<LoginInteractor>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
@@ -72,6 +75,9 @@ class DriverRegistrationPage extends StatelessWidget {
                   debugPrint('Vehicle photo would be uploaded here');
                 }
 
+                // Login the user after successful registration
+                await loginInteractor.execute(email, password);
+
                 // Show success message
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -81,8 +87,8 @@ class DriverRegistrationPage extends StatelessWidget {
                     ),
                   );
 
-                  // Navigate to login page
-                  Navigator.pushReplacementNamed(context, '/login');
+                  // Navigate to home page
+                  Navigator.pushReplacementNamed(context, '/home');
                 }
 
                 return Future.value();

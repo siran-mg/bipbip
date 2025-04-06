@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ndao/core/presentation/routes/app_routes.dart';
 import 'package:ndao/home/presentation/home_page.dart';
 import 'package:ndao/user/domain/interactors/logout_interactor.dart';
+import 'package:ndao/user/presentation/pages/profile_page.dart';
 import 'package:provider/provider.dart';
 
 /// Wrapper for the home page that includes the bottom navigation bar
@@ -68,9 +69,7 @@ class _HomeWrapperState extends State<HomeWrapper> {
           ),
         ],
       ),
-      body: _selectedIndex == 0
-          ? const HomePage()
-          : const Center(child: Text('Profile')),
+      body: _selectedIndex == 0 ? const HomePage() : const ProfilePage(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) {

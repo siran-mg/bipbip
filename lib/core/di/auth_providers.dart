@@ -1,6 +1,7 @@
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import 'package:ndao/core/infrastructure/appwrite/appwrite_client.dart';
+import 'package:ndao/core/infrastructure/storage/session_storage.dart';
 import 'package:ndao/user/domain/interactors/forgot_password_interactor.dart';
 import 'package:ndao/user/domain/interactors/get_current_user_interactor.dart';
 import 'package:ndao/user/domain/interactors/login_interactor.dart';
@@ -17,10 +18,12 @@ class AuthProviders {
   static List<SingleChildWidget> getProviders() {
     return [
       // Auth repository
-      ProxyProvider<UserRepository, AuthRepository>(
-        update: (_, userRepository, __) => AppwriteAuthRepository(
+      ProxyProvider2<UserRepository, SessionStorage, AuthRepository>(
+        update: (_, userRepository, sessionStorage, __) =>
+            AppwriteAuthRepository(
           AppwriteClientInitializer.instance.account,
           userRepository,
+          sessionStorage,
         ),
       ),
 

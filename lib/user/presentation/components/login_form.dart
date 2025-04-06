@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ndao/core/presentation/routes/app_routes.dart';
 
 /// A form for user login
 class LoginForm extends StatefulWidget {
@@ -162,7 +163,6 @@ class _LoginFormState extends State<LoginForm> {
             child: TextButton(
               onPressed: () {
                 // Navigate to forgot password page
-                Navigator.pushNamed(context, '/forgot-password');
               },
               child: const Text('Mot de passe oublié?'),
             ),
@@ -217,7 +217,7 @@ class _LoginFormState extends State<LoginForm> {
                 child: OutlinedButton.icon(
                   onPressed: () {
                     // Navigate to registration page
-                    Navigator.pushNamed(context, '/register');
+                    Navigator.pushNamed(context, AppRoutes.register);
                   },
                   icon: const Icon(Icons.person_add),
                   label: const Text('Client'),
@@ -234,7 +234,7 @@ class _LoginFormState extends State<LoginForm> {
                 child: OutlinedButton.icon(
                   onPressed: () {
                     // Navigate to driver registration page
-                    Navigator.pushNamed(context, '/driver-register');
+                    Navigator.pushNamed(context, AppRoutes.driverRegister);
                   },
                   icon: const Icon(Icons.directions_car),
                   label: const Text('Chauffeur'),

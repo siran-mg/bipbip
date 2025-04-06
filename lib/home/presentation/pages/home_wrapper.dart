@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ndao/core/presentation/routes/app_routes.dart';
 import 'package:ndao/home/presentation/home_page.dart';
 import 'package:ndao/user/domain/interactors/logout_interactor.dart';
 import 'package:provider/provider.dart';
@@ -46,8 +47,8 @@ class _HomeWrapperState extends State<HomeWrapper> {
                 // Close loading dialog and navigate to login page
                 if (context.mounted) {
                   Navigator.of(context).pop(); // Close dialog
-                  Navigator.of(context)
-                      .pushNamedAndRemoveUntil('/login', (route) => false);
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                      AppRoutes.login, (route) => false);
                 }
               } catch (e) {
                 // Close loading dialog

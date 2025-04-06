@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ndao/core/presentation/routes/app_routes.dart';
 import 'package:ndao/user/domain/interactors/login_interactor.dart';
 import 'package:ndao/user/domain/interactors/register_user_interactor.dart';
 import 'package:ndao/user/domain/interactors/upload_profile_photo_interactor.dart';
@@ -89,7 +90,7 @@ class DriverRegistrationPage extends StatelessWidget {
 
                   // Navigate to home page and clear navigation stack
                   Navigator.pushNamedAndRemoveUntil(
-                      context, '/home', (route) => false);
+                      context, AppRoutes.home, (route) => false);
                 }
 
                 return Future.value();

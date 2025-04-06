@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ndao/core/presentation/routes/app_routes.dart';
 import 'package:ndao/user/domain/interactors/login_interactor.dart';
 import 'package:ndao/user/presentation/components/login_form.dart';
 import 'package:provider/provider.dart';
@@ -28,7 +29,7 @@ class LoginPage extends StatelessWidget {
                   // Navigate to home page after successful login and clear navigation stack
                   if (context.mounted) {
                     Navigator.pushNamedAndRemoveUntil(
-                        context, '/home', (route) => false);
+                        context, AppRoutes.home, (route) => false);
                   }
                   return Future.value();
                 } catch (e) {

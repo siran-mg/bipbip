@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ndao/user/domain/interactors/login_interactor.dart';
+import 'package:ndao/core/presentation/routes/app_routes.dart';
 import 'package:ndao/user/domain/interactors/register_user_interactor.dart';
 import 'package:ndao/user/domain/interactors/upload_profile_photo_interactor.dart';
 import 'package:ndao/user/presentation/components/stepper_registration_form.dart';
@@ -17,8 +17,6 @@ class RegistrationPage extends StatelessWidget {
         Provider.of<RegisterUserInteractor>(context, listen: false);
     final uploadProfilePhotoInteractor =
         Provider.of<UploadProfilePhotoInteractor>(context, listen: false);
-    final loginInteractor =
-        Provider.of<LoginInteractor>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
@@ -51,9 +49,6 @@ class RegistrationPage extends StatelessWidget {
                   }
                 }
 
-                // Login the user after successful registration
-                await loginInteractor.execute(email, password);
-
                 // Show success message
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -63,9 +58,8 @@ class RegistrationPage extends StatelessWidget {
                     ),
                   );
 
-                  // Navigate to home page and clear navigation stack
-                  Navigator.pushNamedAndRemoveUntil(
-                      context, '/home', (route) => false);
+                  // Navigate to login page
+                  Navigator.pushReplacementNamed(context, AppRoutes.login);
                 }
 
                 return Future.value();

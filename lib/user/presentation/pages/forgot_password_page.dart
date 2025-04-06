@@ -71,9 +71,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
-          child: _resetEmailSent
-              ? _buildSuccessMessage()
-              : _buildResetForm(),
+          child: _resetEmailSent ? _buildSuccessMessage() : _buildResetForm(),
         ),
       ),
     );
@@ -149,7 +147,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           // Back to login button
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
+              Navigator.of(context).pop(); // Go back to login page
             },
             child: const Text('Retour à la connexion'),
           ),
@@ -187,7 +185,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         const SizedBox(height: 32),
         FilledButton(
           onPressed: () {
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(); // Go back to login page
           },
           child: const Text('RETOUR À LA CONNEXION'),
         ),

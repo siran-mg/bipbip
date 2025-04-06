@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ndao/core/presentation/routes/app_routes.dart';
 import 'package:ndao/user/domain/repositories/auth_repository.dart';
 import 'package:provider/provider.dart';
 
@@ -32,16 +33,16 @@ class _SplashPageState extends State<SplashPage> {
         if (isAuthenticated) {
           // User is authenticated, navigate to home page and clear navigation stack
           Navigator.of(context)
-              .pushNamedAndRemoveUntil('/home', (route) => false);
+              .pushNamedAndRemoveUntil(AppRoutes.home, (route) => false);
         } else {
           // User is not authenticated, navigate to login page
-          Navigator.of(context).pushReplacementNamed('/login');
+          Navigator.of(context).pushReplacementNamed(AppRoutes.login);
         }
       }
     } catch (e) {
       // If there's an error, default to login page
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/login');
+        Navigator.of(context).pushReplacementNamed(AppRoutes.login);
       }
     }
   }

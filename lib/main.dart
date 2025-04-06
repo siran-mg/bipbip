@@ -1,28 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:ndao/core/di/app_providers.dart';
 import 'package:ndao/core/infrastructure/appwrite/appwrite_client.dart';
-import 'package:ndao/home/presentation/pages/home_wrapper.dart';
-import 'package:ndao/location/domain/providers/locator_provider.dart';
-import 'package:ndao/location/infrastructure/providers/geo_locator_provider.dart';
-import 'package:ndao/user/domain/interactors/forgot_password_interactor.dart';
-import 'package:ndao/user/domain/interactors/login_interactor.dart';
-import 'package:ndao/user/domain/interactors/logout_interactor.dart';
-import 'package:ndao/user/domain/interactors/register_user_interactor.dart';
-import 'package:ndao/user/domain/interactors/upload_profile_photo_interactor.dart';
-import 'package:ndao/user/domain/interactors/vehicle_interactor.dart';
-import 'package:ndao/user/domain/repositories/auth_repository.dart';
-import 'package:ndao/user/domain/repositories/storage_repository.dart';
-import 'package:ndao/user/domain/repositories/user_repository.dart';
-import 'package:ndao/user/domain/repositories/vehicle_repository.dart';
-import 'package:ndao/user/infrastructure/repositories/appwrite_auth_repository.dart';
-import 'package:ndao/user/infrastructure/repositories/appwrite_storage_repository.dart';
-import 'package:ndao/user/infrastructure/repositories/appwrite_user_repository.dart';
-import 'package:ndao/user/infrastructure/repositories/appwrite_vehicle_repository.dart';
-import 'package:ndao/user/presentation/pages/driver_registration_page.dart';
-import 'package:ndao/user/presentation/pages/forgot_password_page.dart';
-import 'package:ndao/user/presentation/pages/login_page.dart';
-import 'package:ndao/user/presentation/pages/registration_page.dart';
-import 'package:ndao/user/presentation/pages/splash_page.dart';
+import 'package:ndao/core/presentation/routes/app_routes.dart';
+import 'package:ndao/core/presentation/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -49,160 +30,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [
-        // Location provider
-        Provider<LocatorProvider>(create: (_) => GeoLocatorProvider()),
-
-        // Appwrite clients
-        Provider<AppwriteClientInitializer>(
-          create: (_) => AppwriteClientInitializer.instance,
-        ),
-
-        // Vehicle repository
-        Provider<VehicleRepository>(
-          create: (context) => AppwriteVehicleRepository(
-            AppwriteClientInitializer.instance.databases,
-            AppwriteClientInitializer.instance.storage,
-            databaseId: dotenv.env['APPWRITE_DATABASE_ID'] ?? 'ndao',
-            vehiclesCollectionId:
-                dotenv.env['APPWRITE_VEHICLES_COLLECTION_ID'] ?? 'vehicles',
-            driverVehiclesCollectionId:
-                dotenv.env['APPWRITE_DRIVER_VEHICLES_COLLECTION_ID'] ??
-                    'driver_vehicles',
-            vehiclePhotosBucketId:
-                dotenv.env['APPWRITE_VEHICLE_PHOTOS_BUCKET_ID'] ??
-                    'vehicle_photos',
-          ),
-        ),
-
-        // User repository
-        ProxyProvider<VehicleRepository, UserRepository>(
-          update: (_, vehicleRepository, __) => AppwriteUserRepository(
-            AppwriteClientInitializer.instance.databases,
-            vehicleRepository,
-            databaseId: dotenv.env['APPWRITE_DATABASE_ID'] ?? 'ndao',
-            usersCollectionId:
-                dotenv.env['APPWRITE_USERS_COLLECTION_ID'] ?? 'users',
-            userRolesCollectionId:
-                dotenv.env['APPWRITE_USER_ROLES_COLLECTION_ID'] ?? 'user_roles',
-            driverDetailsCollectionId:
-                dotenv.env['APPWRITE_DRIVER_DETAILS_COLLECTION_ID'] ??
-                    'driver_details',
-            clientDetailsCollectionId:
-                dotenv.env['APPWRITE_CLIENT_DETAILS_COLLECTION_ID'] ??
-                    'client_details',
-          ),
-        ),
-
-        // Storage repository
-        Provider<StorageRepository>(
-          create: (context) => AppwriteStorageRepository(
-            AppwriteClientInitializer.instance.storage,
-            profilePhotosBucketId:
-                dotenv.env['APPWRITE_PROFILE_PHOTOS_BUCKET_ID'] ??
-                    'profile_photos',
-          ),
-        ),
-
-        // Auth repository
-        ProxyProvider<UserRepository, AuthRepository>(
-          update: (_, userRepository, __) => AppwriteAuthRepository(
-            AppwriteClientInitializer.instance.account,
-            userRepository,
-          ),
-        ),
-
-        // Auth interactors
-        ProxyProvider<AuthRepository, LoginInteractor>(
-          update: (_, repository, __) => LoginInteractor(repository),
-        ),
-
-        ProxyProvider<AuthRepository, LogoutInteractor>(
-          update: (_, repository, __) => LogoutInteractor(repository),
-        ),
-
-        ProxyProvider<AuthRepository, ForgotPasswordInteractor>(
-          update: (_, repository, __) => ForgotPasswordInteractor(repository),
-        ),
-
-        // Vehicle interactor
-        ProxyProvider<VehicleRepository, VehicleInteractor>(
-          update: (_, vehicleRepository, __) =>
-              VehicleInteractor(vehicleRepository),
-        ),
-
-        // User registration interactor
-        ProxyProvider3<AuthRepository, UserRepository, VehicleInteractor,
-            RegisterUserInteractor>(
-          update: (_, authRepository, userRepository, vehicleInteractor, __) =>
-              RegisterUserInteractor(
-                  authRepository, userRepository, vehicleInteractor),
-        ),
-
-        // Profile photo interactor
-        ProxyProvider2<StorageRepository, UserRepository,
-            UploadProfilePhotoInteractor>(
-          update: (_, storageRepository, userRepository, __) =>
-              UploadProfilePhotoInteractor(
-            storageRepository: storageRepository,
-            userRepository: userRepository,
-          ),
-        ),
-      ],
+      providers: AppProviders.getProviders(),
       child: MaterialApp(
         title: 'Ndao',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF4CAF50), // Green color for Ndao
-            brightness: Brightness.light,
-          ),
-          useMaterial3: true,
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              foregroundColor: Colors.white,
-              backgroundColor: const Color(0xFF4CAF50),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-          filledButtonTheme: FilledButtonThemeData(
-            style: FilledButton.styleFrom(
-              foregroundColor: Colors.white,
-              backgroundColor: const Color(0xFF4CAF50),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-          outlinedButtonTheme: OutlinedButtonThemeData(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF4CAF50),
-              side: const BorderSide(color: Color(0xFF4CAF50)),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-          inputDecorationTheme: InputDecorationTheme(
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFF4CAF50), width: 2),
-            ),
-          ),
-        ),
-        initialRoute: '/',
-        routes: {
-          '/': (context) => const SplashPage(),
-          '/login': (context) => const LoginPage(),
-          '/register': (context) => const RegistrationPage(),
-          '/driver-register': (context) => const DriverRegistrationPage(),
-          '/forgot-password': (context) => const ForgotPasswordPage(),
-          '/home': (context) => const HomeWrapper(),
-        },
+        theme: AppTheme.getTheme(),
+        initialRoute: AppRoutes.initialRoute,
+        routes: AppRoutes.getRoutes(),
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:ndao/user/domain/entities/vehicle_entity.dart';
 import 'package:ndao/user/domain/interactors/get_current_user_interactor.dart';
 import 'package:ndao/user/presentation/components/file_picker_profile_photo.dart';
 import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 
 /// Profile page for displaying and editing user information
 class ProfilePage extends StatefulWidget {
@@ -53,9 +54,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return _buildProfileSkeleton();
     }
 
     if (_errorMessage != null) {
@@ -416,5 +415,324 @@ class _ProfilePageState extends State<ProfilePage> {
       default:
         return type; // Return the original type if not recognized
     }
+  }
+
+  /// Build a skeleton UI for the profile page while data is loading
+  Widget _buildProfileSkeleton() {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(16.0),
+      child: Shimmer.fromColors(
+        baseColor: Colors.grey.shade300,
+        highlightColor: Colors.grey.shade100,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Profile header skeleton
+            _buildProfileHeaderSkeleton(),
+
+            const SizedBox(height: 24),
+
+            // User info section skeleton
+            _buildUserInfoSectionSkeleton(),
+
+            const SizedBox(height: 24),
+
+            // Driver/client section skeleton
+            _buildDriverSectionSkeleton(),
+
+            const SizedBox(height: 24),
+
+            // Vehicles section skeleton (for drivers)
+            _buildVehiclesSectionSkeleton(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build a skeleton for the profile header
+  Widget _buildProfileHeaderSkeleton() {
+    return Center(
+      child: Column(
+        children: [
+          // Profile photo skeleton
+          Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Name skeleton
+          Container(
+            width: 150,
+            height: 24,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          // Roles skeleton
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 80,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                width: 80,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Build a skeleton for the user info section
+  Widget _buildUserInfoSectionSkeleton() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section title skeleton
+          Container(
+            width: 180,
+            height: 20,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Email row
+          _buildInfoRowSkeleton(),
+
+          const Divider(color: Colors.grey),
+
+          // Phone row
+          _buildInfoRowSkeleton(),
+        ],
+      ),
+    );
+  }
+
+  /// Build a skeleton for the driver section
+  Widget _buildDriverSectionSkeleton() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section title skeleton
+          Container(
+            width: 120,
+            height: 20,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Rating row
+          _buildInfoRowSkeleton(),
+
+          const Divider(color: Colors.grey),
+
+          // Status row
+          _buildInfoRowSkeleton(),
+        ],
+      ),
+    );
+  }
+
+  /// Build a skeleton for an info row
+  Widget _buildInfoRowSkeleton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          // Icon placeholder
+          Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              shape: BoxShape.circle,
+            ),
+          ),
+
+          const SizedBox(width: 16),
+
+          // Text placeholders
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 80,
+                  height: 14,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  width: 120,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Build a skeleton for the vehicles section
+  Widget _buildVehiclesSectionSkeleton() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section title skeleton
+          Container(
+            width: 100,
+            height: 20,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Vehicle items
+          _buildVehicleItemSkeleton(),
+          const SizedBox(height: 16),
+          _buildVehicleItemSkeleton(),
+        ],
+      ),
+    );
+  }
+
+  /// Build a skeleton for a vehicle item
+  Widget _buildVehicleItemSkeleton() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Vehicle photo skeleton
+        Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            color: Colors.grey.shade300,
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+
+        const SizedBox(width: 16),
+
+        // Vehicle details skeleton
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Brand and model
+              Row(
+                children: [
+                  Container(
+                    width: 120,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    width: 60,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 8),
+
+              // Type
+              Container(
+                width: 100,
+                height: 14,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              // License plate
+              Container(
+                width: 120,
+                height: 14,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }

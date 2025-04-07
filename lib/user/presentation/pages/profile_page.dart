@@ -356,7 +356,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text('Type: ${vehicle.type}'),
+                Text('Type: ${_getVehicleTypeLabel(vehicle.type)}'),
                 const SizedBox(height: 4),
                 Text('Plaque: ${vehicle.licensePlate}'),
               ],
@@ -400,5 +400,21 @@ class _ProfilePageState extends State<ProfilePage> {
         ],
       ),
     );
+  }
+
+  /// Get a user-friendly label for a vehicle type
+  String _getVehicleTypeLabel(String type) {
+    switch (type) {
+      case 'motorcycle':
+        return 'Moto';
+      case 'car':
+        return 'Voiture';
+      case 'bicycle':
+        return 'Vélo';
+      case 'other':
+        return 'Autre';
+      default:
+        return type; // Return the original type if not recognized
+    }
   }
 }

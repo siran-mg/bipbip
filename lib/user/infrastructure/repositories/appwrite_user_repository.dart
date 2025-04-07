@@ -23,7 +23,7 @@ class AppwriteUserRepository implements UserRepository {
   /// Collection ID for user roles collection
   final String _userRolesCollectionId;
 
-  /// Creates a new AppwriteUserRepository with the given database client and vehicle repository
+  /// Creates a new AppwriteUserRepository with the given database client
   AppwriteUserRepository(
     this._databases,
     this._vehicleRepository, {
@@ -102,7 +102,7 @@ class AppwriteUserRepository implements UserRepository {
             'user_id': user.id,
             'rating': user.clientDetails!.rating,
             'created_at': now,
-            'updated_at': now
+            'updated_at': now,
           },
         );
       }
@@ -129,14 +129,12 @@ class AppwriteUserRepository implements UserRepository {
       final rolesResponse = await _databases.listDocuments(
         databaseId: _databaseId,
         collectionId: _userRolesCollectionId,
-        queries: [
-          Query.equal('user_id', id),
-          Query.equal('is_active', true),
-        ],
+        queries: [Query.equal('user_id', id), Query.equal('is_active', true)],
       );
 
+      // Extract roles
       final roles = rolesResponse.documents
-          .map<String>((doc) => doc.data['role'] as String)
+          .map((doc) => doc.data['role'] as String)
           .toList();
 
       // Get driver details if the user is a driver
@@ -149,22 +147,19 @@ class AppwriteUserRepository implements UserRepository {
             documentId: id,
           );
 
-          // Get the driver's vehicles
+          // Get vehicles for this driver
           final vehicles = await _vehicleRepository.getVehiclesForDriver(id);
 
           driverDetails = DriverDetails(
             isAvailable: driverDoc.data['is_available'] ?? false,
+            rating: driverDoc.data['rating'] ?? 0.0,
             currentLatitude: driverDoc.data['current_latitude'],
             currentLongitude: driverDoc.data['current_longitude'],
-            rating: driverDoc.data['rating'],
             vehicles: vehicles,
           );
         } catch (e) {
-          // Driver details not found, create with defaults
-          driverDetails = DriverDetails(
-            isAvailable: false,
-            vehicles: [],
-          );
+          // Driver details not found, create empty driver details
+          driverDetails = DriverDetails();
         }
       }
 
@@ -179,10 +174,10 @@ class AppwriteUserRepository implements UserRepository {
           );
 
           clientDetails = ClientDetails(
-            rating: clientDoc.data['rating'],
+            rating: clientDoc.data['rating'] ?? 0.0,
           );
         } catch (e) {
-          // Client details not found, create with defaults
+          // Client details not found, create empty client details
           clientDetails = ClientDetails();
         }
       }
@@ -200,10 +195,6 @@ class AppwriteUserRepository implements UserRepository {
         clientDetails: clientDetails,
       );
     } on AppwriteException catch (e) {
-      if (e.code == 404) {
-        // User not found
-        return null;
-      }
       throw Exception('Failed to get user: ${e.message}');
     } catch (e) {
       throw Exception('Failed to get user: ${e.toString()}');

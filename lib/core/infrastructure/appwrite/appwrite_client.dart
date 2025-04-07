@@ -50,8 +50,7 @@ class AppwriteClientInitializer {
       // Initialize the main client for user operations
       client = Client()
         ..setEndpoint(endpoint)
-        ..setProject(projectId)
-        ..setSelfSigned(status: true); // Remove in production
+        ..setProject(projectId);
 
       debugPrint('Appwrite client initialized with project ID: $projectId');
 
@@ -83,10 +82,10 @@ class AppwriteClientInitializer {
       account = Account(client);
 
       // Use server client for database operations to bypass permissions
-      databases = Databases(serverClient);
+      databases = Databases(client);
 
       // Use server client for storage operations to bypass permissions
-      storage = Storage(serverClient);
+      storage = Storage(client);
 
       // Use regular client for realtime operations
       realtime = Realtime(client);

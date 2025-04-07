@@ -69,8 +69,8 @@ class RegistrationPage extends StatelessWidget {
                     ),
                   );
 
-                  // Navigate to login page
-                  Navigator.pushReplacementNamed(context, AppRoutes.login);
+                  // Navigate to home page
+                  Navigator.pushReplacementNamed(context, AppRoutes.home);
                 }
 
                 return Future.value();

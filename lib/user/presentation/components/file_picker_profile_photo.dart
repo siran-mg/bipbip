@@ -71,10 +71,10 @@ class _FilePickerProfilePhotoState extends State<FilePickerProfilePhoto> {
         if (file.bytes == null) {
           throw Exception('File bytes are null');
         }
-        
+
         final bytes = file.bytes!;
         final extension = '.${file.extension?.toLowerCase() ?? 'jpg'}';
-        
+
         newPhotoUrl = await uploadInteractor.executeWithBytes(
             widget.userId, bytes, extension);
       } else {
@@ -82,10 +82,10 @@ class _FilePickerProfilePhotoState extends State<FilePickerProfilePhoto> {
         if (file.path == null) {
           throw Exception('File path is null');
         }
-        
+
         final path = file.path!;
         final imageFile = File(path);
-        
+
         newPhotoUrl = await uploadInteractor.execute(widget.userId, imageFile);
       }
 
@@ -158,7 +158,7 @@ class _FilePickerProfilePhotoState extends State<FilePickerProfilePhoto> {
                 image: _photoUrl != null
                     ? DecorationImage(
                         image: NetworkImage(_photoUrl!),
-                        fit: BoxFit.cover,
+                        fit: BoxFit.contain,
                       )
                     : null,
               ),

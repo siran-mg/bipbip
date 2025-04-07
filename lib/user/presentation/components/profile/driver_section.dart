@@ -159,7 +159,28 @@ class _DriverSectionState extends State<DriverSection> {
 
         // Vehicles section
         if (widget.driverDetails.vehicles.isNotEmpty)
-          VehiclesSection(vehicles: widget.driverDetails.vehicles),
+          VehiclesSection(
+            vehicles: widget.driverDetails.vehicles,
+            driverId: widget.userId,
+            onVehicleUpdated: (updatedVehicle) {
+              // Update the vehicle in the list
+              final updatedVehicles =
+                  widget.driverDetails.vehicles.map((vehicle) {
+                if (vehicle.id == updatedVehicle.id) {
+                  return updatedVehicle;
+                }
+                return vehicle;
+              }).toList();
+
+              // Update the driver details
+              final updatedDriverDetails = widget.driverDetails.copyWith(
+                vehicles: updatedVehicles,
+              );
+
+              // Notify the parent
+              widget.onDriverDetailsUpdated(updatedDriverDetails);
+            },
+          ),
       ],
     );
   }

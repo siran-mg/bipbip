@@ -7,10 +7,18 @@ class VehiclesSection extends StatelessWidget {
   /// The list of vehicles
   final List<VehicleEntity> vehicles;
 
+  /// The driver ID
+  final String driverId;
+
+  /// Callback when a vehicle is updated
+  final Function(VehicleEntity) onVehicleUpdated;
+
   /// Creates a new VehiclesSection
   const VehiclesSection({
     super.key,
     required this.vehicles,
+    required this.driverId,
+    required this.onVehicleUpdated,
   });
 
   @override
@@ -30,7 +38,11 @@ class VehiclesSection extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            ...vehicles.map((vehicle) => VehicleItem(vehicle: vehicle)),
+            ...vehicles.map((vehicle) => VehicleItem(
+                  vehicle: vehicle,
+                  driverId: driverId,
+                  onVehicleUpdated: onVehicleUpdated,
+                )),
           ],
         ),
       ),

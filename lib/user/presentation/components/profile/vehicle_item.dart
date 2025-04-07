@@ -1,17 +1,41 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:ndao/user/domain/entities/vehicle_entity.dart';
+import 'package:ndao/user/presentation/components/profile/edit_vehicle_dialog.dart';
 
 /// Vehicle item component
 class VehicleItem extends StatelessWidget {
   /// The vehicle entity
   final VehicleEntity vehicle;
 
+  /// The driver ID
+  final String driverId;
+
+  /// Callback when vehicle is updated
+  final Function(VehicleEntity) onVehicleUpdated;
+
   /// Creates a new VehicleItem
   const VehicleItem({
     super.key,
     required this.vehicle,
+    required this.driverId,
+    required this.onVehicleUpdated,
   });
+
+  /// Show the edit vehicle dialog
+  Future<void> _showEditDialog(BuildContext context) async {
+    final result = await showDialog<VehicleEntity>(
+      context: context,
+      builder: (context) => EditVehicleDialog(
+        vehicle: vehicle,
+        driverId: driverId,
+      ),
+    );
+
+    if (result != null) {
+      onVehicleUpdated(result);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,33 +79,48 @@ class VehicleItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      '${vehicle.brand} ${vehicle.model}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              '${vehicle.brand} ${vehicle.model}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (vehicle.isPrimary)
+                            Container(
+                              margin: const EdgeInsets.only(left: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Text(
+                                'Principal',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                    if (vehicle.isPrimary)
-                      Container(
-                        margin: const EdgeInsets.only(left: 8),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Text(
-                          'Principal',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
+                    IconButton(
+                      icon: const Icon(Icons.edit, size: 20),
+                      tooltip: 'Modifier le véhicule',
+                      onPressed: () => _showEditDialog(context),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 4),
@@ -95,7 +134,7 @@ class VehicleItem extends StatelessWidget {
       ),
     );
   }
-  
+
   /// Get a user-friendly label for a vehicle type
   String _getVehicleTypeLabel(String type) {
     switch (type) {

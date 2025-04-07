@@ -44,6 +44,7 @@ dependencies:
   dart_appwrite: ^10.0.0
 
   image_picker: ^1.0.7
+  file_picker: ^6.1.1
   path: ^1.8.3
   shared_preferences: ^2.5.3
 

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:ndao/user/domain/entities/user_entity.dart';
 import 'package:ndao/user/domain/entities/vehicle_entity.dart';
 import 'package:ndao/user/domain/interactors/get_current_user_interactor.dart';
-import 'package:ndao/user/presentation/components/profile_photo_picker.dart';
+import 'package:ndao/user/presentation/components/file_picker_profile_photo.dart';
 import 'package:provider/provider.dart';
 
 /// Profile page for displaying and editing user information
@@ -116,7 +116,7 @@ class _ProfilePageState extends State<ProfilePage> {
       child: Column(
         children: [
           // Profile photo
-          ProfilePhotoPicker(
+          FilePickerProfilePhoto(
             userId: _user!.id,
             currentPhotoUrl: _user!.profilePictureUrl,
             onPhotoUpdated: (photoUrl) {

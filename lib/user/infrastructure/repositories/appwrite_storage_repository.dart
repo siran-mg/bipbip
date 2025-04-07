@@ -167,7 +167,7 @@ class AppwriteStorageRepository implements StorageRepository {
 
       // Format: https://ENDPOINT/v1/storage/buckets/BUCKET_ID/files/FILE_ID/view?project=PROJECT_ID
       final url =
-          '$endpoint/v1/storage/buckets/$_profilePhotosBucketId/files/$fileId/view?project=$projectId';
+          '$endpoint/v1/storage/buckets/$_profilePhotosBucketId/files/$fileId/view?project=$projectId&mode=admin';
 
       return url;
     } catch (e) {

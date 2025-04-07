@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:ndao/core/presentation/utils/form_validators.dart';
-import 'package:ndao/core/presentation/widgets/photo_upload_widget.dart';
+import 'package:ndao/core/presentation/widgets/file_picker_photo_upload_widget.dart';
 
 /// Vehicle information step for driver registration
 class VehicleInfoStep extends StatelessWidget {
@@ -20,14 +22,20 @@ class VehicleInfoStep extends StatelessWidget {
   /// Selected vehicle type
   final String selectedVehicleType;
 
-  /// Vehicle photo file
+  /// Vehicle photo file (for mobile/desktop)
   final File? vehiclePhoto;
+
+  /// Vehicle photo bytes (for web)
+  final Uint8List? vehiclePhotoBytes;
 
   /// Callback when vehicle type is changed
   final Function(String) onVehicleTypeChanged;
 
-  /// Callback when vehicle photo is picked
-  final Function(File) onVehiclePhotoPicked;
+  /// Callback when vehicle photo is picked (for mobile/desktop)
+  final Function(File)? onVehiclePhotoPicked;
+
+  /// Callback when vehicle photo is picked (for web)
+  final Function(Uint8List, String)? onVehiclePhotoBytesPicked;
 
   /// List of vehicle types
   final List<Map<String, dynamic>> vehicleTypes;
@@ -40,11 +48,17 @@ class VehicleInfoStep extends StatelessWidget {
     required this.vehicleModelController,
     required this.vehicleBrandController,
     required this.selectedVehicleType,
-    required this.vehiclePhoto,
+    this.vehiclePhoto,
+    this.vehiclePhotoBytes,
     required this.onVehicleTypeChanged,
-    required this.onVehiclePhotoPicked,
+    this.onVehiclePhotoPicked,
+    this.onVehiclePhotoBytesPicked,
     required this.vehicleTypes,
-  });
+  }) : assert(
+          (kIsWeb && onVehiclePhotoBytesPicked != null) ||
+              (!kIsWeb && onVehiclePhotoPicked != null),
+          'onVehiclePhotoBytesPicked must be provided for web, onVehiclePhotoPicked for other platforms',
+        );
 
   @override
   Widget build(BuildContext context) {
@@ -55,12 +69,19 @@ class VehicleInfoStep extends StatelessWidget {
         children: [
           // Vehicle photo upload
           Center(
-            child: PhotoUploadWidget(
-              photoFile: vehiclePhoto,
-              placeholderIcon: Icons.directions_car,
-              labelText: 'Photo du véhicule',
-              onPhotoPicked: onVehiclePhotoPicked,
-            ),
+            child: kIsWeb
+                ? FilePickerPhotoUploadWidget(
+                    photoBytes: vehiclePhotoBytes,
+                    placeholderIcon: Icons.directions_car,
+                    labelText: 'Photo du véhicule',
+                    onBytesPhotoPicked: onVehiclePhotoBytesPicked,
+                  )
+                : FilePickerPhotoUploadWidget(
+                    photoFile: vehiclePhoto,
+                    placeholderIcon: Icons.directions_car,
+                    labelText: 'Photo du véhicule',
+                    onFilePhotoPicked: onVehiclePhotoPicked,
+                  ),
           ),
 
           const SizedBox(height: 24),

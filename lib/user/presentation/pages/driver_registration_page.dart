@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:ndao/core/presentation/routes/app_routes.dart';
 import 'package:ndao/user/domain/interactors/login_interactor.dart';
@@ -41,6 +42,10 @@ class DriverRegistrationPage extends StatelessWidget {
               vehicleType,
               profilePhoto,
               vehiclePhoto,
+              profilePhotoBytes,
+              profilePhotoExtension,
+              vehiclePhotoBytes,
+              vehiclePhotoExtension,
             ) async {
               try {
                 // Use the register user interactor to sign up as a driver
@@ -59,12 +64,22 @@ class DriverRegistrationPage extends StatelessWidget {
                 );
 
                 // Upload profile photo if provided
-                if (profilePhoto != null) {
+                if (kIsWeb &&
+                    profilePhotoBytes != null &&
+                    profilePhotoExtension != null) {
+                  try {
+                    await uploadProfilePhotoInteractor.executeWithBytes(
+                        userId, profilePhotoBytes, profilePhotoExtension);
+                  } catch (e) {
+                    debugPrint('Failed to upload profile photo (web): $e');
+                    // Continue anyway, as the user is already registered
+                  }
+                } else if (!kIsWeb && profilePhoto != null) {
                   try {
                     await uploadProfilePhotoInteractor.execute(
                         userId, profilePhoto);
                   } catch (e) {
-                    debugPrint('Failed to upload profile photo: $e');
+                    debugPrint('Failed to upload profile photo (mobile): $e');
                     // Continue anyway, as the user is already registered
                   }
                 }

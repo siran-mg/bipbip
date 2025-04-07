@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:ndao/core/presentation/widgets/stepper_controls.dart';
 import 'package:ndao/user/presentation/components/registration_steps/account_info_step.dart';
@@ -15,6 +17,8 @@ class StepperRegistrationForm extends StatefulWidget {
     String phoneNumber,
     String password,
     File? profilePhoto,
+    Uint8List? profilePhotoBytes,
+    String? profilePhotoExtension,
   ) onRegister;
 
   /// Creates a new StepperRegistrationForm
@@ -40,6 +44,8 @@ class _StepperRegistrationFormState extends State<StepperRegistrationForm> {
   final _confirmPasswordController = TextEditingController();
 
   File? _profilePhoto;
+  Uint8List? _profilePhotoBytes;
+  String? _profilePhotoExtension;
   int _currentStep = 0;
   bool _isLoading = false;
 
@@ -70,6 +76,8 @@ class _StepperRegistrationFormState extends State<StepperRegistrationForm> {
         _phoneController.text.trim(),
         _passwordController.text,
         _profilePhoto,
+        _profilePhotoBytes,
+        _profilePhotoExtension,
       )
           .then((_) {
         // Handle successful registration if needed
@@ -145,11 +153,25 @@ class _StepperRegistrationFormState extends State<StepperRegistrationForm> {
                       familyNameController: _familyNameController,
                       phoneController: _phoneController,
                       profilePhoto: _profilePhoto,
-                      onProfilePhotoPicked: (file) {
-                        setState(() {
-                          _profilePhoto = file;
-                        });
-                      },
+                      profilePhotoBytes: _profilePhotoBytes,
+                      onProfilePhotoPicked: kIsWeb
+                          ? null
+                          : (file) {
+                              setState(() {
+                                _profilePhoto = file;
+                                _profilePhotoBytes = null;
+                                _profilePhotoExtension = null;
+                              });
+                            },
+                      onProfilePhotoBytesPicked: kIsWeb
+                          ? (bytes, extension) {
+                              setState(() {
+                                _profilePhotoBytes = bytes;
+                                _profilePhotoExtension = extension;
+                                _profilePhoto = null;
+                              });
+                            }
+                          : null,
                     ),
                     isActive: _currentStep >= 0,
                     state: _currentStep > 0

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:ndao/core/presentation/routes/app_routes.dart';
 import 'package:ndao/user/domain/interactors/register_user_interactor.dart';
@@ -27,7 +28,7 @@ class RegistrationPage extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           child: StepperRegistrationForm(
             onRegister: (givenName, familyName, email, phoneNumber, password,
-                profilePhoto) async {
+                profilePhoto, profilePhotoBytes, profilePhotoExtension) async {
               try {
                 // Use the register interactor to sign up
                 final userId = await registerUserInteractor.registerClient(
@@ -39,12 +40,22 @@ class RegistrationPage extends StatelessWidget {
                 );
 
                 // Upload profile photo if provided
-                if (profilePhoto != null) {
+                if (kIsWeb &&
+                    profilePhotoBytes != null &&
+                    profilePhotoExtension != null) {
+                  try {
+                    await uploadProfilePhotoInteractor.executeWithBytes(
+                        userId, profilePhotoBytes, profilePhotoExtension);
+                  } catch (e) {
+                    debugPrint('Failed to upload profile photo (web): $e');
+                    // Continue anyway, as the user is already registered
+                  }
+                } else if (!kIsWeb && profilePhoto != null) {
                   try {
                     await uploadProfilePhotoInteractor.execute(
                         userId, profilePhoto);
                   } catch (e) {
-                    debugPrint('Failed to upload profile photo: $e');
+                    debugPrint('Failed to upload profile photo (mobile): $e');
                     // Continue anyway, as the user is already registered
                   }
                 }

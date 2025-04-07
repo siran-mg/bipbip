@@ -1,27 +1,35 @@
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:ndao/core/presentation/utils/form_validators.dart';
-import 'package:ndao/core/presentation/widgets/photo_upload_widget.dart';
+import 'package:ndao/core/presentation/widgets/file_picker_photo_upload_widget.dart';
 
 /// Personal information step for registration
 class PersonalInfoStep extends StatelessWidget {
   /// Form key for validation
   final GlobalKey<FormState> formKey;
-  
+
   /// Controller for given name field
   final TextEditingController givenNameController;
-  
+
   /// Controller for family name field
   final TextEditingController familyNameController;
-  
+
   /// Controller for phone number field
   final TextEditingController phoneController;
-  
-  /// Profile photo file
+
+  /// Profile photo file (for mobile/desktop)
   final File? profilePhoto;
-  
-  /// Callback when profile photo is picked
-  final Function(File) onProfilePhotoPicked;
+
+  /// Profile photo bytes (for web)
+  final Uint8List? profilePhotoBytes;
+
+  /// Callback when profile photo is picked (for mobile/desktop)
+  final Function(File)? onProfilePhotoPicked;
+
+  /// Callback when profile photo is picked (for web)
+  final Function(Uint8List, String)? onProfilePhotoBytesPicked;
 
   /// Creates a new PersonalInfoStep
   const PersonalInfoStep({
@@ -30,9 +38,15 @@ class PersonalInfoStep extends StatelessWidget {
     required this.givenNameController,
     required this.familyNameController,
     required this.phoneController,
-    required this.profilePhoto,
-    required this.onProfilePhotoPicked,
-  });
+    this.profilePhoto,
+    this.profilePhotoBytes,
+    this.onProfilePhotoPicked,
+    this.onProfilePhotoBytesPicked,
+  }) : assert(
+          (kIsWeb && onProfilePhotoBytesPicked != null) ||
+              (!kIsWeb && onProfilePhotoPicked != null),
+          'onProfilePhotoBytesPicked must be provided for web, onProfilePhotoPicked for other platforms',
+        );
 
   @override
   Widget build(BuildContext context) {
@@ -43,15 +57,21 @@ class PersonalInfoStep extends StatelessWidget {
         children: [
           // Profile photo upload
           Center(
-            child: PhotoUploadWidget(
-              photoFile: profilePhoto,
-              labelText: 'Photo de profil',
-              onPhotoPicked: onProfilePhotoPicked,
-            ),
+            child: kIsWeb
+                ? FilePickerPhotoUploadWidget(
+                    photoBytes: profilePhotoBytes,
+                    labelText: 'Photo de profil',
+                    onBytesPhotoPicked: onProfilePhotoBytesPicked,
+                  )
+                : FilePickerPhotoUploadWidget(
+                    photoFile: profilePhoto,
+                    labelText: 'Photo de profil',
+                    onFilePhotoPicked: onProfilePhotoPicked,
+                  ),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Given name field
           TextFormField(
             controller: givenNameController,
@@ -61,11 +81,12 @@ class PersonalInfoStep extends StatelessWidget {
               prefixIcon: Icon(Icons.person),
             ),
             textCapitalization: TextCapitalization.words,
-            validator: (value) => FormValidators.validateRequired(value, 'prénom'),
+            validator: (value) =>
+                FormValidators.validateRequired(value, 'prénom'),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Family name field
           TextFormField(
             controller: familyNameController,
@@ -77,9 +98,9 @@ class PersonalInfoStep extends StatelessWidget {
             textCapitalization: TextCapitalization.words,
             validator: (value) => FormValidators.validateRequired(value, 'nom'),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Phone number field
           TextFormField(
             controller: phoneController,

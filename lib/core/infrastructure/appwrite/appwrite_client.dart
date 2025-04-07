@@ -81,7 +81,7 @@ class AppwriteClientInitializer {
       // Initialize service clients
       account = Account(client);
 
-      // Use server client for database operations to bypass permissions
+      // Use regular client for database operations
       databases = Databases(client);
 
       // Use server client for storage operations to bypass permissions

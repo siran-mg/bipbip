@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:ndao/core/presentation/widgets/stepper_controls.dart';
 import 'package:ndao/user/presentation/components/registration_steps/account_info_step.dart';
@@ -17,10 +19,14 @@ class StepperDriverRegistrationForm extends StatefulWidget {
     String password,
     String licensePlate,
     String vehicleModel,
-    String vehicleColor,
+    String vehicleBrand,
     String vehicleType,
     File? profilePhoto,
     File? vehiclePhoto,
+    Uint8List? profilePhotoBytes,
+    String? profilePhotoExtension,
+    Uint8List? vehiclePhotoBytes,
+    String? vehiclePhotoExtension,
   ) onRegister;
 
   /// Creates a new StepperDriverRegistrationForm
@@ -53,6 +59,10 @@ class _StepperDriverRegistrationFormState
   String _selectedVehicleType = 'motorcycle';
   File? _profilePhoto;
   File? _vehiclePhoto;
+  Uint8List? _profilePhotoBytes;
+  String? _profilePhotoExtension;
+  Uint8List? _vehiclePhotoBytes;
+  String? _vehiclePhotoExtension;
   int _currentStep = 0;
   bool _isLoading = false;
 
@@ -98,6 +108,10 @@ class _StepperDriverRegistrationFormState
         _selectedVehicleType,
         _profilePhoto,
         _vehiclePhoto,
+        _profilePhotoBytes,
+        _profilePhotoExtension,
+        _vehiclePhotoBytes,
+        _vehiclePhotoExtension,
       )
           .then((_) {
         // Handle successful registration if needed
@@ -179,11 +193,25 @@ class _StepperDriverRegistrationFormState
                       familyNameController: _familyNameController,
                       phoneController: _phoneController,
                       profilePhoto: _profilePhoto,
-                      onProfilePhotoPicked: (file) {
-                        setState(() {
-                          _profilePhoto = file;
-                        });
-                      },
+                      profilePhotoBytes: _profilePhotoBytes,
+                      onProfilePhotoPicked: kIsWeb
+                          ? null
+                          : (file) {
+                              setState(() {
+                                _profilePhoto = file;
+                                _profilePhotoBytes = null;
+                                _profilePhotoExtension = null;
+                              });
+                            },
+                      onProfilePhotoBytesPicked: kIsWeb
+                          ? (bytes, extension) {
+                              setState(() {
+                                _profilePhotoBytes = bytes;
+                                _profilePhotoExtension = extension;
+                                _profilePhoto = null;
+                              });
+                            }
+                          : null,
                     ),
                     isActive: _currentStep >= 0,
                     state: _currentStep > 0
@@ -212,16 +240,30 @@ class _StepperDriverRegistrationFormState
                       vehicleBrandController: _vehicleBrandController,
                       selectedVehicleType: _selectedVehicleType,
                       vehiclePhoto: _vehiclePhoto,
+                      vehiclePhotoBytes: _vehiclePhotoBytes,
                       onVehicleTypeChanged: (value) {
                         setState(() {
                           _selectedVehicleType = value;
                         });
                       },
-                      onVehiclePhotoPicked: (file) {
-                        setState(() {
-                          _vehiclePhoto = file;
-                        });
-                      },
+                      onVehiclePhotoPicked: kIsWeb
+                          ? null
+                          : (file) {
+                              setState(() {
+                                _vehiclePhoto = file;
+                                _vehiclePhotoBytes = null;
+                                _vehiclePhotoExtension = null;
+                              });
+                            },
+                      onVehiclePhotoBytesPicked: kIsWeb
+                          ? (bytes, extension) {
+                              setState(() {
+                                _vehiclePhotoBytes = bytes;
+                                _vehiclePhotoExtension = extension;
+                                _vehiclePhoto = null;
+                              });
+                            }
+                          : null,
                       vehicleTypes: _vehicleTypes,
                     ),
                     isActive: _currentStep >= 2,

@@ -100,7 +100,7 @@ class AppwriteVehicleRepository implements VehicleRepository {
         databaseId: _databaseId,
         collectionId: _driverVehiclesCollectionId,
         queries: [
-          'equal("vehicle_id", "$id")',
+          Query.equal('vehicle_id', id),
         ],
       );
 
@@ -132,7 +132,7 @@ class AppwriteVehicleRepository implements VehicleRepository {
         databaseId: _databaseId,
         collectionId: _driverVehiclesCollectionId,
         queries: [
-          'equal("driver_id", "$driverId")',
+          Query.equal('driver_id', driverId),
         ],
       );
 
@@ -141,40 +141,22 @@ class AppwriteVehicleRepository implements VehicleRepository {
       }
 
       // Get all vehicle IDs
-      final vehicleIds = driverVehicleDocs.documents
-          .map((doc) => doc.data['vehicle_id'] as String)
+      final vehicleDocs = driverVehicleDocs.documents
+          .map((doc) => doc.data['vehicle_id'])
           .toList();
 
-      // Create a map of vehicle ID to isPrimary
-      final vehiclePrimaryMap = {
-        for (var doc in driverVehicleDocs.documents)
-          doc.data['vehicle_id'] as String: doc.data['is_primary'] ?? false
-      };
-
-      // Get all vehicles
-      final vehicles = <VehicleEntity>[];
-      for (final vehicleId in vehicleIds) {
-        try {
-          final vehicleDoc = await _databases.getDocument(
-            databaseId: _databaseId,
-            collectionId: _vehiclesCollectionId,
-            documentId: vehicleId,
-          );
-
-          vehicles.add(VehicleEntity(
-            id: vehicleDoc.$id,
-            licensePlate: vehicleDoc.data['license_plate'],
-            brand: vehicleDoc.data['brand'],
-            model: vehicleDoc.data['model'],
-            type: vehicleDoc.data['type'],
-            photoUrl: vehicleDoc.data['photo_url'],
-            isPrimary: vehiclePrimaryMap[vehicleId] ?? false,
-          ));
-        } catch (e) {
-          // Skip this vehicle if it doesn't exist
-          continue;
-        }
-      }
+      final vehicles = vehicleDocs.map((vehicleDoc) {
+        final vehicleId = vehicleDoc['\$id'];
+        return VehicleEntity(
+          id: vehicleId,
+          licensePlate: vehicleDoc['license_plate'],
+          brand: vehicleDoc['brand'],
+          model: vehicleDoc['model'],
+          type: vehicleDoc['type'],
+          photoUrl: vehicleDoc['photo_url'],
+          isPrimary: vehicleDoc['is_primary'] ?? false,
+        );
+      }).toList();
 
       return vehicles;
     } catch (e) {
@@ -221,7 +203,7 @@ class AppwriteVehicleRepository implements VehicleRepository {
         databaseId: _databaseId,
         collectionId: _driverVehiclesCollectionId,
         queries: [
-          'equal("vehicle_id", "$id")',
+          Query.equal('vehicle_id', id),
         ],
       );
 
@@ -245,8 +227,8 @@ class AppwriteVehicleRepository implements VehicleRepository {
         databaseId: _databaseId,
         collectionId: _driverVehiclesCollectionId,
         queries: [
-          'equal("driver_id", "$driverId")',
-          'equal("vehicle_id", "$vehicleId")',
+          Query.equal('driver_id', driverId),
+          Query.equal('vehicle_id', vehicleId),
         ],
       );
 
@@ -332,9 +314,9 @@ class AppwriteVehicleRepository implements VehicleRepository {
         databaseId: _databaseId,
         collectionId: _driverVehiclesCollectionId,
         queries: [
-          'equal("driver_id", "$driverId")',
-          'notEqual("vehicle_id", "$excludeVehicleId")',
-          'equal("is_primary", true)',
+          Query.equal('driver_id', driverId),
+          Query.notEqual('vehicle_id', excludeVehicleId),
+          Query.equal('is_primary', true),
         ],
       );
 

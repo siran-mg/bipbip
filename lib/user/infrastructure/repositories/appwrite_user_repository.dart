@@ -152,7 +152,7 @@ class AppwriteUserRepository implements UserRepository {
 
           driverDetails = DriverDetails(
             isAvailable: driverDoc.data['is_available'] ?? false,
-            rating: driverDoc.data['rating'] ?? 0.0,
+            rating: driverDoc.data['rating'],
             currentLatitude: driverDoc.data['current_latitude'],
             currentLongitude: driverDoc.data['current_longitude'],
             vehicles: vehicles,
@@ -174,7 +174,7 @@ class AppwriteUserRepository implements UserRepository {
           );
 
           clientDetails = ClientDetails(
-            rating: clientDoc.data['rating'] ?? 0.0,
+            rating: clientDoc.data['rating'],
           );
         } catch (e) {
           // Client details not found, create empty client details

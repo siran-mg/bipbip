@@ -140,23 +140,40 @@ class AppwriteVehicleRepository implements VehicleRepository {
         return [];
       }
 
-      // Get all vehicle IDs
-      final vehicleDocs = driverVehicleDocs.documents
-          .map((doc) => doc.data['vehicle_id'])
+      // Get all vehicle IDs with their primary status
+      final vehicleIdsWithPrimary = driverVehicleDocs.documents
+          .map((doc) => {
+                'vehicle': doc.data['vehicle_id'],
+                'isPrimary': doc.data['is_primary'] ?? false,
+              })
           .toList();
 
-      final vehicles = vehicleDocs.map((vehicleDoc) {
-        final vehicleId = vehicleDoc['\$id'];
-        return VehicleEntity(
-          id: vehicleId,
-          licensePlate: vehicleDoc['license_plate'],
-          brand: vehicleDoc['brand'],
-          model: vehicleDoc['model'],
-          type: vehicleDoc['type'],
-          photoUrl: vehicleDoc['photo_url'],
-          isPrimary: vehicleDoc['is_primary'] ?? false,
-        );
-      }).toList();
+      // Fetch each vehicle document
+      final vehicles = <VehicleEntity>[];
+      for (final vehicleData in vehicleIdsWithPrimary) {
+        final vehicle = vehicleData['vehicle'];
+        final isPrimary = vehicleData['isPrimary'];
+
+        try {
+          final vehicleDoc = await _databases.getDocument(
+            databaseId: _databaseId,
+            collectionId: _vehiclesCollectionId,
+            documentId: vehicle['\$id'],
+          );
+
+          vehicles.add(VehicleEntity(
+            id: vehicleDoc.$id,
+            licensePlate: vehicleDoc.data['license_plate'],
+            brand: vehicleDoc.data['brand'],
+            model: vehicleDoc.data['model'],
+            type: vehicleDoc.data['type'],
+            photoUrl: vehicleDoc.data['photo_url'],
+            isPrimary: isPrimary,
+          ));
+        } catch (e) {
+          // Skip this vehicle if it doesn't exist
+        }
+      }
 
       return vehicles;
     } catch (e) {

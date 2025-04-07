@@ -14,12 +14,16 @@ class VehiclesSection extends StatelessWidget {
   /// Callback when a vehicle is updated
   final Function(VehicleEntity) onVehicleUpdated;
 
+  /// Callback when a vehicle is deleted
+  final Function(String) onVehicleDeleted;
+
   /// Creates a new VehiclesSection
   const VehiclesSection({
     super.key,
     required this.vehicles,
     required this.driverId,
     required this.onVehicleUpdated,
+    required this.onVehicleDeleted,
   });
 
   /// Show the add vehicle dialog
@@ -68,6 +72,7 @@ class VehiclesSection extends StatelessWidget {
                   vehicle: vehicle,
                   driverId: driverId,
                   onVehicleUpdated: onVehicleUpdated,
+                  onVehicleDeleted: onVehicleDeleted,
                 )),
           ],
         ),

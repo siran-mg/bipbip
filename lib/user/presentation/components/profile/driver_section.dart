@@ -78,6 +78,22 @@ class _DriverSectionState extends State<DriverSection> {
     widget.onDriverDetailsUpdated(updatedDriverDetails);
   }
 
+  /// Handle vehicle deletion
+  void _handleVehicleDeleted(String vehicleId) {
+    // Remove the vehicle from the list
+    final updatedVehicles = widget.driverDetails.vehicles
+        .where((vehicle) => vehicle.id != vehicleId)
+        .toList();
+
+    // Update the driver details
+    final updatedDriverDetails = widget.driverDetails.copyWith(
+      vehicles: updatedVehicles,
+    );
+
+    // Notify the parent
+    widget.onDriverDetailsUpdated(updatedDriverDetails);
+  }
+
   Future<void> _toggleAvailability() async {
     setState(() {
       _isUpdating = true;
@@ -210,6 +226,7 @@ class _DriverSectionState extends State<DriverSection> {
             vehicles: widget.driverDetails.vehicles,
             driverId: widget.userId,
             onVehicleUpdated: _handleVehicleUpdated,
+            onVehicleDeleted: _handleVehicleDeleted,
           )
         else
           // No vehicles yet, show add vehicle card

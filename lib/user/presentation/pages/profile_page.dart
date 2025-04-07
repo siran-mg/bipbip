@@ -105,7 +105,14 @@ class _ProfilePageState extends State<ProfilePage> {
             const SizedBox(height: 24),
 
             // User information section
-            UserInfoSection(user: _user!),
+            UserInfoSection(
+              user: _user!,
+              onUserUpdated: (updatedUser) {
+                setState(() {
+                  _user = updatedUser;
+                });
+              },
+            ),
 
             const SizedBox(height: 24),
 

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import 'package:ndao/core/infrastructure/appwrite/appwrite_client.dart';
 import 'package:ndao/user/domain/interactors/update_driver_availability_interactor.dart';
+import 'package:ndao/user/domain/interactors/update_user_interactor.dart';
 import 'package:ndao/user/domain/interactors/upload_profile_photo_interactor.dart';
 import 'package:ndao/user/domain/repositories/storage_repository.dart';
 import 'package:ndao/user/domain/repositories/user_repository.dart';
@@ -58,6 +59,11 @@ class UserProviders {
       ProxyProvider<UserRepository, UpdateDriverAvailabilityInteractor>(
         update: (_, userRepository, __) =>
             UpdateDriverAvailabilityInteractor(userRepository),
+      ),
+
+      // User update interactor
+      ProxyProvider<UserRepository, UpdateUserInteractor>(
+        update: (_, userRepository, __) => UpdateUserInteractor(userRepository),
       ),
     ];
   }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ndao/user/domain/entities/user_entity.dart';
 import 'package:ndao/user/domain/interactors/get_current_user_interactor.dart';
-import 'package:ndao/user/presentation/components/profile/client_section.dart';
 import 'package:ndao/user/presentation/components/profile/driver_section.dart';
 import 'package:ndao/user/presentation/components/profile/profile_header.dart';
 import 'package:ndao/user/presentation/components/profile/profile_skeleton.dart';
@@ -117,8 +116,6 @@ class _ProfilePageState extends State<ProfilePage> {
             const SizedBox(height: 24),
 
             // Role-specific sections
-            if (_user!.isClient && _user!.clientDetails != null)
-              ClientSection(clientDetails: _user!.clientDetails),
             if (_user!.isDriver && _user!.driverDetails != null)
               DriverSection(
                 driverDetails: _user!.driverDetails!,

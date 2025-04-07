@@ -110,10 +110,21 @@ class _ProfilePageState extends State<ProfilePage> {
             const SizedBox(height: 24),
 
             // Role-specific sections
-            if (_user!.isClient && _user!.clientDetails != null) 
+            if (_user!.isClient && _user!.clientDetails != null)
               ClientSection(clientDetails: _user!.clientDetails),
-            if (_user!.isDriver && _user!.driverDetails != null) 
-              DriverSection(driverDetails: _user!.driverDetails!),
+            if (_user!.isDriver && _user!.driverDetails != null)
+              DriverSection(
+                driverDetails: _user!.driverDetails!,
+                userId: _user!.id,
+                onDriverDetailsUpdated: (updatedDriverDetails) {
+                  // Just update the UI state
+                  setState(() {
+                    _user = _user!.copyWith(
+                      driverDetails: updatedDriverDetails,
+                    );
+                  });
+                },
+              ),
           ],
         ),
       ),

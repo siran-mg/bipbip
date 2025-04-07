@@ -140,6 +140,15 @@ class AppwriteAuthRepository implements AuthRepository {
         name: '$givenName $familyName',
       );
 
+      // Create a session for the new user
+      final session = await _account.createEmailSession(
+        email: email,
+        password: password,
+      );
+
+      // Store the session
+      await _sessionStorage.saveSession(session.$id, session.userId);
+
       // Create a user entity
       final userEntity = UserEntity(
         id: user.$id,
@@ -192,6 +201,15 @@ class AppwriteAuthRepository implements AuthRepository {
         password: password,
         name: '$givenName $familyName',
       );
+
+      // Create a session for the new user
+      final session = await _account.createEmailSession(
+        email: email,
+        password: password,
+      );
+
+      // Store the session
+      await _sessionStorage.saveSession(session.$id, session.userId);
 
       // Create a user entity with driver role
       final userEntity = UserEntity(

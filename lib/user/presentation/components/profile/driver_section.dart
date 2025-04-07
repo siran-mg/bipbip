@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:ndao/user/domain/entities/user_entity.dart';
+import 'package:ndao/user/domain/entities/vehicle_entity.dart';
 import 'package:ndao/user/domain/interactors/update_driver_availability_interactor.dart';
+import 'package:ndao/user/presentation/components/profile/add_vehicle_dialog.dart';
 import 'package:ndao/user/presentation/components/profile/info_row.dart';
 import 'package:ndao/user/presentation/components/profile/vehicles_section.dart';
 import 'package:provider/provider.dart';
@@ -30,6 +32,51 @@ class DriverSection extends StatefulWidget {
 
 class _DriverSectionState extends State<DriverSection> {
   bool _isUpdating = false;
+
+  /// Show the add vehicle dialog
+  Future<void> _showAddVehicleDialog(BuildContext context) async {
+    final result = await showDialog<VehicleEntity>(
+      context: context,
+      builder: (context) => AddVehicleDialog(
+        driverId: widget.userId,
+        isFirstVehicle: widget.driverDetails.vehicles.isEmpty,
+      ),
+    );
+
+    if (result != null) {
+      _handleVehicleUpdated(result);
+    }
+  }
+
+  /// Handle vehicle updates (both edits and additions)
+  void _handleVehicleUpdated(VehicleEntity updatedVehicle) {
+    // Check if this is a new vehicle or an update to an existing one
+    final existingVehicleIndex = widget.driverDetails.vehicles
+        .indexWhere((vehicle) => vehicle.id == updatedVehicle.id);
+
+    List<VehicleEntity> updatedVehicles;
+
+    if (existingVehicleIndex >= 0) {
+      // Update existing vehicle
+      updatedVehicles = widget.driverDetails.vehicles.map((vehicle) {
+        if (vehicle.id == updatedVehicle.id) {
+          return updatedVehicle;
+        }
+        return vehicle;
+      }).toList();
+    } else {
+      // Add new vehicle
+      updatedVehicles = [...widget.driverDetails.vehicles, updatedVehicle];
+    }
+
+    // Update the driver details
+    final updatedDriverDetails = widget.driverDetails.copyWith(
+      vehicles: updatedVehicles,
+    );
+
+    // Notify the parent
+    widget.onDriverDetailsUpdated(updatedDriverDetails);
+  }
 
   Future<void> _toggleAvailability() async {
     setState(() {
@@ -162,24 +209,51 @@ class _DriverSectionState extends State<DriverSection> {
           VehiclesSection(
             vehicles: widget.driverDetails.vehicles,
             driverId: widget.userId,
-            onVehicleUpdated: (updatedVehicle) {
-              // Update the vehicle in the list
-              final updatedVehicles =
-                  widget.driverDetails.vehicles.map((vehicle) {
-                if (vehicle.id == updatedVehicle.id) {
-                  return updatedVehicle;
-                }
-                return vehicle;
-              }).toList();
-
-              // Update the driver details
-              final updatedDriverDetails = widget.driverDetails.copyWith(
-                vehicles: updatedVehicles,
-              );
-
-              // Notify the parent
-              widget.onDriverDetailsUpdated(updatedDriverDetails);
-            },
+            onVehicleUpdated: _handleVehicleUpdated,
+          )
+        else
+          // No vehicles yet, show add vehicle card
+          Card(
+            elevation: 2,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Véhicules',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.directions_car_outlined,
+                          size: 48,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Vous n\'avez pas encore de véhicule',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.add),
+                          label: const Text('Ajouter un véhicule'),
+                          onPressed: () => _showAddVehicleDialog(context),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
       ],
     );

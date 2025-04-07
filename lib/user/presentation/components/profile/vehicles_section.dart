@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ndao/user/domain/entities/vehicle_entity.dart';
+import 'package:ndao/user/presentation/components/profile/add_vehicle_dialog.dart';
 import 'package:ndao/user/presentation/components/profile/vehicle_item.dart';
 
 /// Vehicles section component
@@ -21,6 +22,21 @@ class VehiclesSection extends StatelessWidget {
     required this.onVehicleUpdated,
   });
 
+  /// Show the add vehicle dialog
+  Future<void> _showAddVehicleDialog(BuildContext context) async {
+    final result = await showDialog<VehicleEntity>(
+      context: context,
+      builder: (context) => AddVehicleDialog(
+        driverId: driverId,
+        isFirstVehicle: vehicles.isEmpty,
+      ),
+    );
+
+    if (result != null) {
+      onVehicleUpdated(result);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -30,12 +46,22 @@ class VehiclesSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Véhicules',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Véhicules',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  tooltip: 'Ajouter un véhicule',
+                  onPressed: () => _showAddVehicleDialog(context),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             ...vehicles.map((vehicle) => VehicleItem(

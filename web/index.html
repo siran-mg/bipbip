@@ -32,8 +32,19 @@
   <title>ndao</title>
   <link rel="manifest" href="manifest.json">
 
-  <!-- Google Maps API -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJCvIC_A4mfdgn2v1FmHeX_64Tnq2PnF4"></script>
+  <!-- Google Maps API with Advanced Markers -->
+  <script>
+    // Suppress console warnings
+    const originalConsoleWarn = console.warn;
+    console.warn = function(msg) {
+      // Filter out Google Maps marker deprecation warnings
+      if (typeof msg === 'string' && msg.includes('google.maps.Marker is deprecated')) {
+        return;
+      }
+      originalConsoleWarn.apply(console, arguments);
+    };
+  </script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJCvIC_A4mfdgn2v1FmHeX_64Tnq2PnF4&v=weekly"></script>
 </head>
 <body>
   <!-- This script installs service_worker.js to provide PWA functionality to

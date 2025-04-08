@@ -1,9 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:ndao/location/domain/entities/position_entity.dart';
 import 'package:ndao/location/domain/providers/locator_provider.dart';
+import 'package:ndao/location/domain/services/location_tracking_service.dart';
+import 'package:ndao/location/infrastructure/services/geolocator_tracking_service.dart';
 import 'package:geolocator/geolocator.dart';
 
 class GeoLocatorProvider implements LocatorProvider {
+  final LocationTrackingService _trackingService = GeolocatorTrackingService();
+
   @override
   Future<PositionEntity> getCurrentPosition() async {
     bool serviceEnabled;
@@ -62,5 +66,30 @@ class GeoLocatorProvider implements LocatorProvider {
       }
     }
     return null;
+  }
+
+  @override
+  Future<Stream<PositionEntity>> startLocationTracking() {
+    return _trackingService.startTracking();
+  }
+
+  @override
+  Future<void> stopLocationTracking() {
+    return _trackingService.stopTracking();
+  }
+
+  @override
+  Future<bool> isLocationTracking() {
+    return _trackingService.isTracking();
+  }
+
+  @override
+  Future<void> setLocationTrackingEnabled(bool enabled) {
+    return _trackingService.setTrackingEnabled(enabled);
+  }
+
+  @override
+  Future<bool> isLocationTrackingEnabled() {
+    return _trackingService.isTrackingEnabled();
   }
 }

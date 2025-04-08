@@ -1,0 +1,43 @@
+import 'package:ndao/location/domain/providers/locator_provider.dart';
+import 'package:ndao/user/domain/interactors/driver_location_tracking_interactor.dart';
+import 'package:ndao/user/domain/interactors/get_current_user_interactor.dart';
+
+/// Manager for location tracking service
+///
+/// This class is responsible for starting and stopping the location tracking service
+/// based on the user's preferences and role
+class LocationTrackingServiceManager {
+  final LocatorProvider _locatorProvider;
+  final GetCurrentUserInteractor _getCurrentUserInteractor;
+  final DriverLocationTrackingInteractor _driverLocationTrackingInteractor;
+
+  /// Creates a new LocationTrackingServiceManager
+  LocationTrackingServiceManager(
+    this._locatorProvider,
+    this._getCurrentUserInteractor,
+    this._driverLocationTrackingInteractor,
+  );
+
+  /// Initialize the location tracking service
+  ///
+  /// This method should be called when the app starts
+  Future<void> initialize() async {
+    try {
+      // Check if the current user is a driver
+      final user = await _getCurrentUserInteractor.execute();
+
+      if (user != null && user.isDriver) {
+        // Check if location tracking is enabled
+        final isTrackingEnabled =
+            await _locatorProvider.isLocationTrackingEnabled();
+
+        if (isTrackingEnabled) {
+          // Start tracking
+          await _driverLocationTrackingInteractor.startTracking(user.id);
+        }
+      }
+    } catch (e) {
+      // Ignore errors during initialization
+    }
+  }
+}

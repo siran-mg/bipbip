@@ -4,6 +4,7 @@ import 'package:ndao/core/di/app_providers.dart';
 import 'package:ndao/core/infrastructure/appwrite/appwrite_client.dart';
 import 'package:ndao/core/presentation/routes/app_routes.dart';
 import 'package:ndao/core/presentation/theme/app_theme.dart';
+import 'package:ndao/location/infrastructure/services/location_tracking_service_manager.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -23,8 +24,38 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    // Initialize location tracking service after the widget tree is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeLocationTracking();
+    });
+  }
+
+  Future<void> _initializeLocationTracking() async {
+    try {
+      // Get the location tracking service manager
+      final serviceManager = Provider.of<LocationTrackingServiceManager>(
+        context,
+        listen: false,
+      );
+
+      // Initialize the service
+      await serviceManager.initialize();
+    } catch (e) {
+      // Log error but don't crash the app
+      debugPrint('Error initializing location tracking: $e');
+    }
+  }
 
   // This widget is the root of your application.
   @override

@@ -11,9 +11,9 @@ class AppProviders {
   static List<SingleChildWidget> getProviders() {
     return [
       ...ClientProviders.getProviders(),
-      ...LocationProviders.getProviders(),
       ...VehicleProviders.getProviders(),
       ...UserProviders.getProviders(),
+      ...LocationProviders.getProviders(),
       ...AuthProviders.getProviders(),
     ];
   }

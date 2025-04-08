@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ndao/user/domain/entities/user_entity.dart';
 import 'package:ndao/user/domain/entities/vehicle_entity.dart';
+import 'package:ndao/user/domain/interactors/driver_location_tracking_interactor.dart';
 import 'package:ndao/user/domain/interactors/update_driver_availability_interactor.dart';
 import 'package:ndao/user/presentation/components/profile/add_vehicle_dialog.dart';
 import 'package:ndao/user/presentation/components/profile/info_row.dart';
@@ -32,6 +33,106 @@ class DriverSection extends StatefulWidget {
 
 class _DriverSectionState extends State<DriverSection> {
   bool _isUpdating = false;
+  bool _isLocationTrackingEnabled = false;
+  bool _isLoadingTrackingStatus = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTrackingStatus();
+  }
+
+  Future<void> _loadTrackingStatus() async {
+    try {
+      final trackingInteractor = Provider.of<DriverLocationTrackingInteractor>(
+        context,
+        listen: false,
+      );
+
+      final isEnabled = await trackingInteractor.isTrackingEnabled();
+
+      if (mounted) {
+        setState(() {
+          _isLocationTrackingEnabled = isEnabled;
+          _isLoadingTrackingStatus = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingTrackingStatus = false;
+        });
+
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors du chargement du statut: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _toggleLocationTracking() async {
+    setState(() {
+      _isUpdating = true;
+    });
+
+    try {
+      final trackingInteractor = Provider.of<DriverLocationTrackingInteractor>(
+        context,
+        listen: false,
+      );
+
+      // Toggle tracking
+      final newTrackingState = !_isLocationTrackingEnabled;
+
+      // Update UI immediately for better user experience
+      setState(() {
+        _isLocationTrackingEnabled = newTrackingState;
+      });
+
+      // Update tracking state in the background
+      await trackingInteractor.toggleTracking(widget.userId, newTrackingState);
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              newTrackingState
+                  ? 'Suivi de position activé'
+                  : 'Suivi de position désactivé',
+            ),
+            backgroundColor: newTrackingState ? Colors.green : Colors.orange,
+          ),
+        );
+      }
+    } catch (e) {
+      // Show error and revert UI state
+      if (mounted) {
+        setState(() {
+          _isLocationTrackingEnabled = !_isLocationTrackingEnabled;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Erreur lors de la mise à jour du suivi: ${e.toString()}',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUpdating = false;
+        });
+      }
+    }
+  }
 
   /// Show the add vehicle dialog
   Future<void> _showAddVehicleDialog(BuildContext context) async {
@@ -211,6 +312,49 @@ class _DriverSectionState extends State<DriverSection> {
                         onPressed: _isUpdating ? null : _toggleAvailability,
                       ),
                     ),
+                  ],
+                ),
+
+                const Divider(),
+
+                // Location tracking toggle
+                Row(
+                  children: [
+                    Expanded(
+                      child: InfoRow(
+                        icon: Icons.location_on,
+                        label: 'Suivi de position',
+                        value:
+                            _isLocationTrackingEnabled ? 'Activé' : 'Désactivé',
+                        valueColor: _isLocationTrackingEnabled
+                            ? Colors.green
+                            : Colors.grey,
+                      ),
+                    ),
+                    _isLoadingTrackingStatus
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Tooltip(
+                            message: _isLocationTrackingEnabled
+                                ? 'Désactiver le suivi de position'
+                                : 'Activer le suivi de position',
+                            child: IconButton(
+                              icon: Icon(
+                                _isLocationTrackingEnabled
+                                    ? Icons.location_on
+                                    : Icons.location_off,
+                                color: _isLocationTrackingEnabled
+                                    ? Colors.green
+                                    : Colors.grey,
+                                size: 32,
+                              ),
+                              onPressed:
+                                  _isUpdating ? null : _toggleLocationTracking,
+                            ),
+                          ),
                   ],
                 ),
               ],

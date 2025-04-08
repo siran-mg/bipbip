@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ndao/home/presentation/pages/home_wrapper.dart';
+import 'package:ndao/location/presentation/pages/driver_map_page.dart';
 import 'package:ndao/user/presentation/pages/driver_registration_page.dart';
 import 'package:ndao/user/presentation/pages/forgot_password_page.dart';
 import 'package:ndao/user/presentation/pages/login_page.dart';
@@ -26,6 +27,9 @@ class AppRoutes {
   /// Forgot password route
   static const String forgotPassword = '/forgot-password';
 
+  /// Driver map route
+  static const String driverMap = '/driver-map';
+
   /// Get all routes
   static Map<String, WidgetBuilder> getRoutes() {
     return {
@@ -35,6 +39,7 @@ class AppRoutes {
       driverRegister: (context) => const DriverRegistrationPage(),
       forgotPassword: (context) => const ForgotPasswordPage(),
       home: (context) => const HomeWrapper(),
+      driverMap: (context) => const DriverMapPage(),
     };
   }
 }

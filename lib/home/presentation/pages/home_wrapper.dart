@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ndao/core/presentation/routes/app_routes.dart';
 import 'package:ndao/home/presentation/home_page.dart';
+import 'package:ndao/user/domain/interactors/get_current_user_interactor.dart';
 import 'package:ndao/user/domain/interactors/logout_interactor.dart';
 import 'package:ndao/user/presentation/pages/profile_page.dart';
 import 'package:provider/provider.dart';
@@ -17,6 +18,36 @@ class HomeWrapper extends StatefulWidget {
 
 class _HomeWrapperState extends State<HomeWrapper> {
   int _selectedIndex = 0;
+  bool _isDriver = false;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkIfDriver();
+  }
+
+  Future<void> _checkIfDriver() async {
+    try {
+      final getCurrentUserInteractor =
+          Provider.of<GetCurrentUserInteractor>(context, listen: false);
+      final user = await getCurrentUserInteractor.execute();
+
+      if (mounted) {
+        setState(() {
+          _isDriver = user?.isDriver ?? false;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isDriver = false;
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +101,16 @@ class _HomeWrapperState extends State<HomeWrapper> {
         ],
       ),
       body: _selectedIndex == 0 ? const HomePage() : const ProfilePage(),
+      // Show map button only for drivers
+      floatingActionButton: _isDriver && !_isLoading
+          ? FloatingActionButton(
+              onPressed: () {
+                Navigator.of(context).pushNamed(AppRoutes.driverMap);
+              },
+              tooltip: 'Voir ma position',
+              child: const Icon(Icons.map),
+            )
+          : null,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) {

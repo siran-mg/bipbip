@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ndao/core/presentation/routes/app_routes.dart';
 import 'package:ndao/user/domain/entities/user_entity.dart';
 import 'package:ndao/user/domain/entities/vehicle_entity.dart';
 import 'package:ndao/user/domain/interactors/driver_location_tracking_interactor.dart';
@@ -370,6 +371,20 @@ class _DriverSectionState extends State<DriverSection> {
                             ),
                           ),
                   ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // View map button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.map),
+                    label: const Text('Voir ma position sur la carte'),
+                    onPressed: () {
+                      Navigator.of(context).pushNamed(AppRoutes.driverMap);
+                    },
+                  ),
                 ),
               ],
             ),

@@ -44,10 +44,17 @@ class _DriverSectionState extends State<DriverSection> {
 
   Future<void> _loadTrackingStatus() async {
     try {
-      final trackingInteractor = Provider.of<DriverLocationTrackingInteractor>(
-        context,
-        listen: false,
-      );
+      // Check if the provider is available
+      late DriverLocationTrackingInteractor trackingInteractor;
+      try {
+        trackingInteractor = Provider.of<DriverLocationTrackingInteractor>(
+          context,
+          listen: false,
+        );
+      } catch (providerError) {
+        // Handle provider error
+        throw Exception('Service de suivi non disponible: $providerError');
+      }
 
       final isEnabled = await trackingInteractor.isTrackingEnabled();
 
@@ -80,10 +87,17 @@ class _DriverSectionState extends State<DriverSection> {
     });
 
     try {
-      final trackingInteractor = Provider.of<DriverLocationTrackingInteractor>(
-        context,
-        listen: false,
-      );
+      // Check if the provider is available
+      late DriverLocationTrackingInteractor trackingInteractor;
+      try {
+        trackingInteractor = Provider.of<DriverLocationTrackingInteractor>(
+          context,
+          listen: false,
+        );
+      } catch (providerError) {
+        // Handle provider error
+        throw Exception('Service de suivi non disponible: $providerError');
+      }
 
       // Toggle tracking
       final newTrackingState = !_isLocationTrackingEnabled;

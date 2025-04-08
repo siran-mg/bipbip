@@ -24,38 +24,8 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  @override
-  void initState() {
-    super.initState();
-    // Initialize location tracking service after the widget tree is built
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeLocationTracking();
-    });
-  }
-
-  Future<void> _initializeLocationTracking() async {
-    try {
-      // Get the location tracking service manager
-      final serviceManager = Provider.of<LocationTrackingServiceManager>(
-        context,
-        listen: false,
-      );
-
-      // Initialize the service
-      await serviceManager.initialize();
-    } catch (e) {
-      // Log error but don't crash the app
-      debugPrint('Error initializing location tracking: $e');
-    }
-  }
 
   // This widget is the root of your application.
   @override
@@ -67,7 +37,64 @@ class _MyAppState extends State<MyApp> {
         theme: AppTheme.getTheme(),
         initialRoute: AppRoutes.initialRoute,
         routes: AppRoutes.getRoutes(),
+        builder: (context, child) {
+          // Wrap the app with the service initializer
+          return ServiceInitializer(child: child ?? const SizedBox.shrink());
+        },
       ),
     );
+  }
+}
+
+/// Widget that initializes services when first built
+class ServiceInitializer extends StatefulWidget {
+  /// The child widget
+  final Widget child;
+
+  /// Creates a new ServiceInitializer
+  const ServiceInitializer({super.key, required this.child});
+
+  @override
+  State<ServiceInitializer> createState() => _ServiceInitializerState();
+}
+
+class _ServiceInitializerState extends State<ServiceInitializer> {
+  @override
+  void initState() {
+    super.initState();
+    // Initialize services after the first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeServices();
+    });
+  }
+
+  Future<void> _initializeServices() async {
+    try {
+      // Get the location tracking service manager
+      if (!mounted) return;
+
+      // Try to get the service manager, but don't crash if it's not available
+      LocationTrackingServiceManager? serviceManager;
+      try {
+        serviceManager = Provider.of<LocationTrackingServiceManager>(
+          context,
+          listen: false,
+        );
+      } catch (providerError) {
+        debugPrint('Location tracking service not available: $providerError');
+        return;
+      }
+
+      // Initialize the service
+      await serviceManager.initialize();
+    } catch (e) {
+      // Log error but don't crash the app
+      debugPrint('Error initializing services: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
   }
 }

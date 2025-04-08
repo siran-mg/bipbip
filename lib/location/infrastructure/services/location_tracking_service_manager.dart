@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:ndao/location/domain/providers/locator_provider.dart';
 import 'package:ndao/user/domain/interactors/driver_location_tracking_interactor.dart';
 import 'package:ndao/user/domain/interactors/get_current_user_interactor.dart';
@@ -26,18 +27,22 @@ class LocationTrackingServiceManager {
       // Check if the current user is a driver
       final user = await _getCurrentUserInteractor.execute();
 
-      if (user != null && user.isDriver) {
-        // Check if location tracking is enabled
-        final isTrackingEnabled =
-            await _locatorProvider.isLocationTrackingEnabled();
+      // If no user is logged in or user is not a driver, do nothing
+      if (user == null || !user.isDriver) {
+        return;
+      }
 
-        if (isTrackingEnabled) {
-          // Start tracking
-          await _driverLocationTrackingInteractor.startTracking(user.id);
-        }
+      // Check if location tracking is enabled
+      final isTrackingEnabled =
+          await _locatorProvider.isLocationTrackingEnabled();
+
+      if (isTrackingEnabled) {
+        // Start tracking
+        await _driverLocationTrackingInteractor.startTracking(user.id);
       }
     } catch (e) {
-      // Ignore errors during initialization
+      // Log error but don't crash the app
+      debugPrint('Error initializing location tracking: $e');
     }
   }
 }

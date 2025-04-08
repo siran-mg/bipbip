@@ -13,8 +13,8 @@ class AppProviders {
       ...ClientProviders.getProviders(),
       ...VehicleProviders.getProviders(),
       ...UserProviders.getProviders(),
-      ...LocationProviders.getProviders(),
       ...AuthProviders.getProviders(),
+      ...LocationProviders.getProviders(),
     ];
   }
 }

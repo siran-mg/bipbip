@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -16,445 +15,256 @@ class NearbyDriversMap extends StatefulWidget {
 }
 
 class _NearbyDriversMapState extends State<NearbyDriversMap> {
-  final Completer<GoogleMapController> _controller = Completer();
-
   // Default position (Antananarivo)
-  static const CameraPosition _defaultPosition = CameraPosition(
-    target: LatLng(-18.8792, 47.5079),
-    zoom: 13,
-  );
+  static const LatLng _defaultLocation = LatLng(-18.8792, 47.5079);
 
-  // Current user position
-  CameraPosition? _currentPosition;
+  // Map controller
+  GoogleMapController? _mapController;
 
-  // Markers for drivers
+  // Markers
   final Set<Marker> _markers = {};
 
   // Loading state
   bool _isLoading = true;
-  String? _errorMessage;
+
+  // User's current location
+  LatLng? _userLocation;
 
   @override
   void initState() {
     super.initState();
-    // Initialize map with a short delay to ensure the widget is properly mounted
-    Future.delayed(Duration.zero, _initializeMap);
+    // Load drivers after a short delay to ensure the widget is mounted
+    Future.delayed(Duration.zero, () {
+      _getUserLocation();
+      _loadDrivers();
+    });
   }
 
-  Future<void> _initializeMap() async {
-    if (!mounted) return;
-
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    // Set a timeout to ensure loading state doesn't get stuck
-    Future.delayed(const Duration(seconds: 10), () {
-      if (mounted && _isLoading) {
-        setState(() {
-          _isLoading = false;
-          _errorMessage = 'Délai d\'attente dépassé. Veuillez réessayer.';
-        });
-      }
-    });
-
-    try {
-      // Get current location
-      await _getCurrentLocation();
-
-      // Load drivers
-      await _loadDrivers();
-
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = 'Erreur lors du chargement de la carte: $e';
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _getCurrentLocation() async {
+  Future<void> _getUserLocation() async {
     try {
       final locatorProvider =
           Provider.of<LocatorProvider>(context, listen: false);
       final position = await locatorProvider.getCurrentPosition();
 
-      _currentPosition = CameraPosition(
-        target: LatLng(position.latitude, position.longitude),
-        zoom: 15,
-      );
+      if (mounted) {
+        setState(() {
+          _userLocation = LatLng(position.latitude, position.longitude);
+          debugPrint('Got user location: $_userLocation');
+        });
 
-      // Move camera to current position
-      if (_controller.isCompleted) {
-        final controller = await _controller.future;
-        controller
-            .animateCamera(CameraUpdate.newCameraPosition(_currentPosition!));
+        // Update map camera if controller is ready
+        if (_mapController != null && _userLocation != null) {
+          _mapController!
+              .animateCamera(CameraUpdate.newLatLngZoom(_userLocation!, 14));
+        }
       }
     } catch (e) {
-      // If we can't get current location, use default
-      _currentPosition = _defaultPosition;
-
-      // Don't rethrow - we'll use the default position instead
-      // In a production app, use a proper logging framework
-      debugPrint('Could not get current location: $e');
+      debugPrint('Error getting user location: $e');
+      // Continue with default location
     }
   }
 
+  @override
+  void dispose() {
+    _mapController?.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadDrivers() async {
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
       final userRepository =
           Provider.of<UserRepository>(context, listen: false);
       final drivers = await userRepository.getAvailableDrivers();
 
-      // Add simulated locations for drivers that don't have locations
-      // This is just for demonstration purposes
-      final driversWithLocations = _addSimulatedLocations(drivers);
+      // Add simulated locations for drivers
+      _addMarkersForDrivers(drivers);
 
-      _updateMarkers(driversWithLocations);
+      setState(() {
+        _isLoading = false;
+      });
     } catch (e) {
-      // Just log the error and continue with empty markers
-      // This prevents the map from failing to load if we can't get drivers
-      // In a production app, use a proper logging framework
-      debugPrint('Could not load drivers: $e');
-      _updateMarkers([]);
+      debugPrint('Error loading drivers: $e');
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
-  List<UserEntity> _addSimulatedLocations(List<UserEntity> drivers) {
-    // Only proceed if we have a current position
-    if (_currentPosition == null) return drivers;
+  void _addMarkersForDrivers(List<UserEntity> drivers) {
+    // Clear existing markers
+    _markers.clear();
 
-    final baseLatitude = _currentPosition!.target.latitude;
-    final baseLongitude = _currentPosition!.target.longitude;
-
-    // Create a new list with simulated locations
-    return drivers
-        .asMap()
-        .map((index, driver) {
-          // Skip if driver already has location
-          if (driver.driverDetails?.currentLatitude != null &&
-              driver.driverDetails?.currentLongitude != null) {
-            return MapEntry(index, driver);
-          }
-
-          // Use driver id and index to create deterministic but different offsets
-          // This ensures each driver gets a unique but consistent position
-          final seed = driver.id.hashCode + index;
-          final random = seed * 31 % 1000;
-
-          // Generate a random offset (between 0.001 and 0.01 degrees, roughly 100m to 1km)
-          // Use sine and cosine to distribute drivers in a circle around the user
-          final distance = 0.001 + (random % 9) / 1000.0; // 0.001 to 0.01
-          final angle = (random % 360) * 3.14159 / 180.0; // 0 to 2π in radians
-
-          final latOffset = distance * math.sin(angle);
-          final lngOffset = distance * math.cos(angle);
-
-          // Create a new driver details with location
-          final newDriverDetails = driver.driverDetails?.copyWith(
-                currentLatitude: baseLatitude + latOffset,
-                currentLongitude: baseLongitude + lngOffset,
-              ) ??
-              DriverDetails(
-                isAvailable: true,
-                currentLatitude: baseLatitude + latOffset,
-                currentLongitude: baseLongitude + lngOffset,
-                vehicles: [],
-              );
-
-          // Return a new driver with the updated details
-          return MapEntry(
-              index, driver.copyWith(driverDetails: newDriverDetails));
-        })
-        .values
-        .toList();
-  }
-
-  void _updateMarkers(List<UserEntity> drivers) {
-    final newMarkers = <Marker>{};
-
-    // Add marker for current user position if available
-    if (_currentPosition != null) {
-      newMarkers.add(
-        Marker(
-          markerId: const MarkerId('current_location'),
-          position: _currentPosition!.target,
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-          infoWindow: const InfoWindow(
-            title: 'Ma position',
-            snippet: 'Vous êtes ici',
-          ),
-        ),
-      );
-    }
-
-    // Add markers for each driver
-    for (final driver in drivers) {
-      if (driver.driverDetails?.currentLatitude != null &&
-          driver.driverDetails?.currentLongitude != null) {
-        newMarkers.add(
-          Marker(
-            markerId: MarkerId('driver_${driver.id}'),
-            position: LatLng(
-              driver.driverDetails!.currentLatitude!,
-              driver.driverDetails!.currentLongitude!,
-            ),
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-                BitmapDescriptor.hueGreen),
-            infoWindow: InfoWindow(
-              title: driver.fullName,
-              snippet: driver.driverDetails?.primaryVehicle != null
-                  ? '${driver.driverDetails!.primaryVehicle!.brand} ${driver.driverDetails!.primaryVehicle!.model}'
-                  : 'Chauffeur disponible',
-              onTap: () {
-                _showDriverDetails(driver);
-              },
-            ),
-          ),
-        );
-      }
-    }
-
-    setState(() {
-      _markers.clear();
-      _markers.addAll(newMarkers);
-    });
-  }
-
-  void _showDriverDetails(UserEntity driver) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                backgroundImage: driver.profilePictureUrl != null
-                    ? NetworkImage(driver.profilePictureUrl!)
-                    : null,
-                child: driver.profilePictureUrl == null
-                    ? Text(
-                        driver.givenName[0] + driver.familyName[0],
-                        style: TextStyle(
-                          color:
-                              Theme.of(context).colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      )
-                    : null,
-              ),
-              title: Text(driver.fullName),
-              subtitle: Text(driver.driverDetails?.primaryVehicle != null
-                  ? '${driver.driverDetails!.primaryVehicle!.brand} ${driver.driverDetails!.primaryVehicle!.model}'
-                  : 'Véhicule inconnu'),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.star,
-                      color: Theme.of(context).colorScheme.secondary, size: 16),
-                  const SizedBox(width: 4),
-                  Text(driver.driverDetails?.rating?.toString() ?? 'N/A'),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _ActionButton(
-                  icon: Icons.phone,
-                  label: 'Appeler',
-                  onPressed: () {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Appel à ${driver.phoneNumber}'),
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                  },
-                ),
-                _ActionButton(
-                  icon: Icons.message,
-                  label: 'SMS',
-                  onPressed: () {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('SMS à ${driver.phoneNumber}'),
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                  },
-                ),
-                _ActionButton(
-                  icon: Icons.directions,
-                  label: 'Itinéraire',
-                  onPressed: () {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Affichage de l\'itinéraire'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ],
+    // Add marker for current location (use real location if available)
+    final userPosition = _userLocation ?? _defaultLocation;
+    _markers.add(
+      Marker(
+        markerId: const MarkerId('my_location'),
+        position: userPosition,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+        infoWindow: const InfoWindow(
+          title: 'Ma position',
+          snippet: 'Vous êtes ici',
         ),
       ),
     );
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('Chargement de la carte...'),
-          ],
-        ),
-      );
-    }
+    debugPrint('Added user location marker at: $userPosition');
 
-    if (_errorMessage != null) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, color: Colors.red, size: 48),
-            const SizedBox(height: 16),
-            Text(
-              _errorMessage!,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.red),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: _initializeMap,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Réessayer'),
-            ),
-          ],
-        ),
-      );
-    }
+    // Track if we have any real driver locations
+    bool hasRealLocations = false;
+    LatLng? boundsCenter;
 
-    return Stack(
-      children: [
-        // Use a simple map with minimal features to ensure it loads quickly
-        GoogleMap(
-          mapType: MapType.normal,
-          initialCameraPosition: _currentPosition ?? _defaultPosition,
-          markers: _markers,
-          myLocationEnabled: true,
-          myLocationButtonEnabled: false,
-          zoomControlsEnabled: false,
-          compassEnabled: true,
-          liteModeEnabled:
-              false, // Set to true for even better performance, but less features
-          onMapCreated: (GoogleMapController controller) {
-            // Complete the controller future
-            if (!_controller.isCompleted) {
-              _controller.complete(controller);
-            }
+    // Add markers for each driver
+    for (int i = 0; i < drivers.length; i++) {
+      final driver = drivers[i];
+      late LatLng driverPosition;
 
-            // If we already have a position, move camera to it
-            if (_currentPosition != null) {
-              controller.animateCamera(
-                  CameraUpdate.newCameraPosition(_currentPosition!));
-            }
+      // Check if driver has real location data
+      if (driver.driverDetails?.currentLatitude != null &&
+          driver.driverDetails?.currentLongitude != null) {
+        // Use real location data
+        driverPosition = LatLng(
+          driver.driverDetails!.currentLatitude!,
+          driver.driverDetails!.currentLongitude!,
+        );
+        hasRealLocations = true;
+        boundsCenter = driverPosition; // Use the last real location as center
+        debugPrint(
+            'Using real location for driver ${driver.fullName}: $driverPosition');
+      } else {
+        // Generate a simulated position around the default location
+        final offset = 0.005 * (i + 1);
+        final angle = (i * 45) % 360 * 3.14159 / 180; // Convert to radians
 
-            // Ensure loading is set to false when map is created
-            if (mounted && _isLoading) {
-              setState(() {
-                _isLoading = false;
-              });
-            }
-          },
-        ),
-        Positioned(
-          right: 16,
-          bottom: 16,
-          child: Column(
-            children: [
-              FloatingActionButton(
-                heroTag: 'refresh_map',
-                mini: true,
-                onPressed: _initializeMap,
-                child: const Icon(Icons.refresh),
-              ),
-              const SizedBox(height: 8),
-              FloatingActionButton(
-                heroTag: 'my_location',
-                onPressed: () async {
-                  await _getCurrentLocation();
-                  if (_currentPosition != null && _controller.isCompleted) {
-                    final controller = await _controller.future;
-                    controller.animateCamera(
-                      CameraUpdate.newCameraPosition(_currentPosition!),
-                    );
-                  }
-                },
-                child: const Icon(Icons.my_location),
-              ),
-            ],
+        final latitude = _defaultLocation.latitude + offset * math.sin(angle);
+        final longitude = _defaultLocation.longitude + offset * math.cos(angle);
+
+        driverPosition = LatLng(latitude, longitude);
+        debugPrint(
+            'Using simulated location for driver ${driver.fullName}: $driverPosition');
+      }
+
+      // Add the marker
+      _markers.add(
+        Marker(
+          markerId: MarkerId('driver_${driver.id}'),
+          position: driverPosition,
+          icon:
+              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+          infoWindow: InfoWindow(
+            title: driver.fullName,
+            snippet: driver.driverDetails?.primaryVehicle != null
+                ? '${driver.driverDetails!.primaryVehicle!.brand} ${driver.driverDetails!.primaryVehicle!.model}'
+                : 'Chauffeur disponible',
           ),
         ),
-      ],
-    );
+      );
+    }
+
+    setState(() {});
+
+    // Move camera to show all markers
+    if (_mapController != null && _markers.isNotEmpty) {
+      // Priority for centering the map:
+      // 1. Real driver location if available
+      // 2. User's real location if available
+      // 3. Default location as last resort
+      LatLng center;
+      String centerType;
+
+      if (hasRealLocations) {
+        center = boundsCenter!;
+        centerType = 'driver\'s real location';
+      } else if (_userLocation != null) {
+        center = _userLocation!;
+        centerType = 'user\'s real location';
+      } else {
+        center = _defaultLocation;
+        centerType = 'default location';
+      }
+
+      _mapController!.animateCamera(CameraUpdate.newLatLngZoom(center, 14));
+      debugPrint('Centering map on $centerType: $center');
+    }
   }
-}
-
-class _ActionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onPressed;
-
-  const _ActionButton({
-    required this.icon,
-    required this.label,
-    required this.onPressed,
-  });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onPressed,
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color: Theme.of(context).colorScheme.primary,
+    // Use a simpler approach with AbsorbPointer to prevent interaction during loading
+    return AbsorbPointer(
+      absorbing: _isLoading,
+      child: Stack(
+        children: [
+          // The map takes the full size of its container
+          SizedBox.expand(
+            child: GoogleMap(
+              initialCameraPosition: const CameraPosition(
+                target: _defaultLocation,
+                zoom: 14,
+              ),
+              markers: _markers,
+              myLocationEnabled: true, // Show blue dot for user location
+              myLocationButtonEnabled: false, // We have our own button
+              zoomControlsEnabled: true,
+              compassEnabled: true,
+              onMapCreated: (controller) {
+                setState(() {
+                  _mapController = controller;
+                });
+                // Reload drivers when map is created
+                _loadDrivers();
+              },
+            ),
+          ),
+
+          // Loading indicator
+          if (_isLoading)
+            Container(
+              color: Colors.black.withAlpha(76), // 0.3 opacity
+              child: const Center(
+                child: CircularProgressIndicator(),
               ),
             ),
-          ],
-        ),
+
+          // Action buttons
+          Positioned(
+            right: 16,
+            bottom: 16,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Refresh button
+                FloatingActionButton.small(
+                  heroTag: 'refresh_map',
+                  onPressed: _loadDrivers,
+                  tooltip: 'Actualiser',
+                  child: const Icon(Icons.refresh),
+                ),
+                const SizedBox(height: 8),
+                // My location button
+                FloatingActionButton(
+                  heroTag: 'my_location',
+                  onPressed: () {
+                    _getUserLocation();
+                    if (_userLocation != null && _mapController != null) {
+                      _mapController!.animateCamera(
+                        CameraUpdate.newLatLngZoom(_userLocation!, 15),
+                      );
+                    }
+                  },
+                  tooltip: 'Ma position',
+                  child: const Icon(Icons.my_location),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

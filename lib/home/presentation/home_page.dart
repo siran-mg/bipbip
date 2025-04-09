@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ndao/home/presentation/components/available_drivers_list.dart';
-import 'package:ndao/home/presentation/components/simple_drivers_map.dart';
+import 'package:ndao/home/presentation/components/nearby_drivers_map.dart';
 import 'package:ndao/home/presentation/components/search_driver_form.dart';
 import 'package:ndao/location/domain/providers/locator_provider.dart';
 import 'package:provider/provider.dart';
@@ -118,7 +118,7 @@ class _HomePageState extends State<HomePage>
           // Nearby drivers tab
           _isMapVisible
               ? const SizedBox.expand(
-                  child: SimpleDriversMap(),
+                  child: NearbyDriversMap(),
                 )
               : const AvailableDriversList(),
 

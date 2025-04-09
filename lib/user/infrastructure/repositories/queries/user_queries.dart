@@ -38,7 +38,7 @@ class UserQueries {
         _userRolesCollectionId = userRolesCollectionId;
 
   /// Get a user by ID
-  /// 
+  ///
   /// Returns the user if found, null otherwise
   Future<UserEntity?> getUserById(String id) async {
     try {
@@ -126,7 +126,7 @@ class UserQueries {
   }
 
   /// Get all available drivers
-  /// 
+  ///
   /// Returns a list of all users that are drivers and currently available
   Future<List<UserEntity>> getAvailableDrivers() async {
     try {
@@ -141,7 +141,7 @@ class UserQueries {
       final drivers = <UserEntity>[];
       for (final driverDoc in response.documents) {
         final userId = driverDoc.data['user_id'];
-        final user = await getUserById(userId);
+        final user = await getUserById(userId['\$id']);
         if (user != null) {
           drivers.add(user);
         }

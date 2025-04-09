@@ -12,80 +12,218 @@ class DriverItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    // Simulated distance - in a real app, this would be calculated
+    final distance = 5.0; // km
+    final estimatedTime = 15; // minutes
+
+    // Determine color based on distance
+    final Color distanceColor = distance <= 2.0
+        ? Colors.green
+        : distance <= 5.0
+            ? Colors.orange
+            : Colors.red;
+
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                CircleAvatar(
-                  radius: 24.0,
-                  child: Image.network(
-                    'https://via.placeholder.com/150',
-                    fit: BoxFit.cover,
+                // Driver photo
+                Hero(
+                  tag: 'driver-${driver.id}',
+                  child: CircleAvatar(
+                    radius: 28.0,
+                    backgroundColor: colorScheme.primaryContainer,
+                    backgroundImage: driver.profilePictureUrl != null
+                        ? NetworkImage(driver.profilePictureUrl!)
+                        : null,
+                    child: driver.profilePictureUrl == null
+                        ? Text(
+                            driver.givenName[0] + driver.familyName[0],
+                            style: TextStyle(
+                              color: colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          )
+                        : null,
                   ),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextButton(
-                      onPressed: () {},
-                      child: Text(
+                const SizedBox(width: 12),
+
+                // Driver info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
                         driver.fullName,
-                        style: TextStyle(
-                          fontSize: 16.0,
+                        style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
-                    TextButton.icon(
-                      onPressed: () {},
-                      icon: Icon(
-                        Icons.star,
-                        color: Theme.of(context).colorScheme.secondary,
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.star,
+                            size: 16,
+                            color: colorScheme.secondary,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            driver.driverDetails?.rating?.toString() ?? 'N/A',
+                            style: theme.textTheme.bodySmall,
+                          ),
+                          const SizedBox(width: 12),
+                          Icon(
+                            Icons.motorcycle,
+                            size: 16,
+                            color: colorScheme.secondary,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              driver.driverDetails?.primaryVehicle != null
+                                  ? '${driver.driverDetails!.primaryVehicle!.brand} ${driver.driverDetails!.primaryVehicle!.model}'
+                                  : 'Véhicule inconnu',
+                              style: theme.textTheme.bodySmall,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
-                      label: Text(
-                          driver.driverDetails?.rating?.toString() ?? 'N/A'),
+                    ],
+                  ),
+                ),
+
+                // Distance indicator
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.location_on,
+                          size: 16,
+                          color: distanceColor,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$distance km',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: distanceColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      '$estimatedTime min',
+                      style: theme.textTheme.bodySmall,
                     ),
                   ],
                 ),
               ],
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
+
+            const SizedBox(height: 12),
+
+            // Action buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Text('5 km'),
-                Text('15 min'),
+                _ActionButton(
+                  icon: Icons.phone,
+                  label: 'Appeler',
+                  onPressed: () {
+                    // Launch phone call
+                    final phoneNumber = driver.phoneNumber;
+                    // You would typically use url_launcher package to make a phone call
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Appel à $phoneNumber'),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                ),
+                _ActionButton(
+                  icon: Icons.message,
+                  label: 'SMS',
+                  onPressed: () {
+                    // Launch SMS
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('SMS à ${driver.phoneNumber}'),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                ),
+                _ActionButton(
+                  icon: Icons.directions,
+                  label: 'Itinéraire',
+                  onPressed: () {
+                    // Show directions
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Affichage de l\'itinéraire'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
           ],
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      ),
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
+
+  const _ActionButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(driver.driverDetails?.primaryVehicle != null
-                ? '${driver.driverDetails!.primaryVehicle!.brand} ${driver.driverDetails!.primaryVehicle!.model}'
-                : 'Unknown vehicle'),
-            ElevatedButton.icon(
-              onPressed: () {
-                // Launch phone call
-                final phoneNumber = driver.phoneNumber;
-                // You would typically use url_launcher package to make a phone call
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Appel à $phoneNumber'),
-                  ),
-                );
-              },
-              icon: Icon(Icons.phone),
-              label: Text('Contacter'),
+            Icon(icon, color: Theme.of(context).colorScheme.primary),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
           ],
-        )
-      ],
+        ),
+      ),
     );
   }
 }

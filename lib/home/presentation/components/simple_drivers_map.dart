@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:ndao/location/domain/providers/locator_provider.dart';
 import 'package:ndao/user/domain/entities/user_entity.dart';
 import 'package:ndao/user/domain/repositories/user_repository.dart';
 import 'package:provider/provider.dart';
@@ -26,11 +27,41 @@ class _SimpleDriversMapState extends State<SimpleDriversMap> {
   // Loading state
   bool _isLoading = true;
 
+  // User's current location
+  LatLng? _userLocation;
+
   @override
   void initState() {
     super.initState();
     // Load drivers after a short delay to ensure the widget is mounted
-    Future.delayed(Duration.zero, _loadDrivers);
+    Future.delayed(Duration.zero, () {
+      _getUserLocation();
+      _loadDrivers();
+    });
+  }
+
+  Future<void> _getUserLocation() async {
+    try {
+      final locatorProvider =
+          Provider.of<LocatorProvider>(context, listen: false);
+      final position = await locatorProvider.getCurrentPosition();
+
+      if (mounted) {
+        setState(() {
+          _userLocation = LatLng(position.latitude, position.longitude);
+          debugPrint('Got user location: $_userLocation');
+        });
+
+        // Update map camera if controller is ready
+        if (_mapController != null && _userLocation != null) {
+          _mapController!
+              .animateCamera(CameraUpdate.newLatLngZoom(_userLocation!, 14));
+        }
+      }
+    } catch (e) {
+      debugPrint('Error getting user location: $e');
+      // Continue with default location
+    }
   }
 
   @override
@@ -69,33 +100,61 @@ class _SimpleDriversMapState extends State<SimpleDriversMap> {
     // Clear existing markers
     _markers.clear();
 
-    // Add marker for current location
+    // Add marker for current location (use real location if available)
+    final userPosition = _userLocation ?? _defaultLocation;
     _markers.add(
-      const Marker(
-        markerId: MarkerId('my_location'),
-        position: _defaultLocation,
-        infoWindow: InfoWindow(
+      Marker(
+        markerId: const MarkerId('my_location'),
+        position: userPosition,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+        infoWindow: const InfoWindow(
           title: 'Ma position',
           snippet: 'Vous êtes ici',
         ),
       ),
     );
 
-    // Add markers for each driver with simulated locations
+    debugPrint('Added user location marker at: $userPosition');
+
+    // Track if we have any real driver locations
+    bool hasRealLocations = false;
+    LatLng? boundsCenter;
+
+    // Add markers for each driver
     for (int i = 0; i < drivers.length; i++) {
       final driver = drivers[i];
+      late LatLng driverPosition;
 
-      // Generate a position around the default location
-      final offset = 0.005 * (i + 1);
-      final angle = (i * 45) % 360 * 3.14159 / 180; // Convert to radians
+      // Check if driver has real location data
+      if (driver.driverDetails?.currentLatitude != null &&
+          driver.driverDetails?.currentLongitude != null) {
+        // Use real location data
+        driverPosition = LatLng(
+          driver.driverDetails!.currentLatitude!,
+          driver.driverDetails!.currentLongitude!,
+        );
+        hasRealLocations = true;
+        boundsCenter = driverPosition; // Use the last real location as center
+        debugPrint(
+            'Using real location for driver ${driver.fullName}: $driverPosition');
+      } else {
+        // Generate a simulated position around the default location
+        final offset = 0.005 * (i + 1);
+        final angle = (i * 45) % 360 * 3.14159 / 180; // Convert to radians
 
-      final latitude = _defaultLocation.latitude + offset * math.sin(angle);
-      final longitude = _defaultLocation.longitude + offset * math.cos(angle);
+        final latitude = _defaultLocation.latitude + offset * math.sin(angle);
+        final longitude = _defaultLocation.longitude + offset * math.cos(angle);
 
+        driverPosition = LatLng(latitude, longitude);
+        debugPrint(
+            'Using simulated location for driver ${driver.fullName}: $driverPosition');
+      }
+
+      // Add the marker
       _markers.add(
         Marker(
           markerId: MarkerId('driver_${driver.id}'),
-          position: LatLng(latitude, longitude),
+          position: driverPosition,
           icon:
               BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
           infoWindow: InfoWindow(
@@ -112,8 +171,26 @@ class _SimpleDriversMapState extends State<SimpleDriversMap> {
 
     // Move camera to show all markers
     if (_mapController != null && _markers.isNotEmpty) {
-      _mapController!
-          .animateCamera(CameraUpdate.newLatLngZoom(_defaultLocation, 14));
+      // Priority for centering the map:
+      // 1. Real driver location if available
+      // 2. User's real location if available
+      // 3. Default location as last resort
+      LatLng center;
+      String centerType;
+
+      if (hasRealLocations) {
+        center = boundsCenter!;
+        centerType = 'driver\'s real location';
+      } else if (_userLocation != null) {
+        center = _userLocation!;
+        centerType = 'user\'s real location';
+      } else {
+        center = _defaultLocation;
+        centerType = 'default location';
+      }
+
+      _mapController!.animateCamera(CameraUpdate.newLatLngZoom(center, 14));
+      debugPrint('Centering map on $centerType: $center');
     }
   }
 
@@ -132,9 +209,10 @@ class _SimpleDriversMapState extends State<SimpleDriversMap> {
                 zoom: 14,
               ),
               markers: _markers,
-              myLocationEnabled: false,
-              myLocationButtonEnabled: false,
+              myLocationEnabled: true, // Show blue dot for user location
+              myLocationButtonEnabled: false, // We have our own button
               zoomControlsEnabled: true,
+              compassEnabled: true,
               onMapCreated: (controller) {
                 setState(() {
                   _mapController = controller;
@@ -154,13 +232,36 @@ class _SimpleDriversMapState extends State<SimpleDriversMap> {
               ),
             ),
 
-          // Refresh button
+          // Action buttons
           Positioned(
             right: 16,
             bottom: 16,
-            child: FloatingActionButton(
-              onPressed: _loadDrivers,
-              child: const Icon(Icons.refresh),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Refresh button
+                FloatingActionButton.small(
+                  heroTag: 'refresh_map',
+                  onPressed: _loadDrivers,
+                  tooltip: 'Actualiser',
+                  child: const Icon(Icons.refresh),
+                ),
+                const SizedBox(height: 8),
+                // My location button
+                FloatingActionButton(
+                  heroTag: 'my_location',
+                  onPressed: () {
+                    _getUserLocation();
+                    if (_userLocation != null && _mapController != null) {
+                      _mapController!.animateCamera(
+                        CameraUpdate.newLatLngZoom(_userLocation!, 15),
+                      );
+                    }
+                  },
+                  tooltip: 'Ma position',
+                  child: const Icon(Icons.my_location),
+                ),
+              ],
             ),
           ),
         ],

@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:ndao/user/domain/entities/user_entity.dart';
 import 'package:ndao/user/domain/entities/vehicle_entity.dart';
+import 'package:ndao/user/presentation/components/driver_reviews_section.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DriverDetailsPage extends StatelessWidget {
   final UserEntity driver;
+  final UserEntity? currentUser; // Optional current user for reviews
 
   const DriverDetailsPage({
     super.key,
     required this.driver,
+    this.currentUser,
   });
 
   @override
@@ -230,6 +233,17 @@ class DriverDetailsPage extends StatelessWidget {
                   ],
                 ),
               ),
+
+            // Reviews section
+            const Divider(),
+
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: DriverReviewsSection(
+                driver: driver,
+                currentUser: currentUser,
+              ),
+            ),
 
             const SizedBox(height: 32),
           ],

@@ -4,6 +4,7 @@ import 'package:ndao/core/di/auth_providers.dart';
 import 'package:ndao/core/di/user_providers.dart';
 import 'package:ndao/core/di/vehicle_providers.dart';
 import 'package:ndao/core/di/location_providers.dart';
+import 'package:ndao/core/di/review_providers.dart';
 
 /// Provides all the providers for the app
 class AppProviders {
@@ -15,6 +16,7 @@ class AppProviders {
       ...UserProviders.getProviders(),
       ...AuthProviders.getProviders(),
       ...LocationProviders.getProviders(),
+      ...ReviewProviders.getProviders(),
     ];
   }
 }

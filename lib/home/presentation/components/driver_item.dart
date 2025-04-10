@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:ndao/user/domain/entities/user_entity.dart';
+import 'package:ndao/user/domain/interactors/get_current_user_interactor.dart';
 import 'package:ndao/user/presentation/pages/driver_details_page.dart';
+import 'package:provider/provider.dart';
 
 class DriverItem extends StatelessWidget {
   /// The driver to display
@@ -33,8 +35,21 @@ class DriverItem extends StatelessWidget {
           context,
           PageRouteBuilder(
             transitionDuration: const Duration(milliseconds: 500),
-            pageBuilder: (context, animation, secondaryAnimation) =>
-                DriverDetailsPage(driver: driver),
+            pageBuilder: (context, animation, secondaryAnimation) {
+              // Get the current user for reviews
+              final getCurrentUserInteractor =
+                  Provider.of<GetCurrentUserInteractor>(context, listen: false);
+
+              return FutureBuilder<UserEntity?>(
+                future: getCurrentUserInteractor.execute(),
+                builder: (context, snapshot) {
+                  return DriverDetailsPage(
+                    driver: driver,
+                    currentUser: snapshot.data,
+                  );
+                },
+              );
+            },
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
               var curve = Curves.easeInOut;

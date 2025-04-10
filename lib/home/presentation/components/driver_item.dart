@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:ndao/location/domain/entities/position_entity.dart';
+import 'package:ndao/location/domain/providers/locator_provider.dart';
+import 'package:ndao/location/domain/utils/location_utils.dart';
 import 'package:ndao/user/domain/entities/user_entity.dart';
 import 'package:ndao/user/domain/interactors/get_current_user_interactor.dart';
 import 'package:ndao/user/presentation/pages/driver_details_page.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DriverItem extends StatelessWidget {
   /// The driver to display
@@ -18,216 +22,274 @@ class DriverItem extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Simulated distance - in a real app, this would be calculated
-    final distance = 5.0; // km
-    final estimatedTime = 15; // minutes
+    return FutureBuilder<PositionEntity>(
+      future: _getUserPosition(context),
+      builder: (context, snapshot) {
+        // Default values while loading or if there's an error
+        double distance = 0.0;
+        int estimatedTime = 0;
+        Color distanceColor = Colors.grey;
 
-    // Determine color based on distance
-    final Color distanceColor = distance <= 2.0
-        ? Colors.green
-        : distance <= 5.0
-            ? Colors.orange
-            : Colors.red;
+        // Calculate distance if we have the user's position and driver has location
+        if (snapshot.hasData &&
+            driver.driverDetails?.currentLatitude != null &&
+            driver.driverDetails?.currentLongitude != null) {
+          // Calculate distance between user and driver
+          distance = LocationUtils.calculateDistance(
+            snapshot.data!.latitude,
+            snapshot.data!.longitude,
+            driver.driverDetails!.currentLatitude!,
+            driver.driverDetails!.currentLongitude!,
+          );
 
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          PageRouteBuilder(
-            transitionDuration: const Duration(milliseconds: 500),
-            pageBuilder: (context, animation, secondaryAnimation) {
-              // Get the current user for reviews
-              final getCurrentUserInteractor =
-                  Provider.of<GetCurrentUserInteractor>(context, listen: false);
+          // Estimate travel time based on distance
+          estimatedTime = LocationUtils.estimateTravelTime(distance);
 
-              return FutureBuilder<UserEntity?>(
-                future: getCurrentUserInteractor.execute(),
-                builder: (context, snapshot) {
-                  return DriverDetailsPage(
-                    driver: driver,
-                    currentUser: snapshot.data,
+          // Determine color based on distance
+          distanceColor = distance <= 2.0
+              ? Colors.green
+              : distance <= 5.0
+                  ? Colors.orange
+                  : Colors.red;
+        }
+
+        return InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              PageRouteBuilder(
+                transitionDuration: const Duration(milliseconds: 500),
+                pageBuilder: (context, animation, secondaryAnimation) {
+                  // Get the current user for reviews
+                  final getCurrentUserInteractor =
+                      Provider.of<GetCurrentUserInteractor>(context,
+                          listen: false);
+
+                  return FutureBuilder<UserEntity?>(
+                    future: getCurrentUserInteractor.execute(),
+                    builder: (context, snapshot) {
+                      return DriverDetailsPage(
+                        driver: driver,
+                        currentUser: snapshot.data,
+                      );
+                    },
                   );
                 },
-              );
-            },
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) {
-              var curve = Curves.easeInOut;
-              var curveTween = CurveTween(curve: curve);
-              var fadeAnimation = animation.drive(curveTween);
-              return FadeTransition(opacity: fadeAnimation, child: child);
-            },
-          ),
-        );
-      },
-      child: Card(
-        elevation: 2,
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
+                  var curve = Curves.easeInOut;
+                  var curveTween = CurveTween(curve: curve);
+                  var fadeAnimation = animation.drive(curveTween);
+                  return FadeTransition(opacity: fadeAnimation, child: child);
+                },
+              ),
+            );
+          },
+          child: Card(
+            elevation: 2,
+            margin: const EdgeInsets.symmetric(vertical: 4),
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
                 children: [
-                  // Driver photo with enhanced Hero animation
-                  Hero(
-                    tag: 'driver-${driver.id}',
-                    flightShuttleBuilder: (flightContext, animation,
-                        flightDirection, fromHeroContext, toHeroContext) {
-                      // This will be overridden by the destination Hero's flightShuttleBuilder
-                      return toHeroContext.widget;
-                    },
-                    child: CircleAvatar(
-                      radius: 28.0,
-                      backgroundColor: colorScheme.primaryContainer,
-                      backgroundImage: driver.profilePictureUrl != null
-                          ? NetworkImage(driver.profilePictureUrl!)
-                          : null,
-                      child: driver.profilePictureUrl == null
-                          ? Text(
-                              driver.givenName[0] + driver.familyName[0],
-                              style: TextStyle(
-                                color: colorScheme.onPrimaryContainer,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            )
-                          : null,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-
-                  // Driver info
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          driver.fullName,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Driver photo with enhanced Hero animation
+                      Hero(
+                        tag: 'driver-${driver.id}',
+                        flightShuttleBuilder: (flightContext, animation,
+                            flightDirection, fromHeroContext, toHeroContext) {
+                          // This will be overridden by the destination Hero's flightShuttleBuilder
+                          return toHeroContext.widget;
+                        },
+                        child: CircleAvatar(
+                          radius: 28.0,
+                          backgroundColor: colorScheme.primaryContainer,
+                          backgroundImage: driver.profilePictureUrl != null
+                              ? NetworkImage(driver.profilePictureUrl!)
+                              : null,
+                          child: driver.profilePictureUrl == null
+                              ? Text(
+                                  driver.givenName[0] + driver.familyName[0],
+                                  style: TextStyle(
+                                    color: colorScheme.onPrimaryContainer,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                )
+                              : null,
                         ),
-                        const SizedBox(height: 4),
-                        Row(
+                      ),
+                      const SizedBox(width: 12),
+
+                      // Driver info
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(
-                              Icons.star,
-                              size: 16,
-                              color: colorScheme.secondary,
-                            ),
-                            const SizedBox(width: 4),
                             Text(
-                              driver.driverDetails?.rating?.toString() ?? 'N/A',
-                              style: theme.textTheme.bodySmall,
-                            ),
-                            const SizedBox(width: 12),
-                            Icon(
-                              Icons.motorcycle,
-                              size: 16,
-                              color: colorScheme.secondary,
-                            ),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                driver.driverDetails?.primaryVehicle != null
-                                    ? '${driver.driverDetails!.primaryVehicle!.brand} ${driver.driverDetails!.primaryVehicle!.model}'
-                                    : 'Véhicule inconnu',
-                                style: theme.textTheme.bodySmall,
-                                overflow: TextOverflow.ellipsis,
+                              driver.fullName,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
                               ),
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.star,
+                                  size: 16,
+                                  color: colorScheme.secondary,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  driver.driverDetails?.rating?.toString() ??
+                                      'N/A',
+                                  style: theme.textTheme.bodySmall,
+                                ),
+                                const SizedBox(width: 12),
+                                Icon(
+                                  Icons.motorcycle,
+                                  size: 16,
+                                  color: colorScheme.secondary,
+                                ),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    driver.driverDetails?.primaryVehicle != null
+                                        ? '${driver.driverDetails!.primaryVehicle!.brand} ${driver.driverDetails!.primaryVehicle!.model}'
+                                        : 'Véhicule inconnu',
+                                    style: theme.textTheme.bodySmall,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                  ),
+                      ),
 
-                  // Distance indicator
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Row(
+                      // Distance indicator
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Icon(
-                            Icons.location_on,
-                            size: 16,
-                            color: distanceColor,
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.location_on,
+                                size: 16,
+                                color: distanceColor,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '$distance km',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: distanceColor,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 4),
                           Text(
-                            '$distance km',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: distanceColor,
-                            ),
+                            '$estimatedTime min',
+                            style: theme.textTheme.bodySmall,
                           ),
                         ],
                       ),
-                      Text(
-                        '$estimatedTime min',
-                        style: theme.textTheme.bodySmall,
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Action buttons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _ActionButton(
+                        icon: Icons.phone,
+                        label: 'Appeler',
+                        onPressed: () => _makePhoneCall(driver.phoneNumber),
+                      ),
+                      _ActionButton(
+                        icon: Icons.message,
+                        label: 'SMS',
+                        onPressed: () => _sendSms(driver.phoneNumber),
+                      ),
+                      _ActionButton(
+                        icon: Icons.directions,
+                        label: 'Itinéraire',
+                        onPressed: () {
+                          if (driver.driverDetails?.currentLatitude != null &&
+                              driver.driverDetails?.currentLongitude != null) {
+                            _openMapsWithDirections(
+                                driver.driverDetails!.currentLatitude!,
+                                driver.driverDetails!.currentLongitude!);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    'Position du chauffeur non disponible'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          }
+                        },
                       ),
                     ],
                   ),
                 ],
               ),
-
-              const SizedBox(height: 12),
-
-              // Action buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _ActionButton(
-                    icon: Icons.phone,
-                    label: 'Appeler',
-                    onPressed: () {
-                      // Launch phone call
-                      final phoneNumber = driver.phoneNumber;
-                      // You would typically use url_launcher package to make a phone call
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Appel à $phoneNumber'),
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
-                    },
-                  ),
-                  _ActionButton(
-                    icon: Icons.message,
-                    label: 'SMS',
-                    onPressed: () {
-                      // Launch SMS
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('SMS à ${driver.phoneNumber}'),
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
-                    },
-                  ),
-                  _ActionButton(
-                    icon: Icons.directions,
-                    label: 'Itinéraire',
-                    onPressed: () {
-                      // Show directions
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Affichage de l\'itinéraire'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
+  }
+
+  /// Get the user's current position
+  Future<PositionEntity> _getUserPosition(BuildContext context) async {
+    try {
+      final locatorProvider =
+          Provider.of<LocatorProvider>(context, listen: false);
+      return await locatorProvider.getCurrentPosition();
+    } catch (e) {
+      // Return a default position if we can't get the user's location
+      // This could be improved by using the last known position or a default for the city
+      return PositionEntity(
+          latitude: -18.8792, longitude: 47.5079); // Antananarivo
+    }
+  }
+
+  /// Make a phone call
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final Uri uri = Uri(scheme: 'tel', path: phoneNumber);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      debugPrint('Could not launch $uri');
+    }
+  }
+
+  /// Send an SMS
+  Future<void> _sendSms(String phoneNumber) async {
+    final Uri uri = Uri(scheme: 'sms', path: phoneNumber);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      debugPrint('Could not launch $uri');
+    }
+  }
+
+  /// Open Google Maps with directions to the driver
+  Future<void> _openMapsWithDirections(double lat, double lng) async {
+    final url = 'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng';
+    final Uri uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      debugPrint('Could not launch $uri');
+    }
   }
 }
 

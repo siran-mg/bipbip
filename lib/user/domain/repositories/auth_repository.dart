@@ -38,7 +38,11 @@ abstract class AuthRepository {
   /// Get the current authenticated user
   ///
   /// Returns the user if authenticated, null otherwise
-  Future<UserEntity?> getCurrentUser();
+  /// If [forceRefresh] is true, the cache will be ignored
+  Future<UserEntity?> getCurrentUser({bool forceRefresh});
+
+  /// Clear the current user cache
+  void clearCurrentUserCache();
 
   /// Check if a user is currently authenticated
   ///

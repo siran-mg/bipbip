@@ -4,10 +4,12 @@ import 'package:provider/single_child_widget.dart';
 import 'package:ndao/core/infrastructure/appwrite/appwrite_client.dart';
 import 'package:ndao/location/domain/providers/locator_provider.dart';
 import 'package:ndao/user/domain/interactors/update_driver_availability_interactor.dart';
+import 'package:ndao/user/domain/interactors/get_current_user_interactor.dart';
 import 'package:ndao/user/domain/interactors/update_driver_rating_interactor.dart';
 import 'package:ndao/user/domain/interactors/update_user_interactor.dart';
 import 'package:ndao/user/domain/interactors/upload_profile_photo_interactor.dart';
 import 'package:ndao/user/domain/providers/driver_provider.dart';
+import 'package:ndao/user/domain/providers/user_profile_provider.dart';
 import 'package:ndao/user/domain/repositories/storage_repository.dart';
 import 'package:ndao/user/domain/repositories/user_repository.dart';
 import 'package:ndao/user/domain/repositories/vehicle_repository.dart';
@@ -87,6 +89,23 @@ class UserProviders {
               DriverProvider(
                 userRepository: userRepository,
                 locatorProvider: locatorProvider,
+              );
+        },
+      ),
+
+      // User profile provider
+      ChangeNotifierProxyProvider2<GetCurrentUserInteractor,
+          UpdateUserInteractor, UserProfileProvider>(
+        create: (context) => UserProfileProvider(
+          getCurrentUserInteractor: context.read<GetCurrentUserInteractor>(),
+          updateUserInteractor: context.read<UpdateUserInteractor>(),
+        ),
+        update: (context, getCurrentUserInteractor, updateUserInteractor,
+            previous) {
+          return previous ??
+              UserProfileProvider(
+                getCurrentUserInteractor: getCurrentUserInteractor,
+                updateUserInteractor: updateUserInteractor,
               );
         },
       ),

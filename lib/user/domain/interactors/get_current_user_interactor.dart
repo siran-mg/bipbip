@@ -9,9 +9,15 @@ class GetCurrentUserInteractor {
   GetCurrentUserInteractor(this._repository);
 
   /// Execute the get current user operation
-  /// 
+  ///
   /// Returns the current user if authenticated, null otherwise
-  Future<UserEntity?> execute() async {
-    return await _repository.getCurrentUser();
+  /// If [forceRefresh] is true, the cache will be ignored
+  Future<UserEntity?> execute({bool forceRefresh = false}) async {
+    return await _repository.getCurrentUser(forceRefresh: forceRefresh);
+  }
+
+  /// Clear the current user cache
+  void clearCache() {
+    _repository.clearCurrentUserCache();
   }
 }

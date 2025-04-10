@@ -63,8 +63,13 @@ class AppwriteAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<UserEntity?> getCurrentUser() {
-    return _authQueries.getCurrentUser();
+  Future<UserEntity?> getCurrentUser({bool forceRefresh = false}) {
+    return _authQueries.getCurrentUser(forceRefresh: forceRefresh);
+  }
+
+  @override
+  void clearCurrentUserCache() {
+    _authQueries.clearCurrentUserCache();
   }
 
   @override

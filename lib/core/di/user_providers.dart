@@ -7,6 +7,7 @@ import 'package:ndao/user/domain/interactors/update_driver_rating_interactor.dar
 import 'package:ndao/user/domain/interactors/update_user_interactor.dart';
 import 'package:ndao/user/domain/interactors/upload_profile_photo_interactor.dart';
 import 'package:ndao/user/domain/providers/driver_provider.dart';
+import 'package:ndao/user/domain/providers/favorite_drivers_provider.dart';
 import 'package:ndao/user/domain/providers/user_profile_provider.dart';
 import 'package:ndao/user/domain/repositories/storage_repository.dart';
 import 'package:ndao/user/domain/repositories/user_repository.dart';
@@ -72,6 +73,22 @@ class UserProviders {
               UserProfileProvider(
                 getCurrentUserInteractor: getCurrentUserInteractor,
                 updateUserInteractor: updateUserInteractor,
+              );
+        },
+      ),
+
+      // Favorite drivers provider
+      ChangeNotifierProxyProvider2<UserRepository, GetCurrentUserInteractor,
+          FavoriteDriversProvider>(
+        create: (context) => FavoriteDriversProvider(
+          userRepository: context.read<UserRepository>(),
+          getCurrentUserInteractor: context.read<GetCurrentUserInteractor>(),
+        ),
+        update: (context, userRepository, getCurrentUserInteractor, previous) {
+          return previous ??
+              FavoriteDriversProvider(
+                userRepository: userRepository,
+                getCurrentUserInteractor: getCurrentUserInteractor,
               );
         },
       ),

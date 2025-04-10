@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ndao/home/presentation/components/available_drivers_list.dart';
 import 'package:ndao/home/presentation/components/nearby_drivers_map.dart';
 import 'package:ndao/location/domain/providers/locator_provider.dart';
+import 'package:ndao/user/presentation/pages/favorite_drivers_page.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
@@ -89,22 +90,24 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
         actions: [
-          // Map toggle button
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: TextButton.icon(
-              icon: Icon(_isMapVisible ? Icons.list : Icons.map),
-              label: Text(_isMapVisible ? 'Liste' : 'Carte'),
-              onPressed: _toggleMapView,
-              style: TextButton.styleFrom(
-                backgroundColor: Theme.of(context)
-                    .colorScheme
-                    .primaryContainer
-                    .withAlpha(128),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              ),
-            ),
+          // Favorites button
+          IconButton(
+            icon: const Icon(Icons.favorite),
+            tooltip: 'Chauffeurs favoris',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const FavoriteDriversPage(),
+                ),
+              );
+            },
+          ),
+          // Toggle map/list view button
+          IconButton(
+            icon: Icon(_isMapVisible ? Icons.list : Icons.map),
+            tooltip: _isMapVisible ? 'Afficher la liste' : 'Afficher la carte',
+            onPressed: _toggleMapView,
           ),
         ],
       ),

@@ -4,6 +4,7 @@ import 'package:ndao/location/domain/providers/locator_provider.dart';
 import 'package:ndao/location/domain/utils/location_utils.dart';
 import 'package:ndao/user/domain/entities/user_entity.dart';
 import 'package:ndao/user/domain/interactors/get_current_user_interactor.dart';
+import 'package:ndao/user/presentation/components/favorite_button.dart';
 import 'package:ndao/user/presentation/pages/driver_details_page.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -95,31 +96,50 @@ class DriverItem extends StatelessWidget {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Driver photo with enhanced Hero animation
-                      Hero(
-                        tag: 'driver-${driver.id}',
-                        flightShuttleBuilder: (flightContext, animation,
-                            flightDirection, fromHeroContext, toHeroContext) {
-                          // This will be overridden by the destination Hero's flightShuttleBuilder
-                          return toHeroContext.widget;
-                        },
-                        child: CircleAvatar(
-                          radius: 28.0,
-                          backgroundColor: colorScheme.primaryContainer,
-                          backgroundImage: driver.profilePictureUrl != null
-                              ? NetworkImage(driver.profilePictureUrl!)
-                              : null,
-                          child: driver.profilePictureUrl == null
-                              ? Text(
-                                  driver.givenName[0] + driver.familyName[0],
-                                  style: TextStyle(
-                                    color: colorScheme.onPrimaryContainer,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                )
-                              : null,
-                        ),
+                      // Favorite button positioned on top of the driver photo
+                      Stack(
+                        children: [
+                          // Driver photo with enhanced Hero animation
+                          Hero(
+                            tag: 'driver-${driver.id}',
+                            flightShuttleBuilder: (flightContext,
+                                animation,
+                                flightDirection,
+                                fromHeroContext,
+                                toHeroContext) {
+                              // This will be overridden by the destination Hero's flightShuttleBuilder
+                              return toHeroContext.widget;
+                            },
+                            child: CircleAvatar(
+                              radius: 28.0,
+                              backgroundColor: colorScheme.primaryContainer,
+                              backgroundImage: driver.profilePictureUrl != null
+                                  ? NetworkImage(driver.profilePictureUrl!)
+                                  : null,
+                              child: driver.profilePictureUrl == null
+                                  ? Text(
+                                      driver.givenName[0] +
+                                          driver.familyName[0],
+                                      style: TextStyle(
+                                        color: colorScheme.onPrimaryContainer,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    )
+                                  : null,
+                            ),
+                          ),
+
+                          // Favorite button positioned at the top-right of the photo
+                          Positioned(
+                            top: -4,
+                            right: -4,
+                            child: FavoriteButton(
+                              driver: driver,
+                              size: 18.0,
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(width: 12),
 

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:ndao/user/domain/entities/user_entity.dart';
 import 'package:ndao/user/domain/entities/vehicle_entity.dart';
+import 'package:ndao/user/domain/providers/favorite_drivers_provider.dart';
 import 'package:ndao/user/domain/providers/review_provider.dart';
 import 'package:ndao/user/presentation/components/driver_reviews_section.dart';
+import 'package:ndao/user/presentation/components/favorite_button.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -28,12 +30,21 @@ class _DriverDetailsPageState extends State<DriverDetailsPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    
-    // Load driver reviews
+
+    // Load driver reviews and favorites
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final reviewProvider = Provider.of<ReviewProvider>(context, listen: false);
+      if (!mounted) return;
+
+      // Load reviews
+      final reviewProvider =
+          Provider.of<ReviewProvider>(context, listen: false);
       reviewProvider.loadDriverReviews(widget.driver.id);
-      
+
+      // Load favorites
+      final favoritesProvider =
+          Provider.of<FavoriteDriversProvider>(context, listen: false);
+      favoritesProvider.loadFavoriteDrivers();
+
       if (widget.currentUser != null) {
         reviewProvider.loadUserReview(
           userId: widget.currentUser!.id,
@@ -59,6 +70,17 @@ class _DriverDetailsPageState extends State<DriverDetailsPage>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Détails du chauffeur'),
+        actions: [
+          // Favorite button
+          if (widget.currentUser != null && widget.currentUser!.isClient)
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: FavoriteButton(
+                driver: driver,
+                size: 24.0,
+              ),
+            ),
+        ],
       ),
       body: Column(
         children: [
@@ -90,7 +112,7 @@ class _DriverDetailsPageState extends State<DriverDetailsPage>
                   ),
                 ),
                 const SizedBox(height: 8),
-                
+
                 // Driver name
                 Text(
                   driver.fullName,
@@ -99,7 +121,7 @@ class _DriverDetailsPageState extends State<DriverDetailsPage>
                   ),
                   textAlign: TextAlign.center,
                 ),
-                
+
                 // Rating from reviews
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
@@ -107,10 +129,10 @@ class _DriverDetailsPageState extends State<DriverDetailsPage>
                     builder: (context, reviewProvider, child) {
                       final reviews = reviewProvider.driverReviews;
                       final reviewCount = reviews.length;
-                      
+
                       // Calculate average rating from reviews
                       final averageRating = reviewProvider.averageRating ?? 0.0;
-                      
+
                       return Column(
                         children: [
                           // Star rating display
@@ -166,7 +188,7 @@ class _DriverDetailsPageState extends State<DriverDetailsPage>
               ],
             ),
           ),
-          
+
           // Contact buttons
           Container(
             color: Colors.white,
@@ -197,7 +219,7 @@ class _DriverDetailsPageState extends State<DriverDetailsPage>
               ],
             ),
           ),
-          
+
           // Tabs
           TabBar(
             controller: _tabController,
@@ -208,7 +230,7 @@ class _DriverDetailsPageState extends State<DriverDetailsPage>
               Tab(icon: Icon(Icons.star), text: 'Avis'),
             ],
           ),
-          
+
           // Tab content
           Expanded(
             child: TabBarView(
@@ -251,9 +273,10 @@ class _DriverDetailsPageState extends State<DriverDetailsPage>
                             // Status
                             _InfoItem(
                               icon: Icons.circle,
-                              iconColor: driver.driverDetails?.isAvailable == true
-                                  ? Colors.green
-                                  : Colors.red,
+                              iconColor:
+                                  driver.driverDetails?.isAvailable == true
+                                      ? Colors.green
+                                      : Colors.red,
                               label: 'Statut',
                               value: driver.driverDetails?.isAvailable == true
                                   ? 'Disponible'

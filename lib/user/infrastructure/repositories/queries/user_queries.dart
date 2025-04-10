@@ -127,8 +127,20 @@ class UserQueries {
       if (clientDocFuture != null) {
         try {
           final clientDoc = await clientDocFuture;
+
+          // Extract favorite driver IDs from comma-separated string
+          List<String> favoriteDriverIds = [];
+          if (clientDoc.data['favorite_driver_ids'] != null) {
+            final favoriteDriverIdsStr =
+                clientDoc.data['favorite_driver_ids'].toString();
+            if (favoriteDriverIdsStr.isNotEmpty) {
+              favoriteDriverIds = favoriteDriverIdsStr.split(',');
+            }
+          }
+
           clientDetails = ClientDetails(
             rating: clientDoc.data['rating']?.toDouble(),
+            favoriteDriverIds: favoriteDriverIds,
           );
         } catch (e) {
           // Client details not found, create empty client details
@@ -215,5 +227,47 @@ class UserQueries {
   void clearAvailableDriversCache() {
     _availableDriversCache = null;
     _lastCacheUpdate = null;
+  }
+
+  /// Get all favorite drivers for a user
+  ///
+  /// Returns a list of all drivers that the user has marked as favorites
+  Future<List<UserEntity>> getFavoriteDrivers(String userId) async {
+    try {
+      // Get the user to access their favorites
+      final user = await getUserById(userId);
+      if (user == null) {
+        throw Exception('User not found');
+      }
+
+      // Check if the user is a client
+      if (!user.isClient) {
+        throw Exception('User is not a client');
+      }
+
+      // Check if the user has client details and favorite drivers
+      if (user.clientDetails == null ||
+          user.clientDetails!.favoriteDriverIds.isEmpty) {
+        return []; // No favorites
+      }
+
+      // Get all favorite driver IDs
+      final favoriteDriverIds = user.clientDetails!.favoriteDriverIds;
+
+      // Create a list of futures for getting all drivers in parallel
+      final driverFutures = favoriteDriverIds.map((id) => getUserById(id));
+
+      // Wait for all driver futures to complete in parallel
+      final driverResults = await Future.wait(driverFutures);
+
+      // Filter out null results and get the list of drivers
+      final drivers = driverResults.whereType<UserEntity>().toList();
+
+      return drivers;
+    } on AppwriteException catch (e) {
+      throw Exception('Failed to get favorite drivers: ${e.message}');
+    } catch (e) {
+      throw Exception('Failed to get favorite drivers: ${e.toString()}');
+    }
   }
 }

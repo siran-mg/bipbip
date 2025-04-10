@@ -4,7 +4,7 @@ import 'package:ndao/core/di/app_providers.dart';
 import 'package:ndao/core/infrastructure/appwrite/appwrite_client.dart';
 import 'package:ndao/core/presentation/routes/app_routes.dart';
 import 'package:ndao/core/presentation/theme/app_theme.dart';
-import 'package:ndao/location/infrastructure/services/location_tracking_service_manager.dart';
+import 'package:ndao/location/domain/providers/location_service_initializer_provider.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -59,42 +59,39 @@ class ServiceInitializer extends StatefulWidget {
 }
 
 class _ServiceInitializerState extends State<ServiceInitializer> {
+  bool _initialized = false;
+
   @override
-  void initState() {
-    super.initState();
-    // Initialize services after the first frame
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeServices();
-    });
+  Widget build(BuildContext context) {
+    // Use a Builder to get a new BuildContext that has access to all providers
+    return Builder(
+      builder: (context) {
+        // Initialize services only once
+        if (!_initialized) {
+          _initialized = true;
+          // Use a post-frame callback to ensure the widget is fully built
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _initializeServices(context);
+          });
+        }
+        return widget.child;
+      },
+    );
   }
 
-  Future<void> _initializeServices() async {
+  Future<void> _initializeServices(BuildContext context) async {
     try {
-      // Get the location tracking service manager
-      if (!mounted) return;
+      // Get the location service initializer provider
+      final initializer = Provider.of<LocationServiceInitializerProvider>(
+        context,
+        listen: false,
+      );
 
-      // Try to get the service manager, but don't crash if it's not available
-      LocationTrackingServiceManager? serviceManager;
-      try {
-        serviceManager = Provider.of<LocationTrackingServiceManager>(
-          context,
-          listen: false,
-        );
-      } catch (providerError) {
-        debugPrint('Location tracking service not available: $providerError');
-        return;
-      }
-
-      // Initialize the service
-      await serviceManager.initialize();
+      // Initialize the location service
+      await initializer.initialize(context);
     } catch (e) {
       // Log error but don't crash the app
       debugPrint('Error initializing services: $e');
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return widget.child;
   }
 }

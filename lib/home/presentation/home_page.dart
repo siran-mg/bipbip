@@ -18,7 +18,12 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _loadCurrentLocation();
+    // Schedule the location loading for after the build is complete
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _loadCurrentLocation();
+      }
+    });
   }
 
   @override
@@ -27,23 +32,36 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _loadCurrentLocation() async {
+    if (!mounted) return;
+
     try {
+      // Get the provider before any async operations
       final locatorProvider =
           Provider.of<LocatorProvider>(context, listen: false);
+
+      // Check if still mounted after getting the provider
+      if (!mounted) return;
+
       final position = await locatorProvider.getCurrentPosition();
+
+      // Check if still mounted after the async operation
+      if (!mounted) return;
+
       final address = await locatorProvider.getAddressFromPosition(position);
 
-      if (mounted) {
-        setState(() {
-          _currentLocation = address ?? 'Position indéterminée';
-        });
-      }
+      // Check if still mounted after the async operation
+      if (!mounted) return;
+
+      setState(() {
+        _currentLocation = address ?? 'Position indéterminée';
+      });
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _currentLocation = 'Position indisponible';
-        });
-      }
+      // Check if still mounted after the error
+      if (!mounted) return;
+
+      setState(() {
+        _currentLocation = 'Position indisponible';
+      });
     }
   }
 

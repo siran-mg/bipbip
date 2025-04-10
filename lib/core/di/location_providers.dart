@@ -1,6 +1,7 @@
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import 'package:ndao/location/domain/providers/locator_provider.dart';
+import 'package:ndao/location/domain/providers/location_service_initializer_provider.dart';
 import 'package:ndao/location/infrastructure/providers/geo_locator_provider.dart';
 import 'package:ndao/location/infrastructure/services/location_tracking_service_manager.dart';
 import 'package:ndao/user/domain/interactors/driver_location_tracking_interactor.dart';
@@ -32,6 +33,11 @@ class LocationProviders {
           getCurrentUserInteractor,
           driverLocationTrackingInteractor,
         ),
+      ),
+
+      // Location service initializer provider
+      ChangeNotifierProvider<LocationServiceInitializerProvider>(
+        create: (_) => LocationServiceInitializerProvider(),
       ),
     ];
   }

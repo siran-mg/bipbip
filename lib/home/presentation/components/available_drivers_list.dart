@@ -16,15 +16,36 @@ class _AvailableDriversListState extends State<AvailableDriversList> {
   @override
   void initState() {
     super.initState();
-    _loadDrivers();
+    // Schedule the driver loading for after the build is complete
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _loadDrivers();
+      }
+    });
   }
 
   Future<void> _loadDrivers() async {
-    final driverProvider = Provider.of<DriverProvider>(context, listen: false);
-    await driverProvider.loadAvailableDrivers();
+    if (!mounted) return;
 
-    // Sort drivers by distance once loaded
-    driverProvider.sortDriversByDistance();
+    try {
+      // Get the provider before any async operations
+      final driverProvider =
+          Provider.of<DriverProvider>(context, listen: false);
+
+      // Check if still mounted after getting the provider
+      if (!mounted) return;
+
+      await driverProvider.loadAvailableDrivers();
+
+      // Check if still mounted after the async operation
+      if (!mounted) return;
+
+      // Sort drivers by distance once loaded
+      driverProvider.sortDriversByDistance();
+    } catch (e) {
+      // Log error but don't crash the app
+      debugPrint('Error loading drivers: $e');
+    }
   }
 
   @override

@@ -4,7 +4,7 @@ import 'package:ndao/user/domain/entities/vehicle_entity.dart';
 import 'package:ndao/user/presentation/components/driver_reviews_section.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class DriverDetailsPage extends StatelessWidget {
+class DriverDetailsPage extends StatefulWidget {
   final UserEntity driver;
   final UserEntity? currentUser; // Optional current user for reviews
 
@@ -15,239 +15,253 @@ class DriverDetailsPage extends StatelessWidget {
   });
 
   @override
+  State<DriverDetailsPage> createState() => _DriverDetailsPageState();
+}
+
+class _DriverDetailsPageState extends State<DriverDetailsPage>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final driver = widget.driver;
+    final currentUser = widget.currentUser;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Détails du chauffeur'),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Driver header with photo and basic info
-            Container(
-              color: colorScheme.primaryContainer,
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  // Driver photo with enhanced Hero animation
-                  Center(
-                    child: Hero(
-                      tag: 'driver-${driver.id}',
-                      flightShuttleBuilder: (flightContext, animation,
-                          flightDirection, fromHeroContext, toHeroContext) {
-                        return AnimatedBuilder(
-                          animation: animation,
-                          builder: (context, child) {
-                            return Transform.scale(
-                              scale: 1.0 + 0.5 * animation.value,
-                              child: CircleAvatar(
-                                radius: 50,
-                                backgroundImage: driver.profilePictureUrl !=
-                                        null
-                                    ? NetworkImage(driver.profilePictureUrl!)
-                                    : null,
-                                child: driver.profilePictureUrl == null
-                                    ? Text(
-                                        driver.givenName[0] +
-                                            driver.familyName[0],
-                                        style: TextStyle(
-                                          color: colorScheme.onPrimary,
-                                          fontSize: 36,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      )
-                                    : null,
+      body: Column(
+        children: [
+          // Driver header with photo and name - always visible
+          Container(
+            color: colorScheme.primaryContainer,
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            child: Column(
+              children: [
+                // Driver photo with enhanced Hero animation
+                Hero(
+                  tag: 'driver-${driver.id}',
+                  child: CircleAvatar(
+                    radius: 40,
+                    backgroundImage: driver.profilePictureUrl != null
+                        ? NetworkImage(driver.profilePictureUrl!)
+                        : null,
+                    child: driver.profilePictureUrl == null
+                        ? Text(
+                            driver.givenName[0] + driver.familyName[0],
+                            style: TextStyle(
+                              color: colorScheme.onPrimary,
+                              fontSize: 30,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                        : null,
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // Driver name
+                Text(
+                  driver.fullName,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+
+                // Rating if available
+                if (driver.driverDetails?.rating != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.star,
+                          color: Colors.amber,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${driver.driverDetails!.rating}',
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+
+          // Contact buttons
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _ContactButton(
+                  icon: Icons.phone,
+                  label: 'Appeler',
+                  onTap: () => _makePhoneCall(driver.phoneNumber),
+                ),
+                _ContactButton(
+                  icon: Icons.message,
+                  label: 'SMS',
+                  onTap: () => _sendSms(driver.phoneNumber),
+                ),
+                if (driver.driverDetails?.currentLatitude != null &&
+                    driver.driverDetails?.currentLongitude != null)
+                  _ContactButton(
+                    icon: Icons.directions,
+                    label: 'Itinéraire',
+                    onTap: () => _openMapsWithDirections(
+                      driver.driverDetails!.currentLatitude!,
+                      driver.driverDetails!.currentLongitude!,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+
+          // Tabs
+          TabBar(
+            controller: _tabController,
+            labelColor: colorScheme.primary,
+            tabs: const [
+              Tab(icon: Icon(Icons.person), text: 'Profil'),
+              Tab(icon: Icon(Icons.directions_car), text: 'Véhicules'),
+              Tab(icon: Icon(Icons.star), text: 'Avis'),
+            ],
+          ),
+
+          // Tab content
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                // Profile Tab
+                SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 16),
+
+                      // Driver info section
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Informations',
+                              style: theme.textTheme.titleLarge,
+                            ),
+                            const SizedBox(height: 16),
+
+                            // Phone number
+                            _InfoItem(
+                              icon: Icons.phone,
+                              label: 'Téléphone',
+                              value: driver.phoneNumber,
+                            ),
+
+                            // Email if available
+                            if (driver.email.isNotEmpty)
+                              _InfoItem(
+                                icon: Icons.email,
+                                label: 'Email',
+                                value: driver.email,
                               ),
-                            );
-                          },
-                        );
-                      },
-                      child: CircleAvatar(
-                        radius: 50,
-                        backgroundImage: driver.profilePictureUrl != null
-                            ? NetworkImage(driver.profilePictureUrl!)
-                            : null,
-                        child: driver.profilePictureUrl == null
-                            ? Text(
-                                driver.givenName[0] + driver.familyName[0],
-                                style: TextStyle(
-                                  color: colorScheme.onPrimary,
-                                  fontSize: 36,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              )
-                            : null,
+
+                            // Status
+                            _InfoItem(
+                              icon: Icons.circle,
+                              iconColor:
+                                  driver.driverDetails?.isAvailable == true
+                                      ? Colors.green
+                                      : Colors.red,
+                              label: 'Statut',
+                              value: driver.driverDetails?.isAvailable == true
+                                  ? 'Disponible'
+                                  : 'Indisponible',
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
+
+                      const SizedBox(height: 32),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-
-                  // Driver name
-                  Text(
-                    driver.fullName,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-
-                  // Rating
-                  if (driver.driverDetails?.rating != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.star,
-                            color: Colors.amber,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${driver.driverDetails!.rating}',
-                            style: theme.textTheme.titleMedium,
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-            ),
-
-            // Contact buttons
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _ContactButton(
-                    icon: Icons.phone,
-                    label: 'Appeler',
-                    onTap: () => _makePhoneCall(driver.phoneNumber),
-                  ),
-                  _ContactButton(
-                    icon: Icons.message,
-                    label: 'SMS',
-                    onTap: () => _sendSms(driver.phoneNumber),
-                  ),
-                  if (driver.driverDetails?.currentLatitude != null &&
-                      driver.driverDetails?.currentLongitude != null)
-                    _ContactButton(
-                      icon: Icons.directions,
-                      label: 'Itinéraire',
-                      onTap: () => _openMapsWithDirections(
-                        driver.driverDetails!.currentLatitude!,
-                        driver.driverDetails!.currentLongitude!,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-
-            const Divider(),
-
-            // Driver info section
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Informations',
-                    style: theme.textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Phone number
-                  _InfoItem(
-                    icon: Icons.phone,
-                    label: 'Téléphone',
-                    value: driver.phoneNumber,
-                  ),
-
-                  // Email if available
-                  if (driver.email.isNotEmpty)
-                    _InfoItem(
-                      icon: Icons.email,
-                      label: 'Email',
-                      value: driver.email,
-                    ),
-
-                  // Status
-                  _InfoItem(
-                    icon: Icons.circle,
-                    iconColor: driver.driverDetails?.isAvailable == true
-                        ? Colors.green
-                        : Colors.red,
-                    label: 'Statut',
-                    value: driver.driverDetails?.isAvailable == true
-                        ? 'Disponible'
-                        : 'Indisponible',
-                  ),
-                ],
-              ),
-            ),
-
-            const Divider(),
-
-            // Vehicle section
-            if (driver.driverDetails?.primaryVehicle != null)
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Véhicule',
-                      style: theme.textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildVehicleCard(
-                        driver.driverDetails!.primaryVehicle!, theme),
-                  ],
                 ),
-              ),
 
-            // Other vehicles section
-            if (driver.driverDetails?.vehicles != null &&
-                driver.driverDetails!.vehicles.length > 1)
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Autres véhicules',
-                      style: theme.textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 16),
-                    ...driver.driverDetails!.vehicles
-                        .where((v) =>
-                            v.id != driver.driverDetails!.primaryVehicle?.id)
-                        .map((vehicle) => _buildVehicleCard(vehicle, theme)),
-                  ],
+                // Vehicles Tab
+                SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Primary vehicle
+                      if (driver.driverDetails?.primaryVehicle != null) ...[
+                        Text(
+                          'Véhicule principal',
+                          style: theme.textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildVehicleCard(
+                            driver.driverDetails!.primaryVehicle!, theme),
+                        const SizedBox(height: 24),
+                      ],
+
+                      // Other vehicles
+                      if (driver.driverDetails?.vehicles != null &&
+                          driver.driverDetails!.vehicles.length > 1) ...[
+                        Text(
+                          'Autres véhicules',
+                          style: theme.textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 16),
+                        ...driver.driverDetails!.vehicles
+                            .where((v) =>
+                                v.id !=
+                                driver.driverDetails!.primaryVehicle?.id)
+                            .map(
+                                (vehicle) => _buildVehicleCard(vehicle, theme)),
+                      ],
+                    ],
+                  ),
                 ),
-              ),
 
-            // Reviews section
-            const Divider(),
-
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: DriverReviewsSection(
-                driver: driver,
-                currentUser: currentUser,
-              ),
+                // Reviews Tab
+                SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: DriverReviewsSection(
+                      driver: driver,
+                      currentUser: currentUser,
+                    ),
+                  ),
+                ),
+              ],
             ),
-
-            const SizedBox(height: 32),
-          ],
-        ),
+          )
+        ],
       ),
     );
   }

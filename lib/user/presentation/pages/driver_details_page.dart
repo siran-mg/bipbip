@@ -209,16 +209,6 @@ class _DriverDetailsPageState extends State<DriverDetailsPage>
                   label: 'SMS',
                   onTap: () => _sendSms(driver.phoneNumber),
                 ),
-                if (driver.driverDetails?.currentLatitude != null &&
-                    driver.driverDetails?.currentLongitude != null)
-                  _ContactButton(
-                    icon: Icons.directions,
-                    label: 'Itinéraire',
-                    onTap: () => _openMapsWithDirections(
-                      driver.driverDetails!.currentLatitude!,
-                      driver.driverDetails!.currentLongitude!,
-                    ),
-                  ),
               ],
             ),
           ),
@@ -437,16 +427,6 @@ class _DriverDetailsPageState extends State<DriverDetailsPage>
     final Uri uri = Uri(scheme: 'sms', path: phoneNumber);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
-    } else {
-      debugPrint('Could not launch $uri');
-    }
-  }
-
-  Future<void> _openMapsWithDirections(double lat, double lng) async {
-    final url = 'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng';
-    final Uri uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
       debugPrint('Could not launch $uri');
     }

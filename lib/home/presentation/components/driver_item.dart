@@ -238,26 +238,6 @@ class DriverItem extends StatelessWidget {
                         label: 'SMS',
                         onPressed: () => _sendSms(driver.phoneNumber),
                       ),
-                      _ActionButton(
-                        icon: Icons.directions,
-                        label: 'Itinéraire',
-                        onPressed: () {
-                          if (driver.driverDetails?.currentLatitude != null &&
-                              driver.driverDetails?.currentLongitude != null) {
-                            _openMapsWithDirections(
-                                driver.driverDetails!.currentLatitude!,
-                                driver.driverDetails!.currentLongitude!);
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                    'Position du chauffeur non disponible'),
-                                duration: Duration(seconds: 2),
-                              ),
-                            );
-                          }
-                        },
-                      ),
                     ],
                   ),
                 ],
@@ -298,17 +278,6 @@ class DriverItem extends StatelessWidget {
     final Uri uri = Uri(scheme: 'sms', path: phoneNumber);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
-    } else {
-      debugPrint('Could not launch $uri');
-    }
-  }
-
-  /// Open Google Maps with directions to the driver
-  Future<void> _openMapsWithDirections(double lat, double lng) async {
-    final url = 'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng';
-    final Uri uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
       debugPrint('Could not launch $uri');
     }

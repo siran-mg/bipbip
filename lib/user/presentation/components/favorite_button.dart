@@ -38,6 +38,7 @@ class _FavoriteButtonState extends State<FavoriteButton>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -85,42 +86,40 @@ class _FavoriteButtonState extends State<FavoriteButton>
           // Button with text label
           buttonContent = widget.filled
               ? FilledButton.icon(
-                  onPressed: () => _toggleFavorite(context, favoritesProvider),
-                  icon: AnimatedBuilder(
-                    animation: _scaleAnimation,
-                    builder: (context, child) {
-                      return Transform.scale(
-                        scale: isFavorite ? _scaleAnimation.value : 1.0,
-                        child: Icon(
-                          isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: widget.filled ? null : iconColor,
-                          size: widget.size,
-                        ),
-                      );
-                    },
-                  ),
-                  label: Text(isFavorite ? 'Favori' : 'Ajouter aux favoris'),
+                  onPressed: _isLoading 
+                      ? null 
+                      : () => _toggleFavorite(context, favoritesProvider),
+                  icon: _buildButtonIcon(isFavorite, iconColor, widget.filled),
+                  label: _isLoading
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : Text(isFavorite ? 'Favori' : 'Ajouter aux favoris'),
                   style: FilledButton.styleFrom(
                     backgroundColor: isFavorite ? Colors.red.shade50 : null,
                     foregroundColor: isFavorite ? Colors.red : null,
                   ),
                 )
               : OutlinedButton.icon(
-                  onPressed: () => _toggleFavorite(context, favoritesProvider),
-                  icon: AnimatedBuilder(
-                    animation: _scaleAnimation,
-                    builder: (context, child) {
-                      return Transform.scale(
-                        scale: isFavorite ? _scaleAnimation.value : 1.0,
-                        child: Icon(
-                          isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: iconColor,
-                          size: widget.size,
-                        ),
-                      );
-                    },
-                  ),
-                  label: Text(isFavorite ? 'Favori' : 'Ajouter aux favoris'),
+                  onPressed: _isLoading 
+                      ? null 
+                      : () => _toggleFavorite(context, favoritesProvider),
+                  icon: _buildButtonIcon(isFavorite, iconColor, false),
+                  label: _isLoading
+                      ? SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(iconColor),
+                          ),
+                        )
+                      : Text(isFavorite ? 'Favori' : 'Ajouter aux favoris'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: iconColor,
                     side: BorderSide(color: borderColor),
@@ -131,7 +130,7 @@ class _FavoriteButtonState extends State<FavoriteButton>
           final buttonWidget = Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: () => _toggleFavorite(context, favoritesProvider),
+              onTap: _isLoading ? null : () => _toggleFavorite(context, favoritesProvider),
               borderRadius: BorderRadius.circular(widget.circular ? 50 : 8),
               child: Ink(
                 decoration: BoxDecoration(
@@ -154,19 +153,31 @@ class _FavoriteButtonState extends State<FavoriteButton>
                     message: isFavorite
                         ? 'Retirer des favoris'
                         : 'Ajouter aux favoris',
-                    child: AnimatedBuilder(
-                      animation: _scaleAnimation,
-                      builder: (context, child) {
-                        return Transform.scale(
-                          scale: isFavorite ? _scaleAnimation.value : 1.0,
-                          child: Icon(
-                            isFavorite ? Icons.favorite : Icons.favorite_border,
-                            color: iconColor,
-                            size: widget.size,
+                    child: _isLoading
+                        ? SizedBox(
+                            width: widget.size,
+                            height: widget.size,
+                            child: Padding(
+                              padding: const EdgeInsets.all(2.0),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(iconColor),
+                              ),
+                            ),
+                          )
+                        : AnimatedBuilder(
+                            animation: _scaleAnimation,
+                            builder: (context, child) {
+                              return Transform.scale(
+                                scale: isFavorite ? _scaleAnimation.value : 1.0,
+                                child: Icon(
+                                  isFavorite ? Icons.favorite : Icons.favorite_border,
+                                  color: iconColor,
+                                  size: widget.size,
+                                ),
+                              );
+                            },
                           ),
-                        );
-                      },
-                    ),
                   ),
                 ),
               ),
@@ -181,9 +192,45 @@ class _FavoriteButtonState extends State<FavoriteButton>
     );
   }
 
+  /// Build the icon for the button
+  Widget _buildButtonIcon(bool isFavorite, Color iconColor, bool filled) {
+    if (_isLoading) {
+      return SizedBox(
+        width: widget.size,
+        height: widget.size,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          valueColor: AlwaysStoppedAnimation<Color>(
+            filled ? Colors.white : iconColor
+          ),
+        ),
+      );
+    }
+    
+    return AnimatedBuilder(
+      animation: _scaleAnimation,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: isFavorite ? _scaleAnimation.value : 1.0,
+          child: Icon(
+            isFavorite ? Icons.favorite : Icons.favorite_border,
+            color: filled ? null : iconColor,
+            size: widget.size,
+          ),
+        );
+      },
+    );
+  }
+
   /// Toggle the favorite status of the driver
   Future<void> _toggleFavorite(
       BuildContext context, FavoriteDriversProvider favoritesProvider) async {
+    if (_isLoading) return;
+    
+    setState(() {
+      _isLoading = true;
+    });
+    
     try {
       // Play animation when adding to favorites
       final wasFavorite = favoritesProvider.isDriverFavorite(widget.driver.id);
@@ -223,6 +270,12 @@ class _FavoriteButtonState extends State<FavoriteButton>
           behavior: SnackBarBehavior.floating,
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 }

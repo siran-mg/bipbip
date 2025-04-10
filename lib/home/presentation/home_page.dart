@@ -57,23 +57,16 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        title: Row(
           children: [
-            const Text('Chauffeurs à proximité',
-                style: TextStyle(fontSize: 16)),
-            Row(
-              children: [
-                Icon(Icons.location_on, size: 14, color: Colors.grey[300]),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    _currentLocation,
-                    style: TextStyle(fontSize: 12, color: Colors.grey[300]),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
+            Icon(Icons.location_on, size: 14),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Text(
+                _currentLocation,
+                style: TextStyle(fontSize: 12),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),

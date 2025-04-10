@@ -23,18 +23,39 @@ class _DriverReviewsSectionState extends State<DriverReviewsSection> {
   @override
   void initState() {
     super.initState();
-    _loadReviews();
+    // Schedule the reviews loading for after the build is complete
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _loadReviews();
+      }
+    });
   }
 
   Future<void> _loadReviews() async {
-    final reviewProvider = Provider.of<ReviewProvider>(context, listen: false);
-    await reviewProvider.loadDriverReviews(widget.driver.id);
+    if (!mounted) return;
 
-    if (widget.currentUser != null) {
-      await reviewProvider.loadUserReview(
-        userId: widget.currentUser!.id,
-        driverId: widget.driver.id,
-      );
+    try {
+      // Get the provider before any async operations
+      final reviewProvider =
+          Provider.of<ReviewProvider>(context, listen: false);
+
+      // Check if still mounted after getting the provider
+      if (!mounted) return;
+
+      await reviewProvider.loadDriverReviews(widget.driver.id);
+
+      // Check if still mounted after the async operation
+      if (!mounted) return;
+
+      if (widget.currentUser != null) {
+        await reviewProvider.loadUserReview(
+          userId: widget.currentUser!.id,
+          driverId: widget.driver.id,
+        );
+      }
+    } catch (e) {
+      // Log error but don't crash the app
+      debugPrint('Error loading reviews: $e');
     }
   }
 

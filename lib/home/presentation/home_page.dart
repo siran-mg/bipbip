@@ -91,17 +91,26 @@ class _HomePageState extends State<HomePage> {
         ),
         actions: [
           // Favorites button
-          IconButton(
-            icon: const Icon(Icons.favorite),
-            tooltip: 'Chauffeurs favoris',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const FavoriteDriversPage(),
-                ),
-              );
-            },
+          Padding(
+            padding: const EdgeInsets.only(right: 4.0),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.red.withAlpha(30),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.favorite, color: Colors.red),
+                tooltip: 'Chauffeurs favoris',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const FavoriteDriversPage(),
+                    ),
+                  );
+                },
+              ),
+            ),
           ),
           // Toggle map/list view button
           IconButton(

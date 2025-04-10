@@ -78,6 +78,9 @@ class _DriverDetailsPageState extends State<DriverDetailsPage>
               child: FavoriteButton(
                 driver: driver,
                 size: 24.0,
+                showLabel: true,
+                filled: true,
+                circular: false,
               ),
             ),
         ],

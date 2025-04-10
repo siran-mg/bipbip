@@ -137,6 +137,8 @@ class DriverItem extends StatelessWidget {
                             child: FavoriteButton(
                               driver: driver,
                               size: 18.0,
+                              circular: true,
+                              filled: false,
                             ),
                           ),
                         ],

@@ -16,6 +16,9 @@ class AppwriteUserRepository implements UserRepository {
   late final DriverCommands _driverCommands;
   late final ClientCommands _clientCommands;
 
+  /// Getter for userQueries to allow access for other repositories
+  UserQueries get userQueries => _userQueries;
+
   /// Creates a new AppwriteUserRepository with the given database client
   AppwriteUserRepository(
     Databases databases,

@@ -10,6 +10,7 @@ This directory contains detailed documentation for each collection and storage b
 - [Client Details](client_details.md) - Information specific to clients
 - [Vehicles](vehicles.md) - Information about vehicles
 - [Driver Vehicles](driver_vehicles.md) - Junction collection linking drivers to vehicles
+- [Favorite Drivers](favorite_drivers.md) - Junction collection linking clients to their favorite drivers
 
 ## Storage
 

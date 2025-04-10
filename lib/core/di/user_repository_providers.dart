@@ -2,9 +2,11 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import 'package:ndao/core/infrastructure/appwrite/appwrite_client.dart';
+import 'package:ndao/user/domain/repositories/favorite_driver_repository.dart';
 import 'package:ndao/user/domain/repositories/storage_repository.dart';
 import 'package:ndao/user/domain/repositories/user_repository.dart';
 import 'package:ndao/user/domain/repositories/vehicle_repository.dart';
+import 'package:ndao/user/infrastructure/repositories/appwrite_favorite_driver_repository.dart';
 import 'package:ndao/user/infrastructure/repositories/appwrite_storage_repository.dart';
 import 'package:ndao/user/infrastructure/repositories/appwrite_user_repository.dart';
 
@@ -40,6 +42,24 @@ class UserRepositoryProviders {
               dotenv.env['APPWRITE_PROFILE_PHOTOS_BUCKET_ID'] ??
                   'profile_photos',
         ),
+      ),
+
+      // Favorite driver repository
+      Provider<FavoriteDriverRepository>(
+        create: (context) {
+          final userRepository = context.read<UserRepository>();
+          final userQueries =
+              (userRepository as AppwriteUserRepository).userQueries;
+
+          return AppwriteFavoriteDriverRepository(
+            AppwriteClientInitializer.instance.databases,
+            userQueries,
+            databaseId: dotenv.env['APPWRITE_DATABASE_ID'] ?? 'ndao',
+            favoriteDriversCollectionId:
+                dotenv.env['APPWRITE_FAVORITE_DRIVERS_COLLECTION_ID'] ??
+                    'favorite_drivers',
+          );
+        },
       ),
     ];
   }

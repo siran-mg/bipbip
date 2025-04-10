@@ -6,7 +6,7 @@ import 'package:ndao/user/domain/repositories/favorite_driver_repository.dart';
 import 'package:ndao/user/domain/repositories/storage_repository.dart';
 import 'package:ndao/user/domain/repositories/user_repository.dart';
 import 'package:ndao/user/domain/repositories/vehicle_repository.dart';
-import 'package:ndao/user/infrastructure/repositories/appwrite_favorite_driver_repository.dart';
+import 'package:ndao/user/infrastructure/repositories/appwrite_favorite_driver_repository_fixed.dart';
 import 'package:ndao/user/infrastructure/repositories/appwrite_storage_repository.dart';
 import 'package:ndao/user/infrastructure/repositories/appwrite_user_repository.dart';
 
@@ -58,6 +58,7 @@ class UserRepositoryProviders {
             favoriteDriversCollectionId:
                 dotenv.env['APPWRITE_FAVORITE_DRIVERS_COLLECTION_ID'] ??
                     'favorite_drivers',
+            cacheExpirationMinutes: 60, // 1 hour cache expiration
           );
         },
       ),

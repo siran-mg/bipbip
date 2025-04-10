@@ -2,12 +2,14 @@ import 'package:appwrite/appwrite.dart';
 import 'package:flutter/foundation.dart';
 import 'package:ndao/user/domain/entities/user_entity.dart';
 import 'package:ndao/user/domain/repositories/favorite_driver_repository.dart';
+import 'package:ndao/user/infrastructure/repositories/cache/favorite_drivers_cache_repository.dart';
 import 'package:ndao/user/infrastructure/repositories/queries/user_queries.dart';
 
-/// Implementation of FavoriteDriverRepository using Appwrite
+/// Implementation of FavoriteDriverRepository using Appwrite with SQLite caching
 class AppwriteFavoriteDriverRepository implements FavoriteDriverRepository {
   final Databases _databases;
   final UserQueries _userQueries;
+  final FavoriteDriversCacheRepository _cacheRepository;
 
   /// Database ID
   final String _databaseId;
@@ -21,8 +23,10 @@ class AppwriteFavoriteDriverRepository implements FavoriteDriverRepository {
     this._userQueries, {
     String databaseId = 'ndao',
     String favoriteDriversCollectionId = 'favorite_drivers',
+    FavoriteDriversCacheRepository? cacheRepository,
   })  : _databaseId = databaseId,
-        _favoriteDriversCollectionId = favoriteDriversCollectionId;
+        _favoriteDriversCollectionId = favoriteDriversCollectionId,
+        _cacheRepository = cacheRepository ?? FavoriteDriversCacheRepository();
 
   @override
   Future<bool> addFavoriteDriver(String clientId, String driverId) async {
@@ -54,7 +58,7 @@ class AppwriteFavoriteDriverRepository implements FavoriteDriverRepository {
         return true; // Already a favorite, consider it a success
       }
 
-      // Add to favorites
+      // Add to favorites in Appwrite
       final now = DateTime.now().toIso8601String();
       await _databases.createDocument(
         databaseId: _databaseId,
@@ -67,6 +71,10 @@ class AppwriteFavoriteDriverRepository implements FavoriteDriverRepository {
           'updated_at': now,
         },
       );
+
+      // Update cache
+      await _cacheRepository.cacheFavoriteStatus(clientId, driverId, true);
+      await _cacheRepository.cacheDriver(clientId, driver);
 
       return true;
     } on AppwriteException catch (e) {
@@ -93,6 +101,9 @@ class AppwriteFavoriteDriverRepository implements FavoriteDriverRepository {
 
       // If no document found, consider it a success (already removed)
       if (response.documents.isEmpty) {
+        // Update cache
+        await _cacheRepository.cacheFavoriteStatus(clientId, driverId, false);
+        await _cacheRepository.removeDriverFromCache(clientId, driverId);
         return true;
       }
 
@@ -103,6 +114,10 @@ class AppwriteFavoriteDriverRepository implements FavoriteDriverRepository {
         collectionId: _favoriteDriversCollectionId,
         documentId: documentId,
       );
+
+      // Update cache
+      await _cacheRepository.cacheFavoriteStatus(clientId, driverId, false);
+      await _cacheRepository.removeDriverFromCache(clientId, driverId);
 
       return true;
     } on AppwriteException catch (e) {
@@ -117,6 +132,14 @@ class AppwriteFavoriteDriverRepository implements FavoriteDriverRepository {
   @override
   Future<bool> isDriverFavorite(String clientId, String driverId) async {
     try {
+      // Check cache first
+      final cachedStatus =
+          await _cacheRepository.getCachedFavoriteStatus(clientId, driverId);
+      if (cachedStatus != null) {
+        return cachedStatus;
+      }
+
+      // Cache miss, query the database
       final response = await _databases.listDocuments(
         databaseId: _databaseId,
         collectionId: _favoriteDriversCollectionId,
@@ -126,7 +149,12 @@ class AppwriteFavoriteDriverRepository implements FavoriteDriverRepository {
         ],
       );
 
-      return response.documents.isNotEmpty;
+      // Update cache with the result
+      final isFavorite = response.documents.isNotEmpty;
+      await _cacheRepository.cacheFavoriteStatus(
+          clientId, driverId, isFavorite);
+
+      return isFavorite;
     } on AppwriteException catch (e) {
       debugPrint('Failed to check if driver is favorite: ${e.message}');
       return false;
@@ -139,7 +167,14 @@ class AppwriteFavoriteDriverRepository implements FavoriteDriverRepository {
   @override
   Future<List<UserEntity>> getFavoriteDrivers(String clientId) async {
     try {
-      // Get all favorite driver IDs for the client
+      // Check cache first
+      final cachedDrivers =
+          await _cacheRepository.getCachedFavoriteDrivers(clientId);
+      if (cachedDrivers.isNotEmpty) {
+        return cachedDrivers;
+      }
+
+      // Cache miss, query the database
       final response = await _databases.listDocuments(
         databaseId: _databaseId,
         collectionId: _favoriteDriversCollectionId,
@@ -154,15 +189,20 @@ class AppwriteFavoriteDriverRepository implements FavoriteDriverRepository {
 
       // Extract driver IDs
       final driverIds = response.documents
-          .map((doc) => doc.data['driver_id']['\$id'])
+          .map((doc) => doc.data['driver_id']['\$id'] as String)
           .toList();
 
       // Get driver entities in parallel
       final driverFutures = driverIds.map((id) => _userQueries.getUserById(id));
       final driverResults = await Future.wait(driverFutures);
 
-      // Filter out null results and return the list of drivers
-      return driverResults.whereType<UserEntity>().toList();
+      // Filter out null results and get the list of drivers
+      final drivers = driverResults.whereType<UserEntity>().toList();
+
+      // Update cache
+      await _cacheRepository.cacheDrivers(clientId, drivers);
+
+      return drivers;
     } on AppwriteException catch (e) {
       debugPrint('Failed to get favorite drivers: ${e.message}');
       return [];
@@ -206,5 +246,10 @@ class AppwriteFavoriteDriverRepository implements FavoriteDriverRepository {
       debugPrint('Failed to get favorite clients: $e');
       return [];
     }
+  }
+
+  /// Clear all caches
+  Future<void> clearCache(String clientId) async {
+    await _cacheRepository.clearClientCache(clientId);
   }
 }

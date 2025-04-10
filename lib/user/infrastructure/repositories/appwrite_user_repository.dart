@@ -125,7 +125,12 @@ class AppwriteUserRepository implements UserRepository {
   }
 
   @override
-  Future<List<UserEntity>> getAvailableDrivers() {
-    return _userQueries.getAvailableDrivers();
+  Future<List<UserEntity>> getAvailableDrivers({bool forceRefresh = false}) {
+    return _userQueries.getAvailableDrivers(forceRefresh: forceRefresh);
+  }
+
+  @override
+  void clearAvailableDriversCache() {
+    _userQueries.clearAvailableDriversCache();
   }
 }

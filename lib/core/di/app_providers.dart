@@ -12,10 +12,11 @@ class AppProviders {
   static List<SingleChildWidget> getProviders() {
     return [
       ...ClientProviders.getProviders(),
+      ...LocationProviders
+          .getProviders(), // Move LocationProviders before UserProviders
       ...VehicleProviders.getProviders(),
       ...UserProviders.getProviders(),
       ...AuthProviders.getProviders(),
-      ...LocationProviders.getProviders(),
       ...ReviewProviders.getProviders(),
     ];
   }

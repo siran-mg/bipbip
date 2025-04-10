@@ -2,10 +2,12 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import 'package:ndao/core/infrastructure/appwrite/appwrite_client.dart';
+import 'package:ndao/location/domain/providers/locator_provider.dart';
 import 'package:ndao/user/domain/interactors/update_driver_availability_interactor.dart';
 import 'package:ndao/user/domain/interactors/update_driver_rating_interactor.dart';
 import 'package:ndao/user/domain/interactors/update_user_interactor.dart';
 import 'package:ndao/user/domain/interactors/upload_profile_photo_interactor.dart';
+import 'package:ndao/user/domain/providers/driver_provider.dart';
 import 'package:ndao/user/domain/repositories/storage_repository.dart';
 import 'package:ndao/user/domain/repositories/user_repository.dart';
 import 'package:ndao/user/domain/repositories/vehicle_repository.dart';
@@ -71,6 +73,22 @@ class UserProviders {
       ProxyProvider<UserRepository, UpdateDriverRatingInteractor>(
         update: (_, userRepository, __) =>
             UpdateDriverRatingInteractor(userRepository),
+      ),
+
+      // Driver provider
+      ChangeNotifierProxyProvider2<UserRepository, LocatorProvider,
+          DriverProvider>(
+        create: (context) => DriverProvider(
+          userRepository: context.read<UserRepository>(),
+          locatorProvider: context.read<LocatorProvider>(),
+        ),
+        update: (context, userRepository, locatorProvider, previous) {
+          return previous ??
+              DriverProvider(
+                userRepository: userRepository,
+                locatorProvider: locatorProvider,
+              );
+        },
       ),
     ];
   }

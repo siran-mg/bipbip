@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ndao/home/presentation/components/driver_item.dart';
-import 'package:ndao/user/domain/entities/user_entity.dart';
-import 'package:ndao/user/domain/repositories/user_repository.dart';
+import 'package:ndao/user/domain/providers/driver_provider.dart';
 import 'package:provider/provider.dart';
 
 /// A widget that displays a list of available drivers
@@ -14,9 +13,6 @@ class AvailableDriversList extends StatefulWidget {
 }
 
 class _AvailableDriversListState extends State<AvailableDriversList> {
-  late Future<List<UserEntity>> _driversFuture;
-  bool _isRefreshing = false;
-
   @override
   void initState() {
     super.initState();
@@ -24,80 +20,72 @@ class _AvailableDriversListState extends State<AvailableDriversList> {
   }
 
   Future<void> _loadDrivers() async {
-    if (_isRefreshing) return;
+    final driverProvider = Provider.of<DriverProvider>(context, listen: false);
+    await driverProvider.loadAvailableDrivers();
 
-    setState(() {
-      _isRefreshing = true;
-    });
-
-    final userRepository = Provider.of<UserRepository>(context, listen: false);
-    _driversFuture = userRepository.getAvailableDrivers();
-
-    // Set refreshing to false after a delay to prevent rapid refreshes
-    await Future.delayed(const Duration(seconds: 1));
-    if (mounted) {
-      setState(() {
-        _isRefreshing = false;
-      });
-    }
+    // Sort drivers by distance once loaded
+    driverProvider.sortDriversByDistance();
   }
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: _loadDrivers,
-      child: CustomScrollView(
-        // Use physics that works with RefreshIndicator
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Text(
-                'Les chauffeurs à proximité',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: FutureBuilder<List<UserEntity>>(
-              future: _driversFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return _buildLoadingState();
-                }
-
-                if (snapshot.hasError) {
-                  return _buildErrorState();
-                }
-
-                final drivers = snapshot.data ?? [];
-
-                if (drivers.isEmpty) {
-                  return _buildEmptyState();
-                }
-
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Column(
-                    children: [
-                      for (final driver in drivers) ...[
-                        DriverItem(driver: driver),
-                        const SizedBox(height: 8),
-                      ],
-                      // Add extra space at the bottom for better UX
-                      const SizedBox(height: 80),
-                    ],
+    return Consumer<DriverProvider>(
+      builder: (context, driverProvider, child) {
+        return RefreshIndicator(
+          onRefresh: () => driverProvider.refresh(),
+          child: CustomScrollView(
+            // Use physics that works with RefreshIndicator
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 8.0),
+                  child: Text(
+                    'Les chauffeurs à proximité',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
-                );
-              },
-            ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Builder(builder: (context) {
+                  // Show error state if there's an error
+                  if (driverProvider.error != null) {
+                    return _buildErrorState(driverProvider);
+                  }
+
+                  final drivers = driverProvider.availableDrivers;
+
+                  // Show loading state if the provider is loading
+                  // Only show empty state if we're not loading and there are truly no drivers
+                  if (driverProvider.isLoading) {
+                    return _buildLoadingState();
+                  } else if (drivers.isEmpty) {
+                    return _buildEmptyState();
+                  }
+
+                  // Show the list of drivers
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Column(
+                      children: [
+                        for (final driver in drivers) ...[
+                          DriverItem(driver: driver),
+                          const SizedBox(height: 8),
+                        ],
+                        // Add extra space at the bottom for better UX
+                        const SizedBox(height: 80),
+                      ],
+                    ),
+                  );
+                }),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -116,7 +104,7 @@ class _AvailableDriversListState extends State<AvailableDriversList> {
     );
   }
 
-  Widget _buildErrorState() {
+  Widget _buildErrorState(DriverProvider driverProvider) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -136,7 +124,7 @@ class _AvailableDriversListState extends State<AvailableDriversList> {
             ),
             const SizedBox(height: 8),
             ElevatedButton.icon(
-              onPressed: _loadDrivers,
+              onPressed: () => driverProvider.refresh(),
               icon: const Icon(Icons.refresh),
               label: const Text('Réessayer'),
             ),

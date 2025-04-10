@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/models.dart';
 import 'package:ndao/user/domain/entities/user_entity.dart';
@@ -23,6 +25,15 @@ class UserQueries {
 
   /// Collection ID for user roles collection
   final String _userRolesCollectionId;
+
+  /// Cache for available drivers
+  List<UserEntity>? _availableDriversCache;
+
+  /// Timestamp of the last cache update
+  DateTime? _lastCacheUpdate;
+
+  /// Cache expiration duration (5 minutes)
+  static const Duration _cacheExpiration = Duration(minutes: 5);
 
   /// Creates a new UserQueries with the given database client
   UserQueries(
@@ -147,8 +158,19 @@ class UserQueries {
   /// Get all available drivers
   ///
   /// Returns a list of all users that are drivers and currently available
-  Future<List<UserEntity>> getAvailableDrivers() async {
+  /// If [forceRefresh] is true, the cache will be ignored
+  Future<List<UserEntity>> getAvailableDrivers(
+      {bool forceRefresh = false}) async {
     try {
+      // Check if we have a valid cache and forceRefresh is false
+      if (!forceRefresh &&
+          _availableDriversCache != null &&
+          _lastCacheUpdate != null &&
+          DateTime.now().difference(_lastCacheUpdate!) < _cacheExpiration) {
+        // Return cached data
+        return _availableDriversCache!;
+      }
+
       // Get all available drivers
       final response = await _databases.listDocuments(
         databaseId: _databaseId,
@@ -157,6 +179,9 @@ class UserQueries {
       );
 
       if (response.documents.isEmpty) {
+        // Update cache with empty list
+        _availableDriversCache = [];
+        _lastCacheUpdate = DateTime.now();
         return [];
       }
 
@@ -171,12 +196,24 @@ class UserQueries {
       // Wait for all user futures to complete in parallel
       final userResults = await Future.wait(userFutures);
 
-      // Filter out null results and return the list of drivers
-      return userResults.whereType<UserEntity>().toList();
+      // Filter out null results and get the list of drivers
+      final drivers = userResults.whereType<UserEntity>().toList();
+
+      // Update cache
+      _availableDriversCache = drivers;
+      _lastCacheUpdate = DateTime.now();
+
+      return drivers;
     } on AppwriteException catch (e) {
       throw Exception('Failed to get available drivers: ${e.message}');
     } catch (e) {
       throw Exception('Failed to get available drivers: ${e.toString()}');
     }
+  }
+
+  /// Clear the available drivers cache
+  void clearAvailableDriversCache() {
+    _availableDriversCache = null;
+    _lastCacheUpdate = null;
   }
 }

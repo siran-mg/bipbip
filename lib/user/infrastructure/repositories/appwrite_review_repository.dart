@@ -194,10 +194,10 @@ class AppwriteReviewRepository implements ReviewRepository {
   ReviewEntity _documentToReviewEntity(Document document) {
     return ReviewEntity(
       id: document.$id,
-      driverId: document.data['driver_id'],
-      userId: document.data['user_id'],
+      driverId: document.data['driver_id']['\$id'],
+      userId: document.data['user_id']['\$id'],
       userName: document.data['user_name'],
-      rating: document.data['rating'].toDouble(),
+      rating: document.data['rating'],
       comment: document.data['comment'],
       userProfilePictureUrl: document.data['user_profile_picture_url'],
       createdAt: DateTime.parse(document.data['created_at']),

@@ -1,31 +1,29 @@
-import 'package:flutter/foundation.dart';
-
 /// Entity representing a driver review
 class ReviewEntity {
   /// Unique identifier for the review
   final String id;
-  
+
   /// ID of the driver being reviewed
   final String driverId;
-  
+
   /// ID of the user who wrote the review
   final String userId;
-  
+
   /// Name of the user who wrote the review
   final String userName;
-  
+
   /// Rating given (1-5)
   final double rating;
-  
+
   /// Review text content
   final String? comment;
-  
+
   /// URL to the user's profile picture
   final String? userProfilePictureUrl;
-  
+
   /// When the review was created
   final DateTime createdAt;
-  
+
   /// When the review was last updated
   final DateTime? updatedAt;
 
@@ -60,7 +58,8 @@ class ReviewEntity {
       userName: userName ?? this.userName,
       rating: rating ?? this.rating,
       comment: comment ?? this.comment,
-      userProfilePictureUrl: userProfilePictureUrl ?? this.userProfilePictureUrl,
+      userProfilePictureUrl:
+          userProfilePictureUrl ?? this.userProfilePictureUrl,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -69,7 +68,7 @@ class ReviewEntity {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    
+
     return other is ReviewEntity &&
         other.id == id &&
         other.driverId == driverId &&

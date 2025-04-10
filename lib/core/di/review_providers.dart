@@ -1,3 +1,4 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ndao/core/infrastructure/appwrite/appwrite_client.dart';
 import 'package:ndao/user/domain/providers/review_provider.dart';
 import 'package:ndao/user/domain/repositories/review_repository.dart';
@@ -14,8 +15,9 @@ class ReviewProviders {
       Provider<ReviewRepository>(
         create: (context) => AppwriteReviewRepository(
           databases: AppwriteClientInitializer.instance.databases,
-          databaseId: 'ndao',
-          reviewsCollectionId: 'reviews',
+          databaseId: dotenv.env['APPWRITE_DATABASE_ID'] ?? 'ndao',
+          reviewsCollectionId:
+              dotenv.env['APPWRITE_REVIEWS_COLLECTION_ID'] ?? 'reviews',
         ),
       ),
 

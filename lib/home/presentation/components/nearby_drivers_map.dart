@@ -5,6 +5,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:ndao/location/domain/providers/locator_provider.dart';
 import 'package:ndao/user/domain/entities/user_entity.dart';
 import 'package:ndao/user/domain/repositories/user_repository.dart';
+import 'package:ndao/user/presentation/pages/driver_details_page.dart';
 import 'package:provider/provider.dart';
 
 class NearbyDriversMap extends StatefulWidget {
@@ -162,6 +163,14 @@ class _NearbyDriversMapState extends State<NearbyDriversMap> {
             snippet: driver.driverDetails?.primaryVehicle != null
                 ? '${driver.driverDetails!.primaryVehicle!.brand} ${driver.driverDetails!.primaryVehicle!.model}'
                 : 'Chauffeur disponible',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DriverDetailsPage(driver: driver),
+                ),
+              );
+            },
           ),
         ),
       );

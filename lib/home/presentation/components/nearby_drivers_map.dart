@@ -164,38 +164,15 @@ class _NearbyDriversMapState extends State<NearbyDriversMap> {
             snippet: driver.driverDetails?.primaryVehicle != null
                 ? '${driver.driverDetails!.primaryVehicle!.brand} ${driver.driverDetails!.primaryVehicle!.model}'
                 : 'Chauffeur disponible',
-            onTap: () {
-              Navigator.push(
-                context,
-                PageRouteBuilder(
-                  transitionDuration: const Duration(milliseconds: 500),
-                  pageBuilder: (context, animation, secondaryAnimation) {
-                    // Get the current user for reviews
-                    final getCurrentUserInteractor =
-                        Provider.of<GetCurrentUserInteractor>(context,
-                            listen: false);
-
-                    return FutureBuilder<UserEntity?>(
-                      future: getCurrentUserInteractor.execute(),
-                      builder: (context, snapshot) {
-                        return DriverDetailsPage(
-                          driver: driver,
-                          currentUser: snapshot.data,
-                        );
-                      },
-                    );
-                  },
-                  transitionsBuilder:
-                      (context, animation, secondaryAnimation, child) {
-                    var curve = Curves.easeInOut;
-                    var curveTween = CurveTween(curve: curve);
-                    var fadeAnimation = animation.drive(curveTween);
-                    return FadeTransition(opacity: fadeAnimation, child: child);
-                  },
-                ),
-              );
-            },
           ),
+          onTap: () {
+            // Show the info window first
+            _mapController
+                ?.showMarkerInfoWindow(MarkerId('driver_${driver.id}'));
+
+            // Navigate to driver details page
+            _navigateToDriverDetails(driver);
+          },
         ),
       );
     }
@@ -225,6 +202,37 @@ class _NearbyDriversMapState extends State<NearbyDriversMap> {
       _mapController!.animateCamera(CameraUpdate.newLatLngZoom(center, 14));
       debugPrint('Centering map on $centerType: $center');
     }
+  }
+
+  /// Navigate to the driver details page
+  void _navigateToDriverDetails(UserEntity driver) {
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 500),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          // Get the current user for reviews
+          final getCurrentUserInteractor =
+              Provider.of<GetCurrentUserInteractor>(context, listen: false);
+
+          return FutureBuilder<UserEntity?>(
+            future: getCurrentUserInteractor.execute(),
+            builder: (context, snapshot) {
+              return DriverDetailsPage(
+                driver: driver,
+                currentUser: snapshot.data,
+              );
+            },
+          );
+        },
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          var curve = Curves.easeInOut;
+          var curveTween = CurveTween(curve: curve);
+          var fadeAnimation = animation.drive(curveTween);
+          return FadeTransition(opacity: fadeAnimation, child: child);
+        },
+      ),
+    );
   }
 
   @override

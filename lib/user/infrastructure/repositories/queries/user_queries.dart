@@ -1,5 +1,7 @@
 import 'package:appwrite/appwrite.dart';
+import 'package:appwrite/models.dart';
 import 'package:ndao/user/domain/entities/user_entity.dart';
+import 'package:ndao/user/domain/entities/vehicle_entity.dart';
 import 'package:ndao/user/domain/repositories/vehicle_repository.dart';
 
 /// Class responsible for read-only operations related to users
@@ -42,63 +44,80 @@ class UserQueries {
   /// Returns the user if found, null otherwise
   Future<UserEntity?> getUserById(String id) async {
     try {
-      // Get the user
-      final userDoc = await _databases.getDocument(
+      // Start all database calls in parallel
+      final userFuture = _databases.getDocument(
         databaseId: _databaseId,
         collectionId: _usersCollectionId,
         documentId: id,
       );
 
-      // Get user roles
-      final rolesResponse = await _databases.listDocuments(
+      final rolesFuture = _databases.listDocuments(
         databaseId: _databaseId,
         collectionId: _userRolesCollectionId,
         queries: [Query.equal('user_id', id), Query.equal('is_active', true)],
       );
+
+      // Wait for the user and roles data in parallel
+      final results = await Future.wait([userFuture, rolesFuture]);
+      final userDoc = results[0] as Document;
+      final rolesResponse = results[1] as DocumentList;
 
       // Extract roles
       final roles = rolesResponse.documents
           .map((doc) => doc.data['role'] as String)
           .toList();
 
-      // Get driver details if the user is a driver
-      DriverDetails? driverDetails;
-      if (roles.contains('driver')) {
-        try {
-          final driverDoc = await _databases.getDocument(
-            databaseId: _databaseId,
-            collectionId: _driverDetailsCollectionId,
-            documentId: id,
-          );
+      // Start fetching driver and client details in parallel if needed
+      Future<Document>? driverDocFuture;
+      Future<List<VehicleEntity>>? vehiclesFuture;
+      Future<Document>? clientDocFuture;
 
-          // Get vehicles for this driver
-          final vehicles = await _vehicleRepository.getVehiclesForDriver(id);
+      if (roles.contains('driver')) {
+        driverDocFuture = _databases.getDocument(
+          databaseId: _databaseId,
+          collectionId: _driverDetailsCollectionId,
+          documentId: id,
+        );
+        vehiclesFuture = _vehicleRepository.getVehiclesForDriver(id);
+      }
+
+      if (roles.contains('client')) {
+        clientDocFuture = _databases.getDocument(
+          databaseId: _databaseId,
+          collectionId: _clientDetailsCollectionId,
+          documentId: id,
+        );
+      }
+
+      // Process driver details
+      DriverDetails? driverDetails;
+      if (driverDocFuture != null && vehiclesFuture != null) {
+        try {
+          // Wait for both driver document and vehicles in parallel
+          final results = await Future.wait([driverDocFuture, vehiclesFuture]);
+          final driverDoc = results[0] as Document;
+          final vehicles = results[1] as List<VehicleEntity>;
 
           driverDetails = DriverDetails(
             isAvailable: driverDoc.data['is_available'] ?? false,
-            rating: driverDoc.data['rating'],
-            currentLatitude: driverDoc.data['current_latitude'],
-            currentLongitude: driverDoc.data['current_longitude'],
+            rating: driverDoc.data['rating']?.toDouble(),
+            currentLatitude: driverDoc.data['current_latitude']?.toDouble(),
+            currentLongitude: driverDoc.data['current_longitude']?.toDouble(),
             vehicles: vehicles,
           );
         } catch (e) {
           // Driver details not found, create empty driver details
-          driverDetails = DriverDetails();
+          driverDetails = DriverDetails(vehicles: []);
         }
       }
 
-      // Get client details if the user is a client
+      // Process client details
       ClientDetails? clientDetails;
-      if (roles.contains('client')) {
+      if (clientDocFuture != null) {
         try {
-          final clientDoc = await _databases.getDocument(
-            databaseId: _databaseId,
-            collectionId: _clientDetailsCollectionId,
-            documentId: id,
-          );
-
+          final clientDoc = await clientDocFuture;
           clientDetails = ClientDetails(
-            rating: clientDoc.data['rating'],
+            rating: clientDoc.data['rating']?.toDouble(),
           );
         } catch (e) {
           // Client details not found, create empty client details
@@ -137,17 +156,23 @@ class UserQueries {
         queries: [Query.equal('is_available', true)],
       );
 
-      // Get the user details for each driver
-      final drivers = <UserEntity>[];
-      for (final driverDoc in response.documents) {
-        final userId = driverDoc.data['user_id'];
-        final user = await getUserById(userId['\$id']);
-        if (user != null) {
-          drivers.add(user);
-        }
+      if (response.documents.isEmpty) {
+        return [];
       }
 
-      return drivers;
+      // Extract all user IDs
+      final userIds = response.documents
+          .map((doc) => doc.data['user_id']['\$id'] as String)
+          .toList();
+
+      // Create a list of futures for getting all users in parallel
+      final userFutures = userIds.map((id) => getUserById(id));
+
+      // Wait for all user futures to complete in parallel
+      final userResults = await Future.wait(userFutures);
+
+      // Filter out null results and return the list of drivers
+      return userResults.whereType<UserEntity>().toList();
     } on AppwriteException catch (e) {
       throw Exception('Failed to get available drivers: ${e.message}');
     } catch (e) {

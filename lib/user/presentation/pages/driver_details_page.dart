@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:ndao/user/domain/entities/user_entity.dart';
 import 'package:ndao/user/domain/entities/vehicle_entity.dart';
+import 'package:ndao/user/domain/providers/review_provider.dart';
 import 'package:ndao/user/presentation/components/driver_reviews_section.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DriverDetailsPage extends StatefulWidget {
@@ -26,6 +28,19 @@ class _DriverDetailsPageState extends State<DriverDetailsPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    
+    // Load driver reviews
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final reviewProvider = Provider.of<ReviewProvider>(context, listen: false);
+      reviewProvider.loadDriverReviews(widget.driver.id);
+      
+      if (widget.currentUser != null) {
+        reviewProvider.loadUserReview(
+          userId: widget.currentUser!.id,
+          driverId: widget.driver.id,
+        );
+      }
+    });
   }
 
   @override
@@ -75,7 +90,7 @@ class _DriverDetailsPageState extends State<DriverDetailsPage>
                   ),
                 ),
                 const SizedBox(height: 8),
-
+                
                 // Driver name
                 Text(
                   driver.fullName,
@@ -84,31 +99,74 @@ class _DriverDetailsPageState extends State<DriverDetailsPage>
                   ),
                   textAlign: TextAlign.center,
                 ),
-
-                // Rating if available
-                if (driver.driverDetails?.rating != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.star,
-                          color: Colors.amber,
-                          size: 16,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${driver.driverDetails!.rating}',
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                      ],
-                    ),
+                
+                // Rating from reviews
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Consumer<ReviewProvider>(
+                    builder: (context, reviewProvider, child) {
+                      final reviews = reviewProvider.driverReviews;
+                      final reviewCount = reviews.length;
+                      
+                      // Calculate average rating from reviews
+                      final averageRating = reviewProvider.averageRating ?? 0.0;
+                      
+                      return Column(
+                        children: [
+                          // Star rating display
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: List.generate(5, (index) {
+                              return Icon(
+                                index < averageRating
+                                    ? Icons.star
+                                    : index + 0.5 <= averageRating
+                                        ? Icons.star_half
+                                        : Icons.star_border,
+                                color: Colors.amber,
+                                size: 24,
+                              );
+                            }),
+                          ),
+                          const SizedBox(height: 4),
+                          // Numeric rating with review count
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (reviewCount > 0) ...[
+                                Text(
+                                  averageRating.toStringAsFixed(1),
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.amber.shade800,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '($reviewCount avis)',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                              ] else ...[
+                                Text(
+                                  'Aucun avis',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
+                      );
+                    },
                   ),
+                ),
               ],
             ),
           ),
-
+          
           // Contact buttons
           Container(
             color: Colors.white,
@@ -139,7 +197,7 @@ class _DriverDetailsPageState extends State<DriverDetailsPage>
               ],
             ),
           ),
-
+          
           // Tabs
           TabBar(
             controller: _tabController,
@@ -150,7 +208,7 @@ class _DriverDetailsPageState extends State<DriverDetailsPage>
               Tab(icon: Icon(Icons.star), text: 'Avis'),
             ],
           ),
-
+          
           // Tab content
           Expanded(
             child: TabBarView(
@@ -193,10 +251,9 @@ class _DriverDetailsPageState extends State<DriverDetailsPage>
                             // Status
                             _InfoItem(
                               icon: Icons.circle,
-                              iconColor:
-                                  driver.driverDetails?.isAvailable == true
-                                      ? Colors.green
-                                      : Colors.red,
+                              iconColor: driver.driverDetails?.isAvailable == true
+                                  ? Colors.green
+                                  : Colors.red,
                               label: 'Statut',
                               value: driver.driverDetails?.isAvailable == true
                                   ? 'Disponible'
@@ -260,7 +317,7 @@ class _DriverDetailsPageState extends State<DriverDetailsPage>
                 ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );

@@ -1,34 +1,38 @@
 import 'package:flutter/foundation.dart';
 import 'package:ndao/user/domain/entities/review_entity.dart';
+import 'package:ndao/user/domain/interactors/update_driver_rating_interactor.dart';
 import 'package:ndao/user/domain/repositories/review_repository.dart';
 
 class ReviewProvider extends ChangeNotifier {
   final ReviewRepository _reviewRepository;
-  
+  final UpdateDriverRatingInteractor? _updateDriverRatingInteractor;
+
   ReviewProvider({
     required ReviewRepository reviewRepository,
-  }) : _reviewRepository = reviewRepository;
-  
+    UpdateDriverRatingInteractor? updateDriverRatingInteractor,
+  })  : _reviewRepository = reviewRepository,
+        _updateDriverRatingInteractor = updateDriverRatingInteractor;
+
   // State
   bool _isLoading = false;
   String? _error;
   List<ReviewEntity> _driverReviews = [];
   ReviewEntity? _userReview;
   double? _averageRating;
-  
+
   // Getters
   bool get isLoading => _isLoading;
   String? get error => _error;
   List<ReviewEntity> get driverReviews => _driverReviews;
   ReviewEntity? get userReview => _userReview;
   double? get averageRating => _averageRating;
-  
+
   // Load reviews for a driver
   Future<void> loadDriverReviews(String driverId) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
-    
+
     try {
       _driverReviews = await _reviewRepository.getDriverReviews(driverId);
       _averageRating = await _reviewRepository.getDriverAverageRating(driverId);
@@ -40,7 +44,7 @@ class ReviewProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-  
+
   // Check if the current user has reviewed this driver
   Future<bool> hasUserReviewedDriver({
     required String userId,
@@ -57,7 +61,7 @@ class ReviewProvider extends ChangeNotifier {
       return false;
     }
   }
-  
+
   // Load the current user's review for this driver
   Future<void> loadUserReview({
     required String userId,
@@ -66,7 +70,7 @@ class ReviewProvider extends ChangeNotifier {
     _isLoading = true;
     _error = null;
     notifyListeners();
-    
+
     try {
       _userReview = await _reviewRepository.getUserReviewForDriver(
         userId: userId,
@@ -80,7 +84,7 @@ class ReviewProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-  
+
   // Add a new review
   Future<void> addReview({
     required String driverId,
@@ -93,7 +97,7 @@ class ReviewProvider extends ChangeNotifier {
     _isLoading = true;
     _error = null;
     notifyListeners();
-    
+
     try {
       final review = await _reviewRepository.addReview(
         driverId: driverId,
@@ -103,12 +107,23 @@ class ReviewProvider extends ChangeNotifier {
         comment: comment,
         userProfilePictureUrl: userProfilePictureUrl,
       );
-      
+
       _userReview = review;
-      
+
       // Refresh the reviews list and average rating
       await loadDriverReviews(driverId);
-      
+
+      // Update the driver's rating in the driver details
+      if (_updateDriverRatingInteractor != null && _averageRating != null) {
+        try {
+          await _updateDriverRatingInteractor.execute(
+              driverId, _averageRating!);
+        } catch (e) {
+          debugPrint('Failed to update driver rating: $e');
+          // Don't fail the whole operation if this fails
+        }
+      }
+
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -117,7 +132,7 @@ class ReviewProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-  
+
   // Update an existing review
   Future<void> updateReview({
     required String reviewId,
@@ -128,19 +143,30 @@ class ReviewProvider extends ChangeNotifier {
     _isLoading = true;
     _error = null;
     notifyListeners();
-    
+
     try {
       final updatedReview = await _reviewRepository.updateReview(
         reviewId: reviewId,
         rating: rating,
         comment: comment,
       );
-      
+
       _userReview = updatedReview;
-      
+
       // Refresh the reviews list and average rating
       await loadDriverReviews(driverId);
-      
+
+      // Update the driver's rating in the driver details
+      if (_updateDriverRatingInteractor != null && _averageRating != null) {
+        try {
+          await _updateDriverRatingInteractor.execute(
+              driverId, _averageRating!);
+        } catch (e) {
+          debugPrint('Failed to update driver rating: $e');
+          // Don't fail the whole operation if this fails
+        }
+      }
+
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -149,7 +175,7 @@ class ReviewProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-  
+
   // Delete a review
   Future<void> deleteReview({
     required String reviewId,
@@ -158,15 +184,27 @@ class ReviewProvider extends ChangeNotifier {
     _isLoading = true;
     _error = null;
     notifyListeners();
-    
+
     try {
       await _reviewRepository.deleteReview(reviewId);
-      
+
       _userReview = null;
-      
+
       // Refresh the reviews list and average rating
       await loadDriverReviews(driverId);
-      
+
+      // Update the driver's rating in the driver details
+      if (_updateDriverRatingInteractor != null) {
+        try {
+          // If there are no reviews left, set rating to null or 0
+          final newRating = _averageRating ?? 0.0;
+          await _updateDriverRatingInteractor.execute(driverId, newRating);
+        } catch (e) {
+          debugPrint('Failed to update driver rating: $e');
+          // Don't fail the whole operation if this fails
+        }
+      }
+
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -175,7 +213,7 @@ class ReviewProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-  
+
   // Clear any errors
   void clearError() {
     _error = null;

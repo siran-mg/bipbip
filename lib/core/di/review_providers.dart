@@ -1,5 +1,6 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ndao/core/infrastructure/appwrite/appwrite_client.dart';
+import 'package:ndao/user/domain/interactors/update_driver_rating_interactor.dart';
 import 'package:ndao/user/domain/providers/review_provider.dart';
 import 'package:ndao/user/domain/repositories/review_repository.dart';
 import 'package:ndao/user/infrastructure/repositories/appwrite_review_repository.dart';
@@ -22,10 +23,16 @@ class ReviewProviders {
       ),
 
       // Review provider
-      ChangeNotifierProvider<ReviewProvider>(
+      ChangeNotifierProxyProvider<UpdateDriverRatingInteractor, ReviewProvider>(
         create: (context) => ReviewProvider(
           reviewRepository: context.read<ReviewRepository>(),
         ),
+        update: (context, updateDriverRatingInteractor, previous) {
+          return ReviewProvider(
+            reviewRepository: context.read<ReviewRepository>(),
+            updateDriverRatingInteractor: updateDriverRatingInteractor,
+          );
+        },
       ),
     ];
   }

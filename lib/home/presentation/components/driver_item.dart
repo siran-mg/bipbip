@@ -31,8 +31,17 @@ class DriverItem extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => DriverDetailsPage(driver: driver),
+          PageRouteBuilder(
+            transitionDuration: const Duration(milliseconds: 500),
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                DriverDetailsPage(driver: driver),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              var curve = Curves.easeInOut;
+              var curveTween = CurveTween(curve: curve);
+              var fadeAnimation = animation.drive(curveTween);
+              return FadeTransition(opacity: fadeAnimation, child: child);
+            },
           ),
         );
       },
@@ -46,9 +55,14 @@ class DriverItem extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Driver photo
+                  // Driver photo with enhanced Hero animation
                   Hero(
                     tag: 'driver-${driver.id}',
+                    flightShuttleBuilder: (flightContext, animation,
+                        flightDirection, fromHeroContext, toHeroContext) {
+                      // This will be overridden by the destination Hero's flightShuttleBuilder
+                      return toHeroContext.widget;
+                    },
                     child: CircleAvatar(
                       radius: 28.0,
                       backgroundColor: colorScheme.primaryContainer,

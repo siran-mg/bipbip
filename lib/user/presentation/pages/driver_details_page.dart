@@ -30,10 +30,39 @@ class DriverDetailsPage extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  // Driver photo
+                  // Driver photo with enhanced Hero animation
                   Center(
                     child: Hero(
                       tag: 'driver-${driver.id}',
+                      flightShuttleBuilder: (flightContext, animation,
+                          flightDirection, fromHeroContext, toHeroContext) {
+                        return AnimatedBuilder(
+                          animation: animation,
+                          builder: (context, child) {
+                            return Transform.scale(
+                              scale: 1.0 + 0.5 * animation.value,
+                              child: CircleAvatar(
+                                radius: 50,
+                                backgroundImage: driver.profilePictureUrl !=
+                                        null
+                                    ? NetworkImage(driver.profilePictureUrl!)
+                                    : null,
+                                child: driver.profilePictureUrl == null
+                                    ? Text(
+                                        driver.givenName[0] +
+                                            driver.familyName[0],
+                                        style: TextStyle(
+                                          color: colorScheme.onPrimary,
+                                          fontSize: 36,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      )
+                                    : null,
+                              ),
+                            );
+                          },
+                        );
+                      },
                       child: CircleAvatar(
                         radius: 50,
                         backgroundImage: driver.profilePictureUrl != null

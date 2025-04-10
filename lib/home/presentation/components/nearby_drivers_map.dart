@@ -166,8 +166,17 @@ class _NearbyDriversMapState extends State<NearbyDriversMap> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => DriverDetailsPage(driver: driver),
+                PageRouteBuilder(
+                  transitionDuration: const Duration(milliseconds: 500),
+                  pageBuilder: (context, animation, secondaryAnimation) =>
+                      DriverDetailsPage(driver: driver),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                    var curve = Curves.easeInOut;
+                    var curveTween = CurveTween(curve: curve);
+                    var fadeAnimation = animation.drive(curveTween);
+                    return FadeTransition(opacity: fadeAnimation, child: child);
+                  },
                 ),
               );
             },

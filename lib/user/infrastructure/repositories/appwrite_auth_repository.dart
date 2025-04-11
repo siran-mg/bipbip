@@ -68,8 +68,8 @@ class AppwriteAuthRepository implements AuthRepository {
   }
 
   @override
-  void clearCurrentUserCache() {
-    _authQueries.clearCurrentUserCache();
+  Future<void> clearCurrentUserCache() async {
+    await _authQueries.clearCurrentUserCache();
   }
 
   @override

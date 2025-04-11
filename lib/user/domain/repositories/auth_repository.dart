@@ -42,7 +42,7 @@ abstract class AuthRepository {
   Future<UserEntity?> getCurrentUser({bool forceRefresh});
 
   /// Clear the current user cache
-  void clearCurrentUserCache();
+  Future<void> clearCurrentUserCache();
 
   /// Check if a user is currently authenticated
   ///

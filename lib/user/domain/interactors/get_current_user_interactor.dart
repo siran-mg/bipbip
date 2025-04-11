@@ -17,7 +17,7 @@ class GetCurrentUserInteractor {
   }
 
   /// Clear the current user cache
-  void clearCache() {
-    _repository.clearCurrentUserCache();
+  Future<void> clearCache() async {
+    await _repository.clearCurrentUserCache();
   }
 }

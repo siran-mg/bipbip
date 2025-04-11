@@ -1,27 +1,22 @@
 import 'dart:async';
 
 import 'package:appwrite/appwrite.dart';
+import 'package:flutter/foundation.dart';
 import 'package:ndao/core/infrastructure/storage/session_storage.dart';
 import 'package:ndao/user/domain/entities/user_entity.dart';
 import 'package:ndao/user/domain/repositories/user_repository.dart';
+import 'package:ndao/user/infrastructure/repositories/cache/user_cache_repository.dart';
 
 /// Class responsible for read-only operations related to authentication
 class AuthQueries {
   final Account _account;
   final UserRepository _userRepository;
   final SessionStorage _sessionStorage;
-
-  /// Cache for the current user
-  UserEntity? _currentUserCache;
-
-  /// Timestamp of the last cache update
-  DateTime? _lastCacheUpdate;
-
-  /// Cache expiration duration (5 minutes)
-  static const Duration _cacheExpiration = Duration(minutes: 5);
+  final UserCacheRepository _userCacheRepository;
 
   /// Creates a new AuthQueries with the given account client
-  AuthQueries(this._account, this._userRepository, this._sessionStorage);
+  AuthQueries(this._account, this._userRepository, this._sessionStorage)
+      : _userCacheRepository = UserCacheRepository(cacheExpirationMinutes: 30);
 
   /// Get the current authenticated user
   ///
@@ -29,13 +24,14 @@ class AuthQueries {
   /// If [forceRefresh] is true, the cache will be ignored
   Future<UserEntity?> getCurrentUser({bool forceRefresh = false}) async {
     try {
-      // Check if we have a valid cache and forceRefresh is false
-      if (!forceRefresh &&
-          _currentUserCache != null &&
-          _lastCacheUpdate != null &&
-          DateTime.now().difference(_lastCacheUpdate!) < _cacheExpiration) {
-        // Return cached user
-        return _currentUserCache;
+      // Check if we can use the cache
+      if (!forceRefresh) {
+        // Try to get user from cache
+        final cachedUser = await _userCacheRepository.getCachedCurrentUser();
+        if (cachedUser != null) {
+          debugPrint('Returning cached user: ${cachedUser.id}');
+          return cachedUser;
+        }
       }
 
       // Check if we have a stored user ID
@@ -43,29 +39,30 @@ class AuthQueries {
 
       if (userId == null) {
         // Clear cache since there's no user ID
-        _currentUserCache = null;
-        _lastCacheUpdate = null;
+        await _userCacheRepository.clearCache();
         return null;
       }
 
       // Get the user entity from the repository using the stored ID
       final user = await _userRepository.getUserById(userId);
 
-      // Update cache
-      _currentUserCache = user;
-      _lastCacheUpdate = DateTime.now();
+      // Update cache if user is not null
+      if (user != null) {
+        await _userCacheRepository.cacheCurrentUser(user);
+        debugPrint('User cached: ${user.id}');
+      }
 
       return user;
     } on AppwriteException catch (e) {
       if (e.code == 401) {
         // User is not authenticated, clear session data and cache
         await _sessionStorage.clearSession();
-        _currentUserCache = null;
-        _lastCacheUpdate = null;
+        await _userCacheRepository.clearCache();
         return null;
       }
       throw Exception('Failed to get current user: ${e.message}');
     } catch (e) {
+      debugPrint('Error getting current user: $e');
       throw Exception('Failed to get current user: ${e.toString()}');
     }
   }
@@ -101,8 +98,8 @@ class AuthQueries {
   }
 
   /// Clear the current user cache
-  void clearCurrentUserCache() {
-    _currentUserCache = null;
-    _lastCacheUpdate = null;
+  Future<void> clearCurrentUserCache() async {
+    await _userCacheRepository.clearCache();
+    debugPrint('Current user cache cleared');
   }
 }

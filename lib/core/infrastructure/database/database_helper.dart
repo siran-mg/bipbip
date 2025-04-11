@@ -9,7 +9,7 @@ class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   static Database? _database;
   static DatabaseHelperWeb? _webDatabase;
-  static bool _isWeb = kIsWeb;
+  static final bool _isWeb = kIsWeb;
 
   /// Factory constructor
   factory DatabaseHelper() => _instance;

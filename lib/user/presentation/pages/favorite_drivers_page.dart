@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 /// Page to display all favorite drivers
 class FavoriteDriversPage extends StatefulWidget {
   /// Creates a new FavoriteDriversPage
-  const FavoriteDriversPage({Key? key}) : super(key: key);
+  const FavoriteDriversPage({super.key});
 
   @override
   State<FavoriteDriversPage> createState() => _FavoriteDriversPageState();

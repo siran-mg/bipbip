@@ -60,6 +60,7 @@ class FilePickerPhotoUploadWidget extends StatelessWidget {
             if (kIsWeb) {
               // For web, we have the bytes directly from FilePicker
               if (file.bytes == null) {
+                if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Erreur: Impossible de lire le fichier'),
@@ -75,6 +76,7 @@ class FilePickerPhotoUploadWidget extends StatelessWidget {
             } else {
               // For mobile/desktop, we have the file path
               if (file.path == null) {
+                if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Erreur: Chemin du fichier invalide'),

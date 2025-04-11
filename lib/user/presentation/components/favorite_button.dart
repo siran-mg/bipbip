@@ -20,6 +20,10 @@ class FavoriteButton extends StatefulWidget {
   /// Whether to use a circular shape
   final bool circular;
 
+  /// Optional hero tag for animations between screens
+  /// If provided, the button will be wrapped in a Hero widget
+  final String? heroTag;
+
   /// Creates a new FavoriteButton
   const FavoriteButton({
     super.key,
@@ -28,6 +32,7 @@ class FavoriteButton extends StatefulWidget {
     this.showLabel = false,
     this.filled = false,
     this.circular = true,
+    this.heroTag,
   });
 
   @override
@@ -232,6 +237,91 @@ class _FavoriteButtonState extends State<FavoriteButton>
           );
 
           buttonContent = buttonWidget;
+        }
+
+        // Wrap in Hero widget if heroTag is provided
+        if (widget.heroTag != null) {
+          return Hero(
+            tag: '${widget.heroTag}-${widget.driver.id}',
+            flightShuttleBuilder: (flightContext, animation, flightDirection,
+                fromHeroContext, toHeroContext) {
+              // Custom flight shuttle to maintain the button's appearance during animation
+              Widget shuttleContent;
+
+              // Create a copy of the button with the same properties
+              if (widget.showLabel) {
+                shuttleContent = widget.filled
+                    ? FilledButton.icon(
+                        onPressed: null, // Disable during animation
+                        icon: Icon(
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          color: isFavorite ? Colors.red : Colors.grey.shade600,
+                          size: widget.size,
+                        ),
+                        label:
+                            Text(isFavorite ? 'Favori' : 'Ajouter aux favoris'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor:
+                              isFavorite ? Colors.red.shade50 : null,
+                          foregroundColor: isFavorite ? Colors.red : null,
+                        ),
+                      )
+                    : OutlinedButton.icon(
+                        onPressed: null, // Disable during animation
+                        icon: Icon(
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          color: isFavorite ? Colors.red : Colors.grey.shade600,
+                          size: widget.size,
+                        ),
+                        label:
+                            Text(isFavorite ? 'Favori' : 'Ajouter aux favoris'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor:
+                              isFavorite ? Colors.red : Colors.grey.shade600,
+                          side: BorderSide(
+                              color: isFavorite
+                                  ? Colors.red
+                                  : Colors.grey.shade400),
+                        ),
+                      );
+              } else {
+                // Icon-only button
+                shuttleContent = Material(
+                  color: Colors.transparent,
+                  child: Ink(
+                    decoration: BoxDecoration(
+                      color: backgroundColor,
+                      shape: widget.circular
+                          ? BoxShape.circle
+                          : BoxShape.rectangle,
+                      borderRadius:
+                          widget.circular ? null : BorderRadius.circular(8),
+                      border: Border.all(color: borderColor, width: 1.5),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: iconColor,
+                        size: widget.size,
+                      ),
+                    ),
+                  ),
+                );
+              }
+
+              return AnimatedBuilder(
+                animation: animation,
+                builder: (context, child) {
+                  return Material(
+                    color: Colors.transparent,
+                    child: shuttleContent,
+                  );
+                },
+              );
+            },
+            child: buttonContent,
+          );
         }
 
         return buttonContent;

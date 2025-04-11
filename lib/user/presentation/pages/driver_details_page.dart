@@ -81,6 +81,7 @@ class _DriverDetailsPageState extends State<DriverDetailsPage>
                 showLabel: true,
                 filled: true,
                 circular: false,
+                heroTag: 'favorite-button',
               ),
             ),
         ],

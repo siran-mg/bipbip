@@ -139,6 +139,7 @@ class DriverItem extends StatelessWidget {
                               size: 18.0,
                               circular: true,
                               filled: false,
+                              heroTag: 'favorite-button',
                             ),
                           ),
                         ],

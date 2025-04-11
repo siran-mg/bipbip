@@ -65,19 +65,4 @@ abstract class UserRepository {
 
   /// Clear the available drivers cache
   void clearAvailableDriversCache();
-
-  /// Add a driver to the user's favorites
-  ///
-  /// Returns the updated user
-  Future<UserEntity> addFavoriteDriver(String userId, String driverId);
-
-  /// Remove a driver from the user's favorites
-  ///
-  /// Returns the updated user
-  Future<UserEntity> removeFavoriteDriver(String userId, String driverId);
-
-  /// Get all favorite drivers for a user
-  ///
-  /// Returns a list of all drivers that the user has marked as favorites
-  Future<List<UserEntity>> getFavoriteDrivers(String userId);
 }

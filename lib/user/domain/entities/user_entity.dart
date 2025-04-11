@@ -144,43 +144,17 @@ class ClientDetails {
   /// Client's rating (1-5)
   final double? rating;
 
-  /// List of favorite driver IDs
-  final List<String> favoriteDriverIds;
-
   /// Creates new ClientDetails
   ClientDetails({
     this.rating,
-    this.favoriteDriverIds = const [],
   });
 
   /// Creates a copy of this ClientDetails with the given fields replaced with new values
   ClientDetails copyWith({
     double? rating,
-    List<String>? favoriteDriverIds,
   }) {
     return ClientDetails(
       rating: rating ?? this.rating,
-      favoriteDriverIds: favoriteDriverIds ?? this.favoriteDriverIds,
-    );
-  }
-
-  /// Check if a driver is in favorites
-  bool isDriverFavorite(String driverId) {
-    return favoriteDriverIds.contains(driverId);
-  }
-
-  /// Add a driver to favorites
-  ClientDetails addFavoriteDriver(String driverId) {
-    if (favoriteDriverIds.contains(driverId)) return this;
-    return copyWith(favoriteDriverIds: [...favoriteDriverIds, driverId]);
-  }
-
-  /// Remove a driver from favorites
-  ClientDetails removeFavoriteDriver(String driverId) {
-    if (!favoriteDriverIds.contains(driverId)) return this;
-    return copyWith(
-      favoriteDriverIds:
-          favoriteDriverIds.where((id) => id != driverId).toList(),
     );
   }
 }

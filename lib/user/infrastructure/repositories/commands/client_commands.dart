@@ -46,11 +46,7 @@ class ClientCommands {
           databaseId: _databaseId,
           collectionId: _clientDetailsCollectionId,
           documentId: userId,
-          data: {
-            'rating': clientDetails.rating,
-            'favorite_driver_ids': clientDetails.favoriteDriverIds.join(','),
-            'updated_at': now
-          },
+          data: {'rating': clientDetails.rating, 'updated_at': now},
         );
       } catch (e) {
         // Client details not found, create them
@@ -62,7 +58,6 @@ class ClientCommands {
           data: {
             'user_id': userId,
             'rating': clientDetails.rating,
-            'favorite_driver_ids': clientDetails.favoriteDriverIds.join(','),
             'created_at': now,
             'updated_at': now
           },
@@ -78,88 +73,5 @@ class ClientCommands {
     }
   }
 
-  /// Add a driver to the user's favorites
-  ///
-  /// Returns the updated user
-  Future<UserEntity> addFavoriteDriver(String userId, String driverId) async {
-    try {
-      // Get the current user
-      final user = await _userQueries.getUserById(userId);
-      if (user == null) {
-        throw Exception('User not found');
-      }
-
-      // Check if the user is a client
-      if (!user.isClient) {
-        throw Exception('User is not a client');
-      }
-
-      // Check if the driver exists
-      final driver = await _userQueries.getUserById(driverId);
-      if (driver == null) {
-        throw Exception('Driver not found');
-      }
-
-      // Check if the driver is actually a driver
-      if (!driver.isDriver) {
-        throw Exception('User is not a driver');
-      }
-
-      // Get current client details or create new ones
-      final currentClientDetails = user.clientDetails ?? ClientDetails();
-
-      // Add driver to favorites if not already there
-      if (currentClientDetails.isDriverFavorite(driverId)) {
-        return user; // Already a favorite, no need to update
-      }
-
-      // Add to favorites
-      final updatedClientDetails =
-          currentClientDetails.addFavoriteDriver(driverId);
-
-      // Update in database
-      return await updateClientDetails(userId, updatedClientDetails);
-    } on AppwriteException catch (e) {
-      throw Exception('Failed to add favorite driver: ${e.message}');
-    } catch (e) {
-      throw Exception('Failed to add favorite driver: ${e.toString()}');
-    }
-  }
-
-  /// Remove a driver from the user's favorites
-  ///
-  /// Returns the updated user
-  Future<UserEntity> removeFavoriteDriver(
-      String userId, String driverId) async {
-    try {
-      // Get the current user
-      final user = await _userQueries.getUserById(userId);
-      if (user == null) {
-        throw Exception('User not found');
-      }
-
-      // Check if the user is a client
-      if (!user.isClient) {
-        throw Exception('User is not a client');
-      }
-
-      // Get current client details
-      final currentClientDetails = user.clientDetails;
-      if (currentClientDetails == null ||
-          !currentClientDetails.isDriverFavorite(driverId)) {
-        return user; // Not a favorite or no client details, no need to update
-      }
-
-      // Remove from favorites
-      final updatedClientDetails =
-          currentClientDetails.removeFavoriteDriver(driverId);
-
-      // Update in database
-      return await updateClientDetails(userId, updatedClientDetails);
-    } on AppwriteException catch (e) {
-      throw Exception('Failed to remove favorite driver: ${e.message}');
-    } catch (e) {
-      throw Exception('Failed to remove favorite driver: ${e.toString()}');
-    }
-  }
+  // Note: Favorite driver functionality has been moved to FavoriteDriverRepository
 }

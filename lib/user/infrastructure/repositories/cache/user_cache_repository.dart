@@ -75,7 +75,6 @@ class UserCacheRepository {
         'client_details': user.clientDetails != null
             ? {
                 'rating': user.clientDetails!.rating,
-                'favorite_driver_ids': user.clientDetails!.favoriteDriverIds,
               }
             : null,
       });
@@ -143,25 +142,8 @@ class UserCacheRepository {
       ClientDetails? clientDetails;
       if (userData['client_details'] != null) {
         final clientData = userData['client_details'];
-        List<String> favoriteDriverIds = [];
-
-        // Extract favorite driver IDs
-        if (clientData['favorite_driver_ids'] != null) {
-          if (clientData['favorite_driver_ids'] is List) {
-            favoriteDriverIds =
-                List<String>.from(clientData['favorite_driver_ids']);
-          } else if (clientData['favorite_driver_ids'] is String) {
-            final favoriteDriverIdsStr =
-                clientData['favorite_driver_ids'].toString();
-            if (favoriteDriverIdsStr.isNotEmpty) {
-              favoriteDriverIds = favoriteDriverIdsStr.split(',');
-            }
-          }
-        }
-
         clientDetails = ClientDetails(
           rating: clientData['rating']?.toDouble(),
-          favoriteDriverIds: favoriteDriverIds,
         );
       }
 

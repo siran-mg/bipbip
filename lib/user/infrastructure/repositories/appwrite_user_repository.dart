@@ -136,19 +136,4 @@ class AppwriteUserRepository implements UserRepository {
   void clearAvailableDriversCache() {
     _userQueries.clearAvailableDriversCache();
   }
-
-  @override
-  Future<UserEntity> addFavoriteDriver(String userId, String driverId) {
-    return _clientCommands.addFavoriteDriver(userId, driverId);
-  }
-
-  @override
-  Future<UserEntity> removeFavoriteDriver(String userId, String driverId) {
-    return _clientCommands.removeFavoriteDriver(userId, driverId);
-  }
-
-  @override
-  Future<List<UserEntity>> getFavoriteDrivers(String userId) {
-    return _userQueries.getFavoriteDrivers(userId);
-  }
 }

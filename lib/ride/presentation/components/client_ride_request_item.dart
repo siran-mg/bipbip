@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:ndao/ride/domain/entities/ride_request_entity.dart';
 import 'package:ndao/ride/domain/providers/ride_request_provider.dart';
 import 'package:ndao/user/domain/entities/user_entity.dart';
+import 'package:ndao/user/domain/interactors/get_current_user_interactor.dart';
 import 'package:ndao/user/domain/repositories/user_repository.dart';
+import 'package:ndao/user/presentation/pages/driver_details_page.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// A widget that displays a client's ride request
 class ClientRideRequestItem extends StatefulWidget {
@@ -246,17 +249,32 @@ class _ClientRideRequestItemState extends State<ClientRideRequestItem> {
                                   ],
                                 ),
                                 const Spacer(),
+                                // Call button
                                 IconButton(
                                   icon: const Icon(Icons.phone,
                                       color: Colors.green),
-                                  onPressed: () {
-                                    // TODO: Implement call functionality
-                                  },
+                                  tooltip: 'Appeler le chauffeur',
+                                  onPressed: () =>
+                                      _makePhoneCall(_driver!.phoneNumber),
                                 ),
                               ],
                             )
                           : const Text(
                               'Information du chauffeur non disponible'),
+
+                  // View driver details button (only if driver is available)
+                  if (_driver != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16.0),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.person),
+                          label: const Text('Voir le profil du chauffeur'),
+                          onPressed: _viewDriverDetails,
+                        ),
+                      ),
+                    ),
                 ],
               ),
           ],
@@ -315,6 +333,48 @@ class _ClientRideRequestItemState extends State<ClientRideRequestItem> {
         setState(() {
           _isCancelling = false;
         });
+      }
+    }
+  }
+
+  /// Make a phone call to the driver
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final Uri launchUri = Uri(
+      scheme: 'tel',
+      path: phoneNumber,
+    );
+    await launchUrl(launchUri);
+  }
+
+  /// Navigate to the driver details page
+  Future<void> _viewDriverDetails() async {
+    if (_driver == null) return;
+
+    try {
+      // Get current user
+      final getCurrentUserInteractor =
+          Provider.of<GetCurrentUserInteractor>(context, listen: false);
+      final currentUser = await getCurrentUserInteractor.execute();
+
+      if (!mounted) return;
+
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => DriverDetailsPage(
+            driver: _driver!,
+            currentUser:
+                currentUser, // Pass the current user for favorites functionality
+          ),
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }

@@ -332,6 +332,18 @@ class _DriverSectionState extends State<DriverSection> {
 
                 const Divider(),
 
+                // View ride requests button
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.notifications),
+                  label: const Text('Voir les demandes de course'),
+                  onPressed: () {
+                    Navigator.pushNamed(context, AppRoutes.nearbyRideRequests);
+                  },
+                ),
+
+                const SizedBox(height: 16),
+                const Divider(),
+
                 // Location tracking toggle
                 Row(
                   children: [

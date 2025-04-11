@@ -6,6 +6,7 @@ import 'package:ndao/core/di/user_repository_providers.dart';
 import 'package:ndao/core/di/vehicle_providers.dart';
 import 'package:ndao/core/di/location_providers.dart';
 import 'package:ndao/core/di/review_providers.dart';
+import 'package:ndao/core/di/ride_providers.dart';
 
 /// Provides all the providers for the app
 class AppProviders {
@@ -33,6 +34,9 @@ class AppProviders {
 
       // Review providers depend on user providers
       ...ReviewProviders.getProviders(),
+
+      // Ride providers depend on location providers
+      ...RideProviders.getProviders(),
     ];
   }
 }

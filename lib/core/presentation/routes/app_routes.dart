@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ndao/home/presentation/pages/home_wrapper.dart';
 import 'package:ndao/location/presentation/pages/driver_map_page.dart';
+import 'package:ndao/ride/presentation/pages/nearby_ride_requests_page.dart';
 import 'package:ndao/user/presentation/pages/driver_registration_page.dart';
 import 'package:ndao/user/presentation/pages/forgot_password_page.dart';
 import 'package:ndao/user/presentation/pages/login_page.dart';
@@ -30,6 +31,9 @@ class AppRoutes {
   /// Driver map route
   static const String driverMap = '/driver-map';
 
+  /// Nearby ride requests route
+  static const String nearbyRideRequests = '/nearby-ride-requests';
+
   /// Get all routes
   static Map<String, WidgetBuilder> getRoutes() {
     return {
@@ -40,6 +44,7 @@ class AppRoutes {
       forgotPassword: (context) => const ForgotPasswordPage(),
       home: (context) => const HomeWrapper(),
       driverMap: (context) => const DriverMapPage(),
+      nearbyRideRequests: (context) => const NearbyRideRequestsPage(),
     };
   }
 }

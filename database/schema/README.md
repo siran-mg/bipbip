@@ -11,6 +11,7 @@ This directory contains detailed documentation for each collection and storage b
 - [Vehicles](vehicles.md) - Information about vehicles
 - [Driver Vehicles](driver_vehicles.md) - Junction collection linking drivers to vehicles
 - [Favorite Drivers](favorite_drivers.md) - Junction collection linking clients to their favorite drivers
+- [Ride Requests](ride_requests.md) - Ride requests from clients to drivers
 
 ## Storage
 

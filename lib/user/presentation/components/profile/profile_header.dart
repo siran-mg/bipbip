@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:ndao/user/domain/entities/user_entity.dart';
-import 'package:ndao/user/presentation/components/file_picker_profile_photo.dart';
+import 'package:ndao/user/presentation/components/image_picker_profile_photo.dart';
 
 /// Profile header component with photo and user information
 class ProfileHeader extends StatelessWidget {
   /// The user entity
   final UserEntity user;
-  
+
   /// Callback when the profile photo is updated
   final Function(String) onPhotoUpdated;
 
@@ -23,7 +23,7 @@ class ProfileHeader extends StatelessWidget {
       child: Column(
         children: [
           // Profile photo
-          FilePickerProfilePhoto(
+          ImagePickerProfilePhoto(
             userId: user.id,
             currentPhotoUrl: user.profilePictureUrl,
             onPhotoUpdated: onPhotoUpdated,

@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:ndao/core/presentation/utils/form_validators.dart';
-import 'package:ndao/core/presentation/widgets/file_picker_photo_upload_widget.dart';
+import 'package:ndao/core/presentation/widgets/image_picker_photo_upload_widget.dart';
 
 /// Vehicle information step for driver registration
 class VehicleInfoStep extends StatelessWidget {
@@ -70,13 +70,13 @@ class VehicleInfoStep extends StatelessWidget {
           // Vehicle photo upload
           Center(
             child: kIsWeb
-                ? FilePickerPhotoUploadWidget(
+                ? ImagePickerPhotoUploadWidget(
                     photoBytes: vehiclePhotoBytes,
                     placeholderIcon: Icons.directions_car,
                     labelText: 'Photo du véhicule',
                     onBytesPhotoPicked: onVehiclePhotoBytesPicked,
                   )
-                : FilePickerPhotoUploadWidget(
+                : ImagePickerPhotoUploadWidget(
                     photoFile: vehiclePhoto,
                     placeholderIcon: Icons.directions_car,
                     labelText: 'Photo du véhicule',

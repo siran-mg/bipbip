@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:ndao/core/presentation/utils/form_validators.dart';
-import 'package:ndao/core/presentation/widgets/file_picker_photo_upload_widget.dart';
+import 'package:ndao/core/presentation/widgets/image_picker_photo_upload_widget.dart';
 
 /// Personal information step for registration
 class PersonalInfoStep extends StatelessWidget {
@@ -58,12 +58,12 @@ class PersonalInfoStep extends StatelessWidget {
           // Profile photo upload
           Center(
             child: kIsWeb
-                ? FilePickerPhotoUploadWidget(
+                ? ImagePickerPhotoUploadWidget(
                     photoBytes: profilePhotoBytes,
                     labelText: 'Photo de profil',
                     onBytesPhotoPicked: onProfilePhotoBytesPicked,
                   )
-                : FilePickerPhotoUploadWidget(
+                : ImagePickerPhotoUploadWidget(
                     photoFile: profilePhoto,
                     labelText: 'Photo de profil',
                     onFilePhotoPicked: onProfilePhotoPicked,

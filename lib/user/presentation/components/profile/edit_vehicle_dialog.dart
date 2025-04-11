@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:ndao/user/domain/entities/vehicle_entity.dart';
 import 'package:ndao/user/domain/interactors/vehicle_interactor.dart';
 import 'package:provider/provider.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
 
 /// Dialog for editing vehicle information
 class EditVehicleDialog extends StatefulWidget {
@@ -66,14 +66,69 @@ class _EditVehicleDialogState extends State<EditVehicleDialog> {
   /// Pick a photo from the device
   Future<void> _pickPhoto() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.image,
-        allowMultiple: false,
+      // Show a dialog to choose between camera and gallery
+      final ImageSource? source = await showDialog<ImageSource>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Choisir une source'),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  GestureDetector(
+                    child: const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          Icon(Icons.photo_library),
+                          SizedBox(width: 10),
+                          Text('Galerie'),
+                        ],
+                      ),
+                    ),
+                    onTap: () {
+                      Navigator.of(context).pop(ImageSource.gallery);
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  GestureDetector(
+                    child: const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          Icon(Icons.photo_camera),
+                          SizedBox(width: 10),
+                          Text('Caméra'),
+                        ],
+                      ),
+                    ),
+                    onTap: () {
+                      Navigator.of(context).pop(ImageSource.camera);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       );
 
-      if (result != null && result.files.isNotEmpty) {
+      if (source == null) {
+        return;
+      }
+
+      // Pick image using ImagePicker
+      final ImagePicker picker = ImagePicker();
+      final XFile? pickedFile = await picker.pickImage(
+        source: source,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
         setState(() {
-          _photoFile = File(result.files.first.path!);
+          _photoFile = File(pickedFile.path);
           _photoChanged = true;
         });
       }

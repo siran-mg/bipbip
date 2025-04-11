@@ -161,6 +161,24 @@ class _HomePageState extends State<HomePage>
                 ),
               ),
             ),
+          // Client ride history button
+          if (_isClient)
+            Padding(
+              padding: const EdgeInsets.only(right: 4.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.purple.withAlpha(30),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.history, color: Colors.purple),
+                  tooltip: 'Mes demandes',
+                  onPressed: () {
+                    Navigator.pushNamed(context, AppRoutes.clientRideRequests);
+                  },
+                ),
+              ),
+            ),
           // Toggle map/list view button
           IconButton(
             icon: Icon(_isMapVisible ? Icons.list : Icons.map),

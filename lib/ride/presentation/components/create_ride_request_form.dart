@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:ndao/core/presentation/routes/app_routes.dart';
+import 'package:ndao/location/domain/entities/position_entity.dart';
 import 'package:ndao/location/domain/providers/locator_provider.dart';
 import 'package:ndao/ride/domain/providers/ride_request_provider.dart';
+import 'package:ndao/user/domain/entities/user_entity.dart';
 import 'package:ndao/user/domain/interactors/get_current_user_interactor.dart';
 import 'package:provider/provider.dart';
 
@@ -79,20 +82,37 @@ class _CreateRideRequestFormState extends State<CreateRideRequestForm> {
             },
           ),
           const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: _isLoading ? null : _submitForm,
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
-            child: _isLoading
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                    ),
-                  )
-                : const Text('Envoyer la demande'),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _submitForm,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text('Envoyer la demande'),
+                ),
+              ),
+              const SizedBox(width: 16),
+              OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.pushNamed(context, AppRoutes.clientRideRequests);
+                },
+                icon: const Icon(Icons.history),
+                label: const Text('Historique'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -109,20 +129,34 @@ class _CreateRideRequestFormState extends State<CreateRideRequestForm> {
         // Get current user
         final getCurrentUserInteractor =
             Provider.of<GetCurrentUserInteractor>(context, listen: false);
-        final currentUser = await getCurrentUserInteractor.execute();
+        final currentUserFuture = getCurrentUserInteractor.execute();
+
+        // Get current location
+        final locatorProvider =
+            Provider.of<LocatorProvider>(context, listen: false);
+        final currentPositionFuture = locatorProvider.getCurrentPosition();
+
+        // Get ride request provider
+        final rideRequestProvider =
+            Provider.of<RideRequestProvider>(context, listen: false);
+
+        // Wait for both futures to complete
+        final results = await Future.wait([
+          currentUserFuture,
+          currentPositionFuture,
+        ]);
+
+        // Check if still mounted after async operations
+        if (!mounted) return;
+
+        final currentUser = results[0] as UserEntity?;
+        final currentPosition = results[1] as PositionEntity;
 
         if (currentUser == null) {
           throw Exception('User not logged in');
         }
 
-        // Get current location
-        final locatorProvider =
-            Provider.of<LocatorProvider>(context, listen: false);
-        final currentPosition = await locatorProvider.getCurrentPosition();
-
         // Create ride request
-        final rideRequestProvider =
-            Provider.of<RideRequestProvider>(context, listen: false);
         await rideRequestProvider.createRideRequest(
           clientId: currentUser.id,
           pickupLatitude: currentPosition.latitude,

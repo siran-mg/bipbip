@@ -55,6 +55,46 @@ class _FavoriteButtonState extends State<FavoriteButton>
       parent: _controller,
       curve: Curves.elasticOut,
     ));
+
+    // Check favorite status when the button is first displayed
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _checkFavoriteStatus();
+      }
+    });
+  }
+
+  /// Check if the driver is a favorite
+  Future<void> _checkFavoriteStatus() async {
+    try {
+      final favoritesProvider = Provider.of<FavoriteDriversProvider>(
+        context,
+        listen: false,
+      );
+
+      debugPrint('Checking favorite status for driver: ${widget.driver.id}');
+      debugPrint(
+          'Current favorites count: ${favoritesProvider.favoriteDrivers.length}');
+
+      // If favorites are already loaded, no need to check
+      if (favoritesProvider.favoriteDrivers.isNotEmpty) {
+        debugPrint('Favorites already loaded, skipping load');
+        return;
+      }
+
+      // Load favorite drivers if not already loaded
+      debugPrint('Loading favorite drivers for driver: ${widget.driver.id}');
+      await favoritesProvider.loadFavoriteDrivers();
+      debugPrint(
+          'Favorites loaded, count: ${favoritesProvider.favoriteDrivers.length}');
+
+      // Force a rebuild to update the UI
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (e) {
+      debugPrint('Error checking favorite status: $e');
+    }
   }
 
   @override
@@ -86,8 +126,8 @@ class _FavoriteButtonState extends State<FavoriteButton>
           // Button with text label
           buttonContent = widget.filled
               ? FilledButton.icon(
-                  onPressed: _isLoading 
-                      ? null 
+                  onPressed: _isLoading
+                      ? null
                       : () => _toggleFavorite(context, favoritesProvider),
                   icon: _buildButtonIcon(isFavorite, iconColor, widget.filled),
                   label: _isLoading
@@ -96,7 +136,8 @@ class _FavoriteButtonState extends State<FavoriteButton>
                           height: 16,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         )
                       : Text(isFavorite ? 'Favori' : 'Ajouter aux favoris'),
@@ -106,8 +147,8 @@ class _FavoriteButtonState extends State<FavoriteButton>
                   ),
                 )
               : OutlinedButton.icon(
-                  onPressed: _isLoading 
-                      ? null 
+                  onPressed: _isLoading
+                      ? null
                       : () => _toggleFavorite(context, favoritesProvider),
                   icon: _buildButtonIcon(isFavorite, iconColor, false),
                   label: _isLoading
@@ -116,7 +157,8 @@ class _FavoriteButtonState extends State<FavoriteButton>
                           height: 16,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(iconColor),
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(iconColor),
                           ),
                         )
                       : Text(isFavorite ? 'Favori' : 'Ajouter aux favoris'),
@@ -130,7 +172,9 @@ class _FavoriteButtonState extends State<FavoriteButton>
           final buttonWidget = Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: _isLoading ? null : () => _toggleFavorite(context, favoritesProvider),
+              onTap: _isLoading
+                  ? null
+                  : () => _toggleFavorite(context, favoritesProvider),
               borderRadius: BorderRadius.circular(widget.circular ? 50 : 8),
               child: Ink(
                 decoration: BoxDecoration(
@@ -161,7 +205,8 @@ class _FavoriteButtonState extends State<FavoriteButton>
                               padding: const EdgeInsets.all(2.0),
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(iconColor),
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(iconColor),
                               ),
                             ),
                           )
@@ -171,7 +216,9 @@ class _FavoriteButtonState extends State<FavoriteButton>
                               return Transform.scale(
                                 scale: isFavorite ? _scaleAnimation.value : 1.0,
                                 child: Icon(
-                                  isFavorite ? Icons.favorite : Icons.favorite_border,
+                                  isFavorite
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
                                   color: iconColor,
                                   size: widget.size,
                                 ),
@@ -200,13 +247,12 @@ class _FavoriteButtonState extends State<FavoriteButton>
         height: widget.size,
         child: CircularProgressIndicator(
           strokeWidth: 2,
-          valueColor: AlwaysStoppedAnimation<Color>(
-            filled ? Colors.white : iconColor
-          ),
+          valueColor:
+              AlwaysStoppedAnimation<Color>(filled ? Colors.white : iconColor),
         ),
       );
     }
-    
+
     return AnimatedBuilder(
       animation: _scaleAnimation,
       builder: (context, child) {
@@ -226,11 +272,11 @@ class _FavoriteButtonState extends State<FavoriteButton>
   Future<void> _toggleFavorite(
       BuildContext context, FavoriteDriversProvider favoritesProvider) async {
     if (_isLoading) return;
-    
+
     setState(() {
       _isLoading = true;
     });
-    
+
     try {
       // Play animation when adding to favorites
       final wasFavorite = favoritesProvider.isDriverFavorite(widget.driver.id);

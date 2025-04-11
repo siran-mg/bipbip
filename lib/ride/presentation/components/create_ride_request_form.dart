@@ -85,10 +85,12 @@ class _CreateRideRequestFormState extends State<CreateRideRequestForm> {
           Row(
             children: [
               Expanded(
+                flex: 2,
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _submitForm,
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 16, horizontal: 16),
                   ),
                   child: _isLoading
                       ? const SizedBox(
@@ -102,14 +104,18 @@ class _CreateRideRequestFormState extends State<CreateRideRequestForm> {
                 ),
               ),
               const SizedBox(width: 16),
-              OutlinedButton.icon(
-                onPressed: () {
-                  Navigator.pushNamed(context, AppRoutes.clientRideRequests);
-                },
-                icon: const Icon(Icons.history),
-                label: const Text('Historique'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+              Expanded(
+                flex: 1,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pushNamed(context, AppRoutes.clientRideRequests);
+                  },
+                  icon: const Icon(Icons.history),
+                  label: const Text('Historique'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 16, horizontal: 16),
+                  ),
                 ),
               ),
             ],

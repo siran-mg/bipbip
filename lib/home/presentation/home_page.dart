@@ -173,6 +173,7 @@ class _HomePageState extends State<HomePage>
                 child: IconButton(
                   icon: const Icon(Icons.history, color: Colors.purple),
                   tooltip: 'Mes demandes',
+                  padding: const EdgeInsets.all(8.0),
                   onPressed: () {
                     Navigator.pushNamed(context, AppRoutes.clientRideRequests);
                   },

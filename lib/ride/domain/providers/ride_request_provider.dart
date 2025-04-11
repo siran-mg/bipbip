@@ -4,6 +4,7 @@ import 'package:ndao/core/infrastructure/appwrite/appwrite_client.dart';
 import 'package:ndao/location/domain/providers/locator_provider.dart';
 import 'package:ndao/ride/domain/entities/ride_request_entity.dart';
 import 'package:ndao/ride/domain/interactors/accept_ride_request_interactor.dart';
+import 'package:ndao/ride/domain/interactors/cancel_ride_request_interactor.dart';
 import 'package:ndao/ride/domain/interactors/create_ride_request_interactor.dart';
 import 'package:ndao/ride/domain/interactors/get_client_ride_requests_interactor.dart';
 import 'package:ndao/ride/domain/interactors/get_driver_ride_requests_interactor.dart';
@@ -18,6 +19,7 @@ class RideRequestProvider extends ChangeNotifier {
   final GetNearbyRideRequestsInteractor _getNearbyRideRequestsInteractor;
   final AcceptRideRequestInteractor _acceptRideRequestInteractor;
   final RejectRideRequestInteractor _rejectRideRequestInteractor;
+  final CancelRideRequestInteractor _cancelRideRequestInteractor;
   final LocatorProvider _locatorProvider;
   final String _databaseId;
   final String _rideRequestsCollectionId;
@@ -45,6 +47,7 @@ class RideRequestProvider extends ChangeNotifier {
     required GetNearbyRideRequestsInteractor getNearbyRideRequestsInteractor,
     required AcceptRideRequestInteractor acceptRideRequestInteractor,
     required RejectRideRequestInteractor rejectRideRequestInteractor,
+    required CancelRideRequestInteractor cancelRideRequestInteractor,
     required LocatorProvider locatorProvider,
     required String databaseId,
     required String rideRequestsCollectionId,
@@ -54,6 +57,7 @@ class RideRequestProvider extends ChangeNotifier {
         _getNearbyRideRequestsInteractor = getNearbyRideRequestsInteractor,
         _acceptRideRequestInteractor = acceptRideRequestInteractor,
         _rejectRideRequestInteractor = rejectRideRequestInteractor,
+        _cancelRideRequestInteractor = cancelRideRequestInteractor,
         _locatorProvider = locatorProvider,
         _databaseId = databaseId,
         _rideRequestsCollectionId = rideRequestsCollectionId;
@@ -218,6 +222,33 @@ class RideRequestProvider extends ChangeNotifier {
     } catch (e) {
       _isLoading = false;
       _error = 'Failed to reject ride request: $e';
+      notifyListeners();
+    }
+  }
+
+  /// Cancel a ride request
+  Future<void> cancelRideRequest(String requestId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final updatedRequest =
+          await _cancelRideRequestInteractor.execute(requestId);
+
+      // Update client ride requests
+      for (int i = 0; i < _clientRideRequests.length; i++) {
+        if (_clientRideRequests[i].id == requestId) {
+          _clientRideRequests[i] = updatedRequest;
+          break;
+        }
+      }
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _isLoading = false;
+      _error = 'Failed to cancel ride request: $e';
       notifyListeners();
     }
   }

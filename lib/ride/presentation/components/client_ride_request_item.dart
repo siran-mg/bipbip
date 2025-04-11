@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ndao/ride/domain/entities/ride_request_entity.dart';
+import 'package:ndao/ride/domain/providers/ride_request_provider.dart';
 import 'package:ndao/user/domain/entities/user_entity.dart';
 import 'package:ndao/user/domain/repositories/user_repository.dart';
 import 'package:provider/provider.dart';
@@ -22,6 +23,7 @@ class ClientRideRequestItem extends StatefulWidget {
 
 class _ClientRideRequestItemState extends State<ClientRideRequestItem> {
   bool _isLoadingDriver = false;
+  bool _isCancelling = false;
   UserEntity? _driver;
 
   @override
@@ -41,9 +43,11 @@ class _ClientRideRequestItemState extends State<ClientRideRequestItem> {
     });
 
     try {
-      final userRepository = Provider.of<UserRepository>(context, listen: false);
-      final driver = await userRepository.getUserById(widget.rideRequest.driverId!);
-      
+      final userRepository =
+          Provider.of<UserRepository>(context, listen: false);
+      final driver =
+          await userRepository.getUserById(widget.rideRequest.driverId!);
+
       if (mounted && driver != null) {
         setState(() {
           _driver = driver;
@@ -69,7 +73,7 @@ class _ClientRideRequestItemState extends State<ClientRideRequestItem> {
     // Determine status color
     Color statusColor;
     IconData statusIcon;
-    
+
     switch (widget.rideRequest.status) {
       case 'pending':
         statusColor = Colors.orange;
@@ -122,8 +126,40 @@ class _ClientRideRequestItemState extends State<ClientRideRequestItem> {
                 ),
               ],
             ),
+
+            // Cancel button for pending requests
+            if (widget.rideRequest.isPending)
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: _isCancelling ? null : _cancelRideRequest,
+                  icon: _isCancelling
+                      ? const SizedBox(
+                          height: 16,
+                          width: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.red,
+                          ),
+                        )
+                      : const Icon(Icons.cancel, color: Colors.red, size: 16),
+                  label: Text(
+                    'Annuler',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontSize: 12,
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ),
+              ),
             const Divider(),
-            
+
             // Destination
             Row(
               children: [
@@ -140,7 +176,7 @@ class _ClientRideRequestItemState extends State<ClientRideRequestItem> {
               ],
             ),
             const SizedBox(height: 8),
-            
+
             // Budget
             Row(
               children: [
@@ -152,7 +188,7 @@ class _ClientRideRequestItemState extends State<ClientRideRequestItem> {
                 ),
               ],
             ),
-            
+
             // Driver info (if accepted)
             if (widget.rideRequest.isAccepted || widget.rideRequest.isCompleted)
               Column(
@@ -183,9 +219,11 @@ class _ClientRideRequestItemState extends State<ClientRideRequestItem> {
                               children: [
                                 CircleAvatar(
                                   radius: 20,
-                                  backgroundImage: _driver!.profilePictureUrl != null
-                                      ? NetworkImage(_driver!.profilePictureUrl!)
-                                      : null,
+                                  backgroundImage:
+                                      _driver!.profilePictureUrl != null
+                                          ? NetworkImage(
+                                              _driver!.profilePictureUrl!)
+                                          : null,
                                   child: _driver!.profilePictureUrl == null
                                       ? const Icon(Icons.person)
                                       : null,
@@ -202,20 +240,23 @@ class _ClientRideRequestItemState extends State<ClientRideRequestItem> {
                                     ),
                                     Text(
                                       _driver!.phoneNumber,
-                                      style: Theme.of(context).textTheme.bodySmall,
+                                      style:
+                                          Theme.of(context).textTheme.bodySmall,
                                     ),
                                   ],
                                 ),
                                 const Spacer(),
                                 IconButton(
-                                  icon: const Icon(Icons.phone, color: Colors.green),
+                                  icon: const Icon(Icons.phone,
+                                      color: Colors.green),
                                   onPressed: () {
                                     // TODO: Implement call functionality
                                   },
                                 ),
                               ],
                             )
-                          : const Text('Information du chauffeur non disponible'),
+                          : const Text(
+                              'Information du chauffeur non disponible'),
                 ],
               ),
           ],
@@ -236,6 +277,45 @@ class _ClientRideRequestItemState extends State<ClientRideRequestItem> {
         return 'Annulée';
       default:
         return 'Inconnu';
+    }
+  }
+
+  Future<void> _cancelRideRequest() async {
+    if (_isCancelling) return;
+
+    setState(() {
+      _isCancelling = true;
+    });
+
+    try {
+      final rideRequestProvider =
+          Provider.of<RideRequestProvider>(context, listen: false);
+
+      await rideRequestProvider.cancelRideRequest(widget.rideRequest.id);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Demande annulée avec succès'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de l\'annulation: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCancelling = false;
+        });
+      }
     }
   }
 }

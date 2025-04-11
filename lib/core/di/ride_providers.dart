@@ -2,6 +2,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ndao/core/infrastructure/appwrite/appwrite_client.dart';
 import 'package:ndao/location/domain/providers/locator_provider.dart';
 import 'package:ndao/ride/domain/interactors/accept_ride_request_interactor.dart';
+import 'package:ndao/ride/domain/interactors/cancel_ride_request_interactor.dart';
 import 'package:ndao/ride/domain/interactors/create_ride_request_interactor.dart';
 import 'package:ndao/ride/domain/interactors/get_client_ride_requests_interactor.dart';
 import 'package:ndao/ride/domain/interactors/get_driver_ride_requests_interactor.dart';
@@ -66,6 +67,12 @@ class RideProviders {
         ),
       ),
 
+      Provider<CancelRideRequestInteractor>(
+        create: (context) => CancelRideRequestInteractor(
+          context.read<RideRequestRepository>(),
+        ),
+      ),
+
       // Ride request provider
       ChangeNotifierProvider<RideRequestProvider>(
         create: (context) => RideRequestProvider(
@@ -81,6 +88,8 @@ class RideProviders {
               context.read<AcceptRideRequestInteractor>(),
           rejectRideRequestInteractor:
               context.read<RejectRideRequestInteractor>(),
+          cancelRideRequestInteractor:
+              context.read<CancelRideRequestInteractor>(),
           locatorProvider: context.read<LocatorProvider>(),
           databaseId: dotenv.env['APPWRITE_DATABASE_ID'] ?? 'ndao',
           rideRequestsCollectionId:

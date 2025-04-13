@@ -81,4 +81,44 @@ class AppwriteAuthRepository implements AuthRepository {
   Future<void> sendPasswordResetEmail(String email) {
     return _authCommands.sendPasswordResetEmail(email);
   }
+
+  @override
+  Future<String> signInWithPhoneNumber(String phoneNumber) {
+    return _authCommands.signInWithPhoneNumber(phoneNumber);
+  }
+
+  @override
+  Future<String> verifyPhoneOTP(String userId, String otp) {
+    return _authCommands.verifyPhoneOTP(userId, otp);
+  }
+
+  @override
+  Future<String> signUpWithPhoneNumber(
+    String givenName,
+    String familyName,
+    String phoneNumber,
+    String email,
+  ) {
+    return _authCommands.signUpWithPhoneNumber(
+      givenName,
+      familyName,
+      phoneNumber,
+      email,
+    );
+  }
+
+  @override
+  Future<String> signUpDriverWithPhoneNumber(
+    String givenName,
+    String familyName,
+    String phoneNumber,
+    String email,
+  ) {
+    return _authCommands.signUpDriverWithPhoneNumber(
+      givenName,
+      familyName,
+      phoneNumber,
+      email,
+    );
+  }
 }

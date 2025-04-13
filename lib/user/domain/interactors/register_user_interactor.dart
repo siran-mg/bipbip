@@ -16,7 +16,39 @@ class RegisterUserInteractor {
     this._vehicleInteractor,
   );
 
-  /// Execute the client registration operation
+  /// Execute the client registration operation with phone number
+  ///
+  /// [givenName] The user's first name
+  /// [familyName] The user's last name
+  /// [phoneNumber] The user's phone number
+  /// [email] The user's email (optional)
+  /// Returns the user ID if registration is successful
+  /// Throws an exception if registration fails
+  Future<String> registerClientWithPhone(
+    String givenName,
+    String familyName,
+    String phoneNumber,
+    String email,
+  ) async {
+    // Validate inputs
+    _validatePhoneRegistration(givenName, familyName, phoneNumber, email);
+
+    try {
+      // Register the user with auth repository
+      final userId = await _authRepository.signUpWithPhoneNumber(
+        givenName,
+        familyName,
+        phoneNumber,
+        email,
+      );
+
+      return userId;
+    } catch (e) {
+      throw Exception('Client registration failed: ${e.toString()}');
+    }
+  }
+
+  /// Execute the client registration operation with email and password (legacy)
   ///
   /// [givenName] The user's first name
   /// [familyName] The user's last name
@@ -33,7 +65,8 @@ class RegisterUserInteractor {
     String password,
   ) async {
     // Validate inputs
-    _validateInputs(givenName, familyName, email, phoneNumber, password);
+    _validateEmailRegistration(
+        givenName, familyName, email, phoneNumber, password);
 
     try {
       // Register the user with auth repository
@@ -58,7 +91,63 @@ class RegisterUserInteractor {
     }
   }
 
-  /// Execute the driver registration operation
+  /// Execute the driver registration operation with phone number
+  ///
+  /// [givenName] The user's first name
+  /// [familyName] The user's last name
+  /// [phoneNumber] The user's phone number
+  /// [email] The user's email (optional)
+  /// [licensePlate] The driver's vehicle license plate
+  /// [vehicleModel] The driver's vehicle model
+  /// [vehicleBrand] The driver's vehicle brand
+  /// [vehicleType] The driver's vehicle type
+  /// [profilePhoto] Optional profile photo
+  /// [vehiclePhoto] Optional vehicle photo
+  /// Returns the user ID if registration is successful
+  /// Throws an exception if registration fails
+  Future<String> registerDriverWithPhone(
+    String givenName,
+    String familyName,
+    String phoneNumber,
+    String email,
+    String licensePlate,
+    String vehicleModel,
+    String vehicleBrand,
+    String vehicleType,
+    File? profilePhoto,
+    File? vehiclePhoto,
+  ) async {
+    // Validate inputs
+    _validatePhoneRegistration(givenName, familyName, phoneNumber, email);
+    _validateVehicleInfo(licensePlate, vehicleModel, vehicleBrand);
+
+    try {
+      // Register the user with auth repository as a driver
+      final userId = await _authRepository.signUpDriverWithPhoneNumber(
+        givenName,
+        familyName,
+        phoneNumber,
+        email,
+      );
+
+      // Create the vehicle
+      await _vehicleInteractor.createVehicle(
+        driverId: userId,
+        licensePlate: licensePlate,
+        brand: vehicleBrand,
+        model: vehicleModel,
+        type: vehicleType,
+        isPrimary: true,
+        photo: vehiclePhoto,
+      );
+
+      return userId;
+    } catch (e) {
+      throw Exception('Driver registration failed: ${e.toString()}');
+    }
+  }
+
+  /// Execute the driver registration operation with email and password (legacy)
   ///
   /// [givenName] The user's first name
   /// [familyName] The user's last name
@@ -87,7 +176,8 @@ class RegisterUserInteractor {
     File? vehiclePhoto,
   ) async {
     // Validate inputs
-    _validateInputs(givenName, familyName, email, phoneNumber, password);
+    _validateEmailRegistration(
+        givenName, familyName, email, phoneNumber, password);
     _validateVehicleInfo(licensePlate, vehicleModel, vehicleBrand);
 
     try {
@@ -123,10 +213,44 @@ class RegisterUserInteractor {
     }
   }
 
-  /// Validate registration inputs
+  /// Validate registration inputs for phone-based registration
   ///
   /// Throws an exception if validation fails
-  void _validateInputs(
+  void _validatePhoneRegistration(
+    String givenName,
+    String familyName,
+    String phoneNumber,
+    String email,
+  ) {
+    if (givenName.isEmpty) {
+      throw ArgumentError('Given name cannot be empty');
+    }
+
+    if (familyName.isEmpty) {
+      throw ArgumentError('Family name cannot be empty');
+    }
+
+    if (phoneNumber.isEmpty) {
+      throw ArgumentError('Phone number cannot be empty');
+    }
+
+    // Remove any non-digit characters for validation
+    final digitsOnly = phoneNumber.replaceAll(RegExp(r'\D'), '');
+
+    if (digitsOnly.length < 10) {
+      throw ArgumentError('Phone number must have at least 10 digits');
+    }
+
+    // Email is optional but if provided, it should be valid
+    if (email.isNotEmpty && !_isValidEmail(email)) {
+      throw ArgumentError('Invalid email format');
+    }
+  }
+
+  /// Validate registration inputs for email-based registration
+  ///
+  /// Throws an exception if validation fails
+  void _validateEmailRegistration(
     String givenName,
     String familyName,
     String email,

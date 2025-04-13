@@ -1,4 +1,5 @@
 import 'package:appwrite/appwrite.dart';
+import 'package:flutter/foundation.dart';
 import 'package:ndao/core/infrastructure/storage/session_storage.dart';
 import 'package:ndao/user/domain/entities/user_entity.dart';
 import 'package:ndao/user/domain/repositories/user_repository.dart';
@@ -281,6 +282,188 @@ class AuthCommands {
       throw Exception('Failed to send password reset email: ${e.message}');
     } catch (e) {
       throw Exception('Failed to send password reset email: ${e.toString()}');
+    }
+  }
+
+  /// Sign in with phone number
+  ///
+  /// Returns the user ID if successful
+  /// Throws an exception if authentication fails
+  Future<String> signInWithPhoneNumber(String phoneNumber) async {
+    try {
+      // Check if there's an existing session and clear it
+      final hasSession = await _sessionStorage.hasSession();
+      if (hasSession) {
+        try {
+          final sessionId = await _sessionStorage.getSessionId();
+          if (sessionId != null) {
+            await _account.deleteSession(sessionId: sessionId);
+          }
+          await _sessionStorage.clearSession();
+        } catch (e) {
+          // Ignore errors when trying to clear session
+          await _sessionStorage.clearSession();
+        }
+      }
+
+      // Format phone number to ensure it has the + prefix
+      final formattedPhoneNumber =
+          phoneNumber.startsWith('+') ? phoneNumber : '+$phoneNumber';
+
+      // Create a phone token (sends OTP to the phone number)
+      final token = await _account.createPhoneSession(
+        userId: ID.unique(),
+        phone: formattedPhoneNumber,
+      );
+
+      debugPrint('Phone token created for user ID: ${token.userId}');
+
+      // Return the user ID which will be used for verification
+      return token.userId;
+    } on AppwriteException catch (e) {
+      throw Exception('Phone authentication failed: ${e.message}');
+    } catch (e) {
+      throw Exception('Phone authentication failed: ${e.toString()}');
+    }
+  }
+
+  /// Verify phone number OTP
+  ///
+  /// Returns the user ID if successful
+  /// Throws an exception if verification fails
+  Future<String> verifyPhoneOTP(String userId, String otp) async {
+    try {
+      // Create a session using the user ID and OTP
+      final session = await _account.updatePhoneSession(
+        userId: userId,
+        secret: otp,
+      );
+
+      // Store the session
+      await _sessionStorage.saveSession(session.$id, session.userId);
+
+      return session.userId;
+    } on AppwriteException catch (e) {
+      throw Exception('OTP verification failed: ${e.message}');
+    } catch (e) {
+      throw Exception('OTP verification failed: ${e.toString()}');
+    }
+  }
+
+  /// Sign up with phone number
+  ///
+  /// Returns the user ID if successful
+  /// Throws an exception if registration fails
+  Future<String> signUpWithPhoneNumber(
+    String givenName,
+    String familyName,
+    String phoneNumber,
+    String email,
+  ) async {
+    try {
+      // Check if there's an existing session and clear it
+      final hasSession = await _sessionStorage.hasSession();
+      if (hasSession) {
+        try {
+          final sessionId = await _sessionStorage.getSessionId();
+          if (sessionId != null) {
+            await _account.deleteSession(sessionId: sessionId);
+          }
+          await _sessionStorage.clearSession();
+        } catch (e) {
+          // Ignore errors when trying to clear session
+          await _sessionStorage.clearSession();
+        }
+      }
+
+      // Format phone number to ensure it has the + prefix
+      final formattedPhoneNumber =
+          phoneNumber.startsWith('+') ? phoneNumber : '+$phoneNumber';
+
+      // Create a phone token (sends OTP to the phone number)
+      final token = await _account.createPhoneSession(
+        userId: ID.unique(),
+        phone: formattedPhoneNumber,
+      );
+
+      // Store user information to be saved after verification
+      // We'll need to save this information temporarily until the user verifies their phone number
+      // This could be done using shared preferences or another storage mechanism
+      final userEntity = UserEntity(
+        id: token.userId,
+        givenName: givenName,
+        familyName: familyName,
+        email: email,
+        phoneNumber: formattedPhoneNumber,
+        roles: ['client'],
+      );
+
+      // Save the user entity
+      await _userRepository.saveUser(userEntity);
+
+      return token.userId;
+    } on AppwriteException catch (e) {
+      throw Exception('Registration failed: ${e.message}');
+    } catch (e) {
+      throw Exception('Registration failed: ${e.toString()}');
+    }
+  }
+
+  /// Sign up a driver with phone number
+  ///
+  /// Returns the user ID if successful
+  /// Throws an exception if registration fails
+  Future<String> signUpDriverWithPhoneNumber(
+    String givenName,
+    String familyName,
+    String phoneNumber,
+    String email,
+  ) async {
+    try {
+      // Check if there's an existing session and clear it
+      final hasSession = await _sessionStorage.hasSession();
+      if (hasSession) {
+        try {
+          final sessionId = await _sessionStorage.getSessionId();
+          if (sessionId != null) {
+            await _account.deleteSession(sessionId: sessionId);
+          }
+          await _sessionStorage.clearSession();
+        } catch (e) {
+          // Ignore errors when trying to clear session
+          await _sessionStorage.clearSession();
+        }
+      }
+
+      // Format phone number to ensure it has the + prefix
+      final formattedPhoneNumber =
+          phoneNumber.startsWith('+') ? phoneNumber : '+$phoneNumber';
+
+      // Create a phone token (sends OTP to the phone number)
+      final token = await _account.createPhoneSession(
+        userId: ID.unique(),
+        phone: formattedPhoneNumber,
+      );
+
+      // Store user information to be saved after verification
+      final userEntity = UserEntity(
+        id: token.userId,
+        givenName: givenName,
+        familyName: familyName,
+        email: email,
+        phoneNumber: formattedPhoneNumber,
+        roles: ['driver'],
+        driverDetails: DriverDetails(),
+      );
+
+      // Save the user entity
+      await _userRepository.saveUser(userEntity);
+
+      return token.userId;
+    } on AppwriteException catch (e) {
+      throw Exception('Driver registration failed: ${e.message}');
+    } catch (e) {
+      throw Exception('Driver registration failed: ${e.toString()}');
     }
   }
 }

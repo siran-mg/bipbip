@@ -2,13 +2,47 @@ import 'package:ndao/user/domain/entities/user_entity.dart';
 
 /// Repository interface for authentication operations
 abstract class AuthRepository {
-  /// Sign in with email and password
+  /// Sign in with phone number
+  ///
+  /// Returns the user ID if successful
+  /// Throws an exception if authentication fails
+  Future<String> signInWithPhoneNumber(String phoneNumber);
+
+  /// Verify phone number OTP
+  ///
+  /// Returns the user ID if successful
+  /// Throws an exception if verification fails
+  Future<String> verifyPhoneOTP(String userId, String otp);
+
+  /// Sign in with email and password (legacy method)
   ///
   /// Returns the user ID if successful
   /// Throws an exception if authentication fails
   Future<String> signInWithEmailAndPassword(String email, String password);
 
-  /// Sign up with email and password
+  /// Sign up with phone number
+  ///
+  /// Returns the user ID if successful
+  /// Throws an exception if registration fails
+  Future<String> signUpWithPhoneNumber(
+    String givenName,
+    String familyName,
+    String phoneNumber,
+    String email,
+  );
+
+  /// Sign up a driver with phone number
+  ///
+  /// Returns the user ID if successful
+  /// Throws an exception if registration fails
+  Future<String> signUpDriverWithPhoneNumber(
+    String givenName,
+    String familyName,
+    String phoneNumber,
+    String email,
+  );
+
+  /// Sign up with email and password (legacy method)
   ///
   /// Returns the user ID if successful
   /// Throws an exception if registration fails
@@ -20,7 +54,7 @@ abstract class AuthRepository {
     String password,
   );
 
-  /// Sign up a driver with email and password
+  /// Sign up a driver with email and password (legacy method)
   ///
   /// Returns the user ID if successful
   /// Throws an exception if registration fails

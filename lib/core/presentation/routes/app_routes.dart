@@ -4,6 +4,7 @@ import 'package:ndao/location/presentation/pages/driver_map_page.dart';
 import 'package:ndao/ride/presentation/pages/client_ride_requests_page.dart';
 import 'package:ndao/ride/presentation/pages/nearby_ride_requests_page.dart';
 import 'package:ndao/user/presentation/pages/driver_registration_page.dart';
+import 'package:ndao/user/presentation/pages/email_login_page.dart';
 import 'package:ndao/user/presentation/pages/forgot_password_page.dart';
 import 'package:ndao/user/presentation/pages/login_page.dart';
 import 'package:ndao/user/presentation/pages/registration_page.dart';
@@ -19,6 +20,9 @@ class AppRoutes {
 
   /// Login route
   static const String login = '/login';
+
+  /// Email login route
+  static const String emailLogin = '/email-login';
 
   /// Register route
   static const String register = '/register';
@@ -43,6 +47,7 @@ class AppRoutes {
     return {
       initialRoute: (context) => const SplashPage(),
       login: (context) => const LoginPage(),
+      emailLogin: (context) => const EmailLoginPage(),
       register: (context) => const RegistrationPage(),
       driverRegister: (context) => const DriverRegistrationPage(),
       forgotPassword: (context) => const ForgotPasswordPage(),

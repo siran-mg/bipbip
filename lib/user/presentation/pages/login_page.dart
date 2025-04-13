@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:ndao/core/presentation/routes/app_routes.dart';
 import 'package:ndao/user/domain/interactors/login_interactor.dart';
-import 'package:ndao/user/presentation/components/login_form.dart';
+import 'package:ndao/user/presentation/components/phone_login_form.dart';
+import 'package:ndao/user/presentation/pages/otp_verification_page.dart';
 import 'package:provider/provider.dart';
 
 /// Login page for user authentication
@@ -20,16 +21,24 @@ class LoginPage extends StatelessWidget {
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(24.0),
-            child: LoginForm(
-              onLogin: (email, password) async {
+            child: PhoneLoginForm(
+              onLogin: (phoneNumber) async {
                 try {
-                  // Use the login interactor to sign in
-                  await loginInteractor.execute(email, password);
+                  // Use the login interactor to initiate phone login
+                  final userId =
+                      await loginInteractor.executeWithPhone(phoneNumber);
 
-                  // Navigate to home page after successful login and clear navigation stack
+                  // Navigate to OTP verification page
                   if (context.mounted) {
-                    Navigator.pushNamedAndRemoveUntil(
-                        context, AppRoutes.home, (route) => false);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => OtpVerificationPage(
+                          phoneNumber: phoneNumber,
+                          userId: userId,
+                        ),
+                      ),
+                    );
                   }
                   return Future.value();
                 } catch (e) {

@@ -119,11 +119,19 @@ class PersonalInfoStep extends StatelessWidget {
                   initialCountryCode: 'MG', // Madagascar
                   invalidNumberMessage:
                       'Veuillez entrer un numéro de téléphone valide',
-                  disableLengthCheck: false,
+                  disableLengthCheck: true, // We'll handle custom validation
                   keyboardType: TextInputType.phone,
                   onChanged: (PhoneNumber phone) {
                     // Update the controller with the complete phone number
                     phoneController.text = phone.completeNumber;
+                  },
+                  validator: (phone) {
+                    if (phone == null) {
+                      return 'Veuillez entrer un numéro de téléphone';
+                    }
+
+                    return FormValidators.validatePhoneNumber(
+                        phone.completeNumber);
                   },
                 )
               : TextFormField(
@@ -135,6 +143,8 @@ class PersonalInfoStep extends StatelessWidget {
                   ),
                   readOnly: true,
                   enabled: false,
+                  validator: (value) =>
+                      FormValidators.validatePhoneNumber(value),
                 ),
         ],
       ),

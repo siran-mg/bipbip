@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:intl_phone_field/phone_number.dart';
+import 'package:ndao/core/presentation/utils/form_validators.dart';
 
 /// A form for user login with phone number
 class PhoneLoginForm extends StatefulWidget {
@@ -90,13 +91,20 @@ class _PhoneLoginFormState extends State<PhoneLoginForm> {
             initialCountryCode: 'MG', // Madagascar
             invalidNumberMessage:
                 'Veuillez entrer un numéro de téléphone valide',
-            disableLengthCheck: false,
+            disableLengthCheck: true, // We'll handle custom validation
             keyboardType: TextInputType.phone,
             onChanged: (PhoneNumber phone) {
               // Update the complete phone number with country code
               setState(() {
                 _completePhoneNumber = phone.completeNumber;
               });
+            },
+            validator: (phone) {
+              if (phone == null) {
+                return 'Veuillez entrer un numéro de téléphone';
+              }
+
+              return FormValidators.validatePhoneNumber(phone.completeNumber);
             },
           ),
 

@@ -28,8 +28,9 @@ class AuthProviders {
       ),
 
       // Auth interactors
-      ProxyProvider<AuthRepository, LoginInteractor>(
-        update: (_, repository, __) => LoginInteractor(repository),
+      ProxyProvider2<AuthRepository, UserRepository, LoginInteractor>(
+        update: (_, authRepository, userRepository, __) =>
+            LoginInteractor(authRepository, userRepository),
       ),
 
       ProxyProvider<AuthRepository, LogoutInteractor>(

@@ -245,6 +245,8 @@ class RegisterUserInteractor {
     if (email.isNotEmpty && !_isValidEmail(email)) {
       throw ArgumentError('Invalid email format');
     }
+
+    // If email is empty, that's fine - it's optional
   }
 
   /// Validate registration inputs for email-based registration

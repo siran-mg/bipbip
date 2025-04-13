@@ -3,10 +3,13 @@ import 'package:ndao/home/presentation/pages/home_wrapper.dart';
 import 'package:ndao/location/presentation/pages/driver_map_page.dart';
 import 'package:ndao/ride/presentation/pages/client_ride_requests_page.dart';
 import 'package:ndao/ride/presentation/pages/nearby_ride_requests_page.dart';
+import 'package:ndao/user/presentation/pages/account_type_selection_page.dart';
 import 'package:ndao/user/presentation/pages/driver_registration_page.dart';
 import 'package:ndao/user/presentation/pages/email_login_page.dart';
 import 'package:ndao/user/presentation/pages/forgot_password_page.dart';
 import 'package:ndao/user/presentation/pages/login_page.dart';
+import 'package:ndao/user/presentation/pages/phone_client_registration_page.dart';
+import 'package:ndao/user/presentation/pages/phone_driver_registration_page.dart';
 import 'package:ndao/user/presentation/pages/registration_page.dart';
 import 'package:ndao/user/presentation/pages/splash_page.dart';
 

@@ -149,6 +149,10 @@ class UserQueries {
         clientDetails: clientDetails,
       );
     } on AppwriteException catch (e) {
+      // If the document is not found, return null instead of throwing an exception
+      if (e.code == 404) {
+        return null;
+      }
       throw Exception('Failed to get user: ${e.message}');
     } catch (e) {
       throw Exception('Failed to get user: ${e.toString()}');

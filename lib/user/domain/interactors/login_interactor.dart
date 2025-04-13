@@ -1,11 +1,14 @@
+import 'package:ndao/user/domain/entities/user_entity.dart';
 import 'package:ndao/user/domain/repositories/auth_repository.dart';
+import 'package:ndao/user/domain/repositories/user_repository.dart';
 
 /// Interactor for user login
 class LoginInteractor {
-  final AuthRepository _repository;
+  final AuthRepository _authRepository;
+  final UserRepository _userRepository;
 
-  /// Creates a new LoginInteractor with the given repository
-  LoginInteractor(this._repository);
+  /// Creates a new LoginInteractor with the given repositories
+  LoginInteractor(this._authRepository, this._userRepository);
 
   /// Execute the login operation with phone number
   ///
@@ -17,16 +20,16 @@ class LoginInteractor {
     _validatePhoneNumber(phoneNumber);
 
     // Initiate phone login (sends OTP)
-    return await _repository.signInWithPhoneNumber(phoneNumber);
+    return await _authRepository.signInWithPhoneNumber(phoneNumber);
   }
 
   /// Verify the OTP for phone login
   ///
   /// [userId] The user ID returned from executeWithPhone
   /// [otp] The OTP received by the user
-  /// Returns the user ID if verification is successful
+  /// Returns a map containing the user ID and a flag indicating if the user exists
   /// Throws an exception if verification fails
-  Future<String> verifyOTP(String userId, String otp) async {
+  Future<Map<String, dynamic>> verifyOTP(String userId, String otp) async {
     // Validate inputs
     if (userId.isEmpty) {
       throw ArgumentError('User ID cannot be empty');
@@ -37,7 +40,18 @@ class LoginInteractor {
     }
 
     // Verify OTP
-    return await _repository.verifyPhoneOTP(userId, otp);
+    final authenticatedUserId =
+        await _authRepository.verifyPhoneOTP(userId, otp);
+
+    // Check if the user exists in the database
+    final user = await _userRepository.getUserById(authenticatedUserId);
+
+    // Return the user ID along with a flag indicating if the user exists
+    return {
+      'userId': authenticatedUserId,
+      'userExists': user != null,
+      'phoneNumber': user?.phoneNumber ?? '',
+    };
   }
 
   /// Execute the login operation with email and password (legacy method)
@@ -51,7 +65,7 @@ class LoginInteractor {
     _validateEmailAndPassword(email, password);
 
     // Perform login
-    return await _repository.signInWithEmailAndPassword(email, password);
+    return await _authRepository.signInWithEmailAndPassword(email, password);
   }
 
   /// Validate email and password inputs

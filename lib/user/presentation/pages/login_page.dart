@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ndao/core/presentation/routes/app_routes.dart';
 import 'package:ndao/user/domain/interactors/login_interactor.dart';
 import 'package:ndao/user/presentation/components/phone_login_form.dart';
 import 'package:ndao/user/presentation/pages/otp_verification_page.dart';

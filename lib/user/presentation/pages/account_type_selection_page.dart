@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ndao/user/presentation/pages/phone_client_registration_page.dart';
-import 'package:ndao/user/presentation/pages/phone_driver_registration_page.dart';
+import 'package:ndao/user/presentation/pages/phone_stepper_client_registration_page.dart';
+import 'package:ndao/user/presentation/pages/phone_stepper_driver_registration_page.dart';
 
 /// Page for selecting account type (client or driver)
 class AccountTypeSelectionPage extends StatelessWidget {
@@ -43,10 +43,11 @@ class AccountTypeSelectionPage extends StatelessWidget {
                     const SizedBox(height: 16),
                     Text(
                       'Bienvenue sur Ndao',
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
+                      style:
+                          Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -64,14 +65,15 @@ class AccountTypeSelectionPage extends StatelessWidget {
               _buildAccountTypeCard(
                 context,
                 title: 'Client',
-                description: 'Je veux utiliser Ndao pour trouver des chauffeurs',
+                description:
+                    'Je veux utiliser Ndao pour trouver des chauffeurs',
                 icon: Icons.person,
                 onTap: () {
                   // Navigate to client registration
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => PhoneClientRegistrationPage(
+                      builder: (context) => PhoneStepperClientRegistrationPage(
                         userId: userId,
                         phoneNumber: phoneNumber,
                       ),
@@ -93,7 +95,7 @@ class AccountTypeSelectionPage extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => PhoneDriverRegistrationPage(
+                      builder: (context) => PhoneStepperDriverRegistrationPage(
                         userId: userId,
                         phoneNumber: phoneNumber,
                       ),

@@ -1,4 +1,3 @@
-import 'package:ndao/user/domain/entities/user_entity.dart';
 import 'package:ndao/user/domain/repositories/auth_repository.dart';
 import 'package:ndao/user/domain/repositories/user_repository.dart';
 

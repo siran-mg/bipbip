@@ -40,16 +40,16 @@ class PhoneStepperRegistrationForm extends StatefulWidget {
 class _PhoneStepperRegistrationFormState
     extends State<PhoneStepperRegistrationForm> {
   final _personalInfoFormKey = GlobalKey<FormState>();
-  
+
   final _givenNameController = TextEditingController();
   final _familyNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
-  
+
   File? _profilePhoto;
   Uint8List? _profilePhotoBytes;
   String? _profilePhotoExtension;
-  
+
   int _currentStep = 0;
   bool _isLoading = false;
 
@@ -156,6 +156,7 @@ class _PhoneStepperRegistrationFormState
                       givenNameController: _givenNameController,
                       familyNameController: _familyNameController,
                       phoneController: _phoneController,
+                      isPhoneEditable: false,
                       profilePhoto: _profilePhoto,
                       profilePhotoBytes: _profilePhotoBytes,
                       onProfilePhotoPicked: kIsWeb
@@ -200,7 +201,7 @@ class _PhoneStepperRegistrationFormState
         // Loading overlay
         if (_isLoading)
           Container(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withAlpha(76),
             child: const Center(
               child: CircularProgressIndicator(),
             ),

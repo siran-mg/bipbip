@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:ndao/core/presentation/utils/form_validators.dart';
 import 'package:ndao/core/presentation/widgets/image_picker_photo_upload_widget.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:intl_phone_field/phone_number.dart';
 
 /// Personal information step for registration
 class PersonalInfoStep extends StatelessWidget {
@@ -18,6 +20,9 @@ class PersonalInfoStep extends StatelessWidget {
 
   /// Controller for phone number field
   final TextEditingController phoneController;
+
+  /// Whether the phone number is editable
+  final bool isPhoneEditable;
 
   /// Profile photo file (for mobile/desktop)
   final File? profilePhoto;
@@ -38,6 +43,7 @@ class PersonalInfoStep extends StatelessWidget {
     required this.givenNameController,
     required this.familyNameController,
     required this.phoneController,
+    this.isPhoneEditable = true,
     this.profilePhoto,
     this.profilePhotoBytes,
     this.onProfilePhotoPicked,
@@ -102,16 +108,34 @@ class PersonalInfoStep extends StatelessWidget {
           const SizedBox(height: 16),
 
           // Phone number field
-          TextFormField(
-            controller: phoneController,
-            decoration: const InputDecoration(
-              labelText: 'Téléphone',
-              hintText: 'Entrez votre numéro de téléphone',
-              prefixIcon: Icon(Icons.phone),
-            ),
-            keyboardType: TextInputType.phone,
-            validator: FormValidators.validatePhoneNumber,
-          ),
+          isPhoneEditable
+              ? IntlPhoneField(
+                  controller: phoneController,
+                  decoration: const InputDecoration(
+                    labelText: 'Téléphone',
+                    hintText: 'Entrez votre numéro de téléphone',
+                    border: OutlineInputBorder(),
+                  ),
+                  initialCountryCode: 'MG', // Madagascar
+                  invalidNumberMessage:
+                      'Veuillez entrer un numéro de téléphone valide',
+                  disableLengthCheck: false,
+                  keyboardType: TextInputType.phone,
+                  onChanged: (PhoneNumber phone) {
+                    // Update the controller with the complete phone number
+                    phoneController.text = phone.completeNumber;
+                  },
+                )
+              : TextFormField(
+                  controller: phoneController,
+                  decoration: const InputDecoration(
+                    labelText: 'Téléphone',
+                    hintText: 'Entrez votre numéro de téléphone',
+                    border: OutlineInputBorder(),
+                  ),
+                  readOnly: true,
+                  enabled: false,
+                ),
         ],
       ),
     );

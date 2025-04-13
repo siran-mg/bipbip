@@ -237,8 +237,10 @@ class RegisterUserInteractor {
     // Remove any non-digit characters for validation
     final digitsOnly = phoneNumber.replaceAll(RegExp(r'\D'), '');
 
-    if (digitsOnly.length < 10) {
-      throw ArgumentError('Phone number must have at least 10 digits');
+    // International phone numbers can vary in length, but should have at least 8 digits
+    // and not more than 15 digits (ITU-T recommendation E.164)
+    if (digitsOnly.length < 8 || digitsOnly.length > 15) {
+      throw ArgumentError('Phone number must have between 8 and 15 digits');
     }
 
     // Email is optional but if provided, it should be valid

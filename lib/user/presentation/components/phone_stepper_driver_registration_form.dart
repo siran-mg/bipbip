@@ -196,6 +196,7 @@ class _PhoneStepperDriverRegistrationFormState
                       givenNameController: _givenNameController,
                       familyNameController: _familyNameController,
                       phoneController: _phoneController,
+                      isPhoneEditable: false,
                       profilePhoto: _profilePhoto,
                       profilePhotoBytes: _profilePhotoBytes,
                       onProfilePhotoPicked: kIsWeb
@@ -280,7 +281,7 @@ class _PhoneStepperDriverRegistrationFormState
         // Loading overlay
         if (_isLoading)
           Container(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withAlpha(76),
             child: const Center(
               child: CircularProgressIndicator(),
             ),

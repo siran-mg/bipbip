@@ -35,7 +35,7 @@ class UserCommands {
         _userRolesCollectionId = userRolesCollectionId;
 
   /// Save a user to the data source
-  /// 
+  ///
   /// Returns the saved user with any server-generated fields
   /// Throws an exception if the save operation fails
   Future<UserEntity> saveUser(UserEntity user) async {
@@ -49,7 +49,7 @@ class UserCommands {
         data: {
           'given_name': user.givenName,
           'family_name': user.familyName,
-          'email': user.email,
+          'email': user.email ?? '',
           'phone_number': user.phoneNumber,
           'profile_picture_url': user.profilePictureUrl,
           'created_at': now,
@@ -115,7 +115,7 @@ class UserCommands {
   }
 
   /// Update an existing user
-  /// 
+  ///
   /// Returns the updated user
   /// Throws an exception if the update operation fails or the user doesn't exist
   Future<UserEntity> updateUser(UserEntity user) async {
@@ -128,7 +128,7 @@ class UserCommands {
         data: {
           'given_name': user.givenName,
           'family_name': user.familyName,
-          'email': user.email,
+          'email': user.email ?? '',
           'phone_number': user.phoneNumber,
           'profile_picture_url': user.profilePictureUrl,
         },
@@ -206,7 +206,7 @@ class UserCommands {
   }
 
   /// Delete a user by ID
-  /// 
+  ///
   /// Returns true if the user was successfully deleted, false otherwise
   Future<bool> deleteUser(String id) async {
     try {

@@ -28,7 +28,7 @@ abstract class AuthRepository {
     String givenName,
     String familyName,
     String phoneNumber,
-    String email,
+    String? email,
   );
 
   /// Sign up a driver with phone number
@@ -39,7 +39,7 @@ abstract class AuthRepository {
     String givenName,
     String familyName,
     String phoneNumber,
-    String email,
+    String? email,
   );
 
   /// Sign up with email and password (legacy method)

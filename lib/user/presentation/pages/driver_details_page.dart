@@ -257,11 +257,12 @@ class _DriverDetailsPageState extends State<DriverDetailsPage>
                             ),
 
                             // Email if available
-                            if (driver.email.isNotEmpty)
+                            if (driver.email != null &&
+                                driver.email!.isNotEmpty)
                               _InfoItem(
                                 icon: Icons.email,
                                 label: 'Email',
-                                value: driver.email,
+                                value: driver.email!,
                               ),
 
                             // Status

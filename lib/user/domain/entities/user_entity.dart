@@ -11,8 +11,8 @@ class UserEntity {
   /// User's last name
   final String familyName;
 
-  /// User's email address
-  final String email;
+  /// User's email address (optional)
+  final String? email;
 
   /// User's phone number
   final String phoneNumber;
@@ -40,7 +40,7 @@ class UserEntity {
     required this.id,
     required this.givenName,
     required this.familyName,
-    required this.email,
+    this.email,
     required this.phoneNumber,
     this.profilePictureUrl,
     required this.roles,

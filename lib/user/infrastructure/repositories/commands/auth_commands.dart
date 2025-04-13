@@ -358,7 +358,7 @@ class AuthCommands {
     String givenName,
     String familyName,
     String phoneNumber,
-    String email,
+    String? email,
   ) async {
     try {
       // Check if there's an existing session and clear it
@@ -417,7 +417,7 @@ class AuthCommands {
     String givenName,
     String familyName,
     String phoneNumber,
-    String email,
+    String? email,
   ) async {
     try {
       // Check if there's an existing session and clear it

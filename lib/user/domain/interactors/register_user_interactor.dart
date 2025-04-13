@@ -28,7 +28,7 @@ class RegisterUserInteractor {
     String givenName,
     String familyName,
     String phoneNumber,
-    String email,
+    String? email,
   ) async {
     // Validate inputs
     _validatePhoneRegistration(givenName, familyName, phoneNumber, email);
@@ -109,7 +109,7 @@ class RegisterUserInteractor {
     String givenName,
     String familyName,
     String phoneNumber,
-    String email,
+    String? email,
     String licensePlate,
     String vehicleModel,
     String vehicleBrand,
@@ -220,7 +220,7 @@ class RegisterUserInteractor {
     String givenName,
     String familyName,
     String phoneNumber,
-    String email,
+    String? email,
   ) {
     if (givenName.isEmpty) {
       throw ArgumentError('Given name cannot be empty');
@@ -244,7 +244,7 @@ class RegisterUserInteractor {
     }
 
     // Email is optional but if provided, it should be valid
-    if (email.isNotEmpty && !_isValidEmail(email)) {
+    if (email != null && email.isNotEmpty && !_isValidEmail(email)) {
       throw ArgumentError('Invalid email format');
     }
 

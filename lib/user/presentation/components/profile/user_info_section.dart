@@ -63,11 +63,12 @@ class UserInfoSection extends StatelessWidget {
               value: user.fullName,
             ),
             const Divider(),
-            InfoRow(
-              icon: Icons.email,
-              label: 'Email',
-              value: user.email,
-            ),
+            if (user.email != null && user.email!.isNotEmpty)
+              InfoRow(
+                icon: Icons.email,
+                label: 'Email',
+                value: user.email!,
+              ),
             const Divider(),
             InfoRow(
               icon: Icons.phone,

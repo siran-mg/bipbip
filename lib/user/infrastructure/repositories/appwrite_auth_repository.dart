@@ -97,7 +97,7 @@ class AppwriteAuthRepository implements AuthRepository {
     String givenName,
     String familyName,
     String phoneNumber,
-    String email,
+    String? email,
   ) {
     return _authCommands.signUpWithPhoneNumber(
       givenName,
@@ -112,7 +112,7 @@ class AppwriteAuthRepository implements AuthRepository {
     String givenName,
     String familyName,
     String phoneNumber,
-    String email,
+    String? email,
   ) {
     return _authCommands.signUpDriverWithPhoneNumber(
       givenName,
